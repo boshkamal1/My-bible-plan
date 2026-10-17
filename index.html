@@ -179,6 +179,13 @@ h1{text-shadow:0 1px 0 rgba(226,187,94,.55)}
 .su-f select:disabled{opacity:.5}
 .su-sum{margin:0;background:var(--paper2);border:1px dashed var(--gold);border-radius:4px;padding:10px 14px;font-size:1rem}
 body.lock{overflow:hidden}
+.picker{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:nowrap;scroll-margin-top:12px}
+.picker #pToday{display:none}
+.picker select{flex:1 1 0;min-width:0;font-family:var(--f-body);font-size:1.02rem;color:var(--ink);background:var(--paper);border:1.5px solid var(--gold);border-radius:4px;padding:8px 10px}
+.picker .mute{padding:6px 12px;font-size:.85rem}
+.picker .mute:disabled{opacity:.4;cursor:not-allowed}
+.hero.pastv{background:linear-gradient(180deg,#f3ead2,#ecdfbf);border-color:var(--vel)}
+.hero.pastv .eyebrow{color:var(--vel)}
 @media (max-width:480px){.verse{padding:26px 16px 22px}}
 </style>
 <div class="wrap" dir="rtl" lang="ar">
@@ -190,6 +197,7 @@ body.lock{overflow:hidden}
     <div class="chiprow"><span class="sync" id="sync">محفوظ على الجهاز</span><button class="mute" id="mute" type="button" aria-pressed="false"></button><button class="mute" id="resetup" type="button">غيّر نقطة البداية</button></div>
   </header>
   <section class="verse" id="verse" aria-live="polite"><svg class="star" viewBox="190 60 140 120" aria-hidden="true"><path d="M256 76L264 106L294 94L282 120L312 120L286 134L304 160L274 148L256 164L238 148L208 160L226 134L200 120L230 120L218 94L248 106Z" fill="#e2bb5e"/></svg><p class="vh">آية اليوم</p><p class="vt" id="vText"></p><div class="vref"><i></i><b id="vRef"></b><i></i></div><p class="vm" id="vNote"></p></section>
+  <section class="picker" id="picker" hidden><button class="mute" id="pPrev" type="button" aria-label="اليوم اللي قبله">السابق</button><select id="pSel" aria-label="اختار اليوم"></select><button class="mute" id="pNext" type="button" aria-label="اليوم اللي بعده">التالي</button><button class="mute" id="pToday" type="button" hidden>رجوع للنهارده</button></section>
   <section class="card hero" id="hero" aria-live="polite"></section>
   <section class="card streak" id="streak">
     <div class="flame">
@@ -300,15 +308,19 @@ function buildPlan(){
   INPLAN=new Set(ALL.map(x=>x[0]+':'+x[1]));
   TOTAL=ALL.length;
   NDAYS=TOTAL?lastDay(START)-START+1:0;
+  const bc=cutsFor(CH.map(x=>0.3*28.4+0.7*VCOUNT[x[0]]/BOOKS[x[0]][1]),NDAYS);
+  const bp=cutsFor(PS.map(x=>PSW[x[1]]||1),NDAYS);
+  BASE=bc.map((e,k)=>({k,ks:PS.slice(k?bp[k-1]:0,bp[k]).concat(CH.slice(k?bc[k-1]:0,e))}));
   DAYS=[];
 }
 let ADJ={left:0,days:0,per:0};
-let T0=new Set(),AHEAD=0;
+let T0=new Set(),AHEAD=0,BASE=[],VIEW=null,KT=0;
 const cw=x=>0.3*28.4+0.7*VCOUNT[x[0]]/BOOKS[x[0]][1];
 function layout(){
   const ts=str(T);
   let kT=dates.findIndex(x=>x>=T);
   if(kT<0)kT=NDAYS;
+  KT=kT;
   const dstr=dates.map(str);
   const past=[];
   for(let k=0;k<kT;k++)past.push({k,ks:[]});
@@ -411,8 +423,8 @@ function rangeText(d){
     return BOOKS[g.b][0]+' '+(a===z?a:a+'–'+z);
   }).join(' · ');
 }
-function chipsHTML(d){
-  return segs(d).map(g=>'<div class="seg"><div class="segname">'+BOOKS[g.b][0]+(DEUT.has(g.b)?'<i>قانوني ثاني</i>':'')+'</div><div class="chips">'+g.cs.map(c=>'<label class="chip"><input type="checkbox" data-key="'+g.b+':'+c+'" aria-label="'+BOOKS[g.b][0]+' '+c+'"><span>'+c+'</span></label>').join('')+'</div></div>').join('');
+function chipsHTML(d,ds){
+  return segs(d).map(g=>'<div class="seg"><div class="segname">'+BOOKS[g.b][0]+(DEUT.has(g.b)?'<i>قانوني ثاني</i>':'')+'</div><div class="chips">'+g.cs.map(c=>'<label class="chip"><input type="checkbox" data-key="'+g.b+':'+c+'"'+(ds?' data-ds="'+ds+'"':'')+' aria-label="'+BOOKS[g.b][0]+' '+c+'"><span>'+c+'</span></label>').join('')+'</div></div>').join('');
 }
 function listChipsHTML(idxs){
   const out=[];
@@ -429,6 +441,18 @@ function currentK(){
 function bufLeft(){return BUF-S.delays.length}
 function renderHero(){
   const h=$('hero');
+  if(VIEW!==null&&dates[VIEW]!==undefined){
+    const past=VIEW<KT;
+    const d=past?BASE[VIEW]:DAYS[VIEW];
+    const ds=past?str(dates[VIEW]):'';
+    h.classList.add('pastv');
+    h.innerHTML='<p class="eyebrow">'+(past?'قراية يوم فات':'قراية يوم جاي')+' · اليوم '+(VIEW+1)+' من '+NDAYS+'</p><h2>'+label(dates[VIEW])+'</h2><p class="range">'+(rangeText(d)||'مفيش قراية في اليوم ده')+'</p>'+chipsHTML(d,ds)+
+    '<div class="prog"><div class="bar-track"><div class="bar-fill" id="heroFill"></div></div><b id="heroProg"></b></div>'+
+    '<p class="muted">'+(past?'دي القراية اللي كانت مقررة في اليوم ده في الخطة الأصلية. أي إصحاح تعلّمه هنا بيتسجل في تاريخ اليوم ده وبيتحسب في سلسلته.':'دي القراية المقررة لليوم ده حاليًا، وبتتغير لو الخطة اتعدلت. أي إصحاح تعلّمه هنا بيتحسب النهارده وبيتضاف لقراية النهارده.')+'</p>'+
+    '<div class="row"><button class="btn" data-act="'+(past?'allp':'all')+'" data-k="'+VIEW+'">علّم اليوم كله</button><button class="btn ghost" data-act="today">رجوع لقراية النهارده</button></div>';
+    return;
+  }
+  h.classList.remove('pastv');
   const k=currentK();
   const all=doneCount()>=TOTAL;
   let html='';
@@ -493,6 +517,8 @@ function render(){
   T=nowNum();
   schedule();
   layout();
+  if(VIEW!==null&&(VIEW>=NDAYS||VIEW===todayIdx()))VIEW=null;
+  renderPicker();
   renderHeader();
   renderHero();
   renderPlan();
@@ -553,8 +579,9 @@ function refresh(){
     el.querySelector('.dp').textContent=st.done+' / '+st.total;
   });
   const k=currentK();
-  if(k>=0){
-    const st=dayStats(DAYS[k]);
+  const hd=VIEW!==null&&dates[VIEW]!==undefined?(VIEW<KT?BASE[VIEW]:DAYS[VIEW]):(k>=0?DAYS[k]:null);
+  if(hd){
+    const st=dayStats(hd);
     const hp=$('heroProg');
     if(hp){hp.textContent='قريت '+st.done+' من '+st.total;$('heroFill').style.width=(st.total?st.done/st.total*100:100)+'%'}
   }
@@ -610,8 +637,8 @@ function toast(msg,kind){
   $('toasts').appendChild(t);
   setTimeout(()=>t.remove(),3200);
 }
-function setKeys(keys,val){
-  const ts=str(nowNum());
+function setKeys(keys,val,ds){
+  const ts=ds||str(nowNum());
   const before=BOOKS.map((b,i)=>bookStats(i)===b[1]);
   const wasAll=doneCount()>=TOTAL;
   const stBefore=streakInfo();
@@ -634,9 +661,10 @@ function setKeys(keys,val){
     }
   });
   const stAfter=streakInfo();
-  if(val&&!stBefore.readToday&&stAfter.readToday)toast('السلسلة '+stAfter.cur+' يوم','green');
+  if(!ds&&val&&!stBefore.readToday&&stAfter.readToday)toast('السلسلة '+stAfter.cur+' يوم','green');
   const k=currentK();
-  if(val&&k>=0){
+  if(ds&&val&&VIEW!==null&&BASE[VIEW]){const sp=dayStats(BASE[VIEW]);if(sp.total&&sp.done===sp.total)toast('خلصت قراية اليوم ده','green')}
+  if(!ds&&val&&k>=0){
     const st=dayStats(DAYS[k]);
     if(st.done===st.total&&keys.length&&!wasDayDone){toast('خلصت قراية اليوم','green');celebrate()}
   }
@@ -657,7 +685,7 @@ function removeDelay(s){
 }
 document.addEventListener('change',e=>{
   const el=e.target;
-  if(el.matches&&el.matches('input[data-key]'))setKeys([el.dataset.key],el.checked);
+  if(el.matches&&el.matches('input[data-key]'))setKeys([el.dataset.key],el.checked,el.dataset.ds);
 });
 document.addEventListener('toggle',e=>{
   const el=e.target;
@@ -683,6 +711,14 @@ document.addEventListener('click',e=>{
     const allDone=keys.every(isDone);
     setKeys(keys,!allDone);
   }else if(a==='buffer')useBuffer();
+  else if(a==='allp'){
+    const bi=+b.dataset.k;
+    const ds=str(dates[bi]);
+    const keys=dayKeys(BASE[bi]);
+    if(keys.every(isDone))setKeys(keys.filter(x=>S.done[x]===ds),false);
+    else setKeys(keys.filter(x=>!isDone(x)),true,ds);
+  }
+  else if(a==='today')setView(null);
   else if(a==='undo')removeDelay(str(T));
   else if(a==='rm')removeDelay(b.dataset.d);
   else if(a==='book'){
@@ -812,6 +848,39 @@ $('mute').addEventListener('click',()=>{
 });
 document.addEventListener('pointerdown',()=>{const a=actx();if(a&&a.state==='suspended')a.resume()},{once:true});
 paintMute();
+const todayIdx=()=>dates[KT]===T?KT:-1;
+let ORDER=[];
+function renderPicker(){
+  const p=$('picker');
+  if(!NDAYS){p.hidden=true;return}
+  p.hidden=false;
+  const ti=todayIdx();
+  let o='';
+  ORDER=[];
+  const add=(v,t)=>{ORDER.push(v);o+='<option value="'+v+'">'+t+'</option>'};
+  for(let k=0;k<NDAYS;k++){
+    if(k===KT&&ti<0)add('t','النهارده · '+label(T));
+    if(k===ti)add('t','اليوم '+(k+1)+' · '+label(dates[k])+' · النهارده');
+    else add(String(k),'اليوم '+(k+1)+' · '+label(dates[k]));
+  }
+  if(KT>=NDAYS)add('t','النهارده · '+label(T));
+  const s=$('pSel');
+  s.innerHTML=o;
+  const cur=VIEW===null?'t':String(VIEW);
+  s.value=cur;
+  const pos=ORDER.indexOf(cur);
+  $('pPrev').disabled=pos<=0;
+  $('pNext').disabled=pos>=ORDER.length-1;
+  $('pToday').hidden=VIEW===null;
+}
+function setView(v){
+  VIEW=v;
+  renderHero();
+  renderPicker();
+  refresh();
+  $('picker').scrollIntoView({behavior:'smooth',block:'start'});
+}
+const viewOf=v=>v==='t'?null:+v;
 function renderHeader(){
   $('subA').textContent=TOTAL?(TOTAL+' إصحاحًا والمزامير موزعة على '+NDAYS+' يوم'):'خلصت كل الإصحاحات';
   $('subB').textContent=NDAYS?('من '+label(dates[0])+' حتى '+label(dates[NDAYS-1])+'، وأسبوع احتياطي لحد 5 يناير، وعيد الميلاد 6 يناير'):'عيد الميلاد 6 يناير';
@@ -872,6 +941,10 @@ function closeSetup(){
 $('suBook').addEventListener('change',()=>{fillChapters(+$('suBook').value,0);suPreview()});
 $('suCh').addEventListener('change',suPreview);
 $('suPs').addEventListener('change',suPreview);
+$('pSel').addEventListener('change',e=>setView(viewOf(e.target.value)));
+$('pPrev').addEventListener('click',()=>{const i=ORDER.indexOf(VIEW===null?'t':String(VIEW));if(i>0)setView(viewOf(ORDER[i-1]))});
+$('pNext').addEventListener('click',()=>{const i=ORDER.indexOf(VIEW===null?'t':String(VIEW));if(i<ORDER.length-1)setView(viewOf(ORDER[i+1]))});
+$('pToday').addEventListener('click',()=>setView(null));
 $('suCancel').addEventListener('click',closeSetup);
 $('resetup').addEventListener('click',()=>openSetup(true));
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('setup').hidden&&!$('suCancel').hidden)closeSetup()});
@@ -882,6 +955,7 @@ $('suGo').addEventListener('click',()=>{
   save();
   buildPlan();
   closeSetup();
+  VIEW=null;
   openDays.clear();
   schedule();
   const k=currentK();
