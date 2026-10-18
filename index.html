@@ -317,56 +317,13 @@ let ADJ={left:0,days:0,per:0};
 let T0=new Set(),AHEAD=0,BASE=[],VIEW=null,KT=0;
 const cw=x=>0.3*28.4+0.7*VCOUNT[x[0]]/BOOKS[x[0]][1];
 function layout(){
-  const ts=str(T);
   let kT=dates.findIndex(x=>x>=T);
   if(kT<0)kT=NDAYS;
   KT=kT;
-  const dstr=dates.map(str);
-  const past=[];
-  for(let k=0;k<kT;k++)past.push({k,ks:[]});
-  const poolC=[],poolP=[];
-  const handle=(pair,pool)=>{
-    const v=S.done[pair[0]+':'+pair[1]];
-    if(v&&v<ts&&kT>0){
-      let j=0;
-      for(let x=0;x<kT;x++){if(dstr[x]<=v)j=x}
-      past[j].ks.push(pair);
-    }else if(!(v&&v<ts))pool.push(pair);
-  };
-  PS.forEach(x=>handle(x,poolP));
-  CH.forEach(x=>handle(x,poolC));
-  const ord=new Map();
-  ALL.forEach((x,i)=>ord.set(x[0]+':'+x[1],i));
-  past.forEach(d=>{
-    const seen=new Set(),m=[];
-    (BASE[d.k]?BASE[d.k].ks:[]).concat(d.ks).forEach(x=>{const id=x[0]+':'+x[1];if(!seen.has(id)){seen.add(id);m.push(x)}});
-    m.sort((a,b)=>((a[0]===PSB?0:1)-(b[0]===PSB?0:1))||((ord.get(a[0]+':'+a[1])||0)-(ord.get(b[0]+':'+b[1])||0)));
-    d.ks=m;
-  });
-  DAYS=past;
+  DAYS=BASE.map(d=>({k:d.k,ks:d.ks.slice()}));
   T0=new Set();
   AHEAD=0;
-  const n=NDAYS-kT;
-  const pend=x=>!S.done[x[0]+':'+x[1]];
-  const left=poolC.filter(pend).length+poolP.filter(pend).length;
-  if(n>0){
-    const cc=cutsFor(poolC.map(cw),n);
-    const pc=cutsFor(poolP.map(x=>PSW[x[1]]||1),n);
-    const t0=poolP.slice(0,pc[0]).concat(poolC.slice(0,cc[0]));
-    T0=new Set(t0.map(x=>x[0]+':'+x[1]));
-    const doneT=x=>S.done[x[0]+':'+x[1]]===ts;
-    const ap=poolP.slice(pc[0]).filter(doneT);
-    const ac=poolC.slice(cc[0]).filter(doneT);
-    AHEAD=ap.length+ac.length;
-    DAYS.push({k:kT,ks:poolP.slice(0,pc[0]).concat(ap,poolC.slice(0,cc[0]),ac)});
-    const fc=poolC.slice(cc[0]).filter(pend);
-    const fp=poolP.slice(pc[0]).filter(pend);
-    const m=n-1;
-    const c2=cutsFor(fc.map(cw),m);
-    const p2=cutsFor(fp.map(x=>PSW[x[1]]||1),m);
-    for(let i=0;i<m;i++)DAYS.push({k:kT+1+i,ks:fp.slice(i?p2[i-1]:0,p2[i]).concat(fc.slice(i?c2[i-1]:0,c2[i]))});
-  }
-  ADJ={left,days:n,per:n?left/n:0};
+  ADJ={left:0,days:0,per:0};
 }
 const planSig=()=>DAYS.map(d=>d.ks.length+':'+(d.ks[0]||[]).join('.')+':'+(d.ks[d.ks.length-1]||[]).join('.')).join('|');
 let rpTimer=0;
@@ -456,7 +413,7 @@ function renderHero(){
     h.classList.add('pastv');
     h.innerHTML='<p class="eyebrow">'+(past?'قراية يوم فات':'قراية يوم جاي')+' · اليوم '+(VIEW+1)+' من '+NDAYS+'</p><h2>'+label(dates[VIEW])+'</h2><p class="range">'+(rangeText(d)||'مفيش قراية في اليوم ده')+'</p>'+chipsHTML(d,ds)+
     '<div class="prog"><div class="bar-track"><div class="bar-fill" id="heroFill"></div></div><b id="heroProg"></b></div>'+
-    '<p class="muted">'+(past?'دي القراية الأصلية لليوم ده مع أي حاجة اتقرت فيه زيادة. اللي لسه ما اتقراش بيفضل كمان في قراية النهارده، ولو علّمته هنا بيتسجل في تاريخ اليوم ده وبيتحسب في سلسلته والخطة بتتعدل.':'دي القراية المقررة لليوم ده حاليًا، وبتتغير لو الخطة اتعدلت. أي إصحاح تعلّمه هنا بيتحسب النهارده وبيتضاف لقراية النهارده.')+'</p>'+
+    '<p class="muted">'+(past?'دي قراية اليوم ده زي ما هي في الخطة. لو علّمت إصحاح هنا بيتسجل في تاريخ اليوم ده وبيتحسب في سلسلته.':'دي قراية اليوم ده في الخطة. لو علّمت إصحاح هنا بيتحسب قراية النهارده.')+'</p>'+
     '<div class="row"><button class="btn" data-act="'+(past?'allp':'all')+'" data-k="'+VIEW+'">علّم اليوم كله</button><button class="btn ghost" data-act="today">رجوع لقراية النهارده</button></div>';
     return;
   }
