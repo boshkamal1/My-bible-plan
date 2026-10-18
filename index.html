@@ -320,7 +320,8 @@ function layout(){
   let kT=dates.findIndex(x=>x>=T);
   if(kT<0)kT=NDAYS;
   KT=kT;
-  DAYS=BASE.map(d=>({k:d.k,ks:d.ks.slice()}));
+  const sp=S.plan&&S.plan.length===NDAYS?S.plan:null;
+  DAYS=BASE.map(d=>({k:d.k,ks:sp?sp[d.k].map(x=>x.split(':').map(Number)).filter(x=>VALID.has(x[0]+':'+x[1])):d.ks.slice()}));
   T0=new Set();
   AHEAD=0;
   ADJ={left:0,days:0,per:0};
@@ -349,7 +350,7 @@ let synced=false;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s);
 function clean(d){const o={};Object.keys(d||{}).forEach(k=>{if(VALID.has(k))o[k]=d[k]});return o}
-function loadLocal(){try{const r=JSON.parse(localStorage.getItem(KEY)||'null');if(r&&r.done)S={done:clean(r.done),delays:r.delays||[],t:r.t||0,setup:r.setup||null}}catch(e){}}
+function loadLocal(){try{const r=JSON.parse(localStorage.getItem(KEY)||'null');if(r&&r.done)S={done:clean(r.done),delays:r.delays||[],t:r.t||0,setup:r.setup||null,plan:r.plan||null}}catch(e){}}
 function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 function save(){
   S.t=Date.now();
@@ -425,9 +426,9 @@ function renderHero(){
     html='<div class="finale"><p class="eyebrow">تمت الرحلة</p><h2>أتممت العهد القديم والأسفار القانونية الثانية</h2><p class="muted">خلصت كل الإصحاحات اللي في الخطة والمزامير كلها. المجد لله دائمًا.</p></div>';
   }else if(k>=0){
     const d=DAYS[k];
-    html='<p class="eyebrow">قراية النهارده · اليوم '+(k+1)+' من '+NDAYS+'</p><h2>'+label(T)+'</h2><p class="range">'+rangeText(d)+'</p>'+chipsHTML(d)+
+    html='<p class="eyebrow">قراية النهارده · اليوم '+(k+1)+' من '+NDAYS+'</p><h2>'+label(T)+'</h2><p class="range">'+(rangeText(d)||'قراية النهارده اتنقلت للأيام الجاية')+'</p>'+chipsHTML(d)+
     '<div class="prog"><div class="bar-track"><div class="bar-fill" id="heroFill"></div></div><b id="heroProg"></b></div><p class="alert" id="behind" hidden></p>'+
-    '<div class="row"><button class="btn" data-act="all" data-k="'+k+'">علّم اليوم كله</button>'+bufBtn()+'</div>';
+    '<div class="row"><button class="btn" data-act="all" data-k="'+k+'">علّم اليوم كله</button>'+bufBtn()+'</div><div class="row"><button class="btn warn" id="rebalBtn" data-act="rebal" hidden></button></div>';
   }else if(k===-2){
     html='<p class="eyebrow">يوم احتياطي</p><h2>'+label(T)+'</h2><p class="muted">قراية النهارده اتأجلت للأيام الجاية والسلسلة محمية. لو قريت أي إصحاح النهارده هيتحسب برضه.</p><p class="alert" id="behind" hidden></p><div class="row"><button class="btn warn" data-act="undo">إلغاء الاحتياطي ورجوع الخطة</button></div>';
   }else if(k===-3){
@@ -550,6 +551,8 @@ function refresh(){
     const hp=$('heroProg');
     if(hp){hp.textContent='قريت '+st.done+' من '+st.total;$('heroFill').style.width=(st.total?st.done/st.total*100:100)+'%'}
   }
+  const rb=$('rebalBtn');
+  if(rb){const pn=pendBefore();rb.hidden=!(pn>0&&NDAYS-1-lastFrozen()>0);rb.textContent='رحّل الباقي ('+pn+') وأعد توزيعه على الأيام الجاية'}
   const bh=$('behind');
   if(bh){
     const base=NDAYS?TOTAL/NDAYS:0;
@@ -634,6 +637,37 @@ function setKeys(keys,val,ds){
     if(st.done===st.total&&keys.length&&!wasDayDone){toast('خلصت قراية اليوم','green');celebrate()}
   }
 }
+const ordOf=()=>{const m=new Map();ALL.forEach((x,i)=>m.set(x[0]+':'+x[1],i));return m};
+function sortKs(a,m){return a.sort((p,q)=>((p[0]===PSB?0:1)-(q[0]===PSB?0:1))||((m.get(p[0]+':'+p[1])||0)-(m.get(q[0]+':'+q[1])||0)))}
+const lastFrozen=()=>dates[KT]===T?KT:KT-1;
+function pendBefore(){
+  const L=lastFrozen();let n=0;
+  for(let k=0;k<=L&&k<NDAYS;k++)DAYS[k].ks.forEach(x=>{if(!isDone(x[0]+':'+x[1]))n++});
+  return n;
+}
+function rebalance(){
+  const L=lastFrozen(),m=NDAYS-1-L;
+  if(m<=0)return;
+  const ord=ordOf();
+  const pc=[],pp=[],isP=x=>x[0]===PSB;
+  const out=DAYS.map(d=>({k:d.k,ks:[]}));
+  DAYS.forEach((d,k)=>d.ks.forEach(x=>{
+    if(isDone(x[0]+':'+x[1]))out[k].ks.push(x);
+    else (isP(x)?pp:pc).push(x);
+  }));
+  sortKs(pc,ord);sortKs(pp,ord);
+  const c=cutsFor(pc.map(cw),m),p=cutsFor(pp.map(x=>PSW[x[1]]||1),m);
+  for(let i=0;i<m;i++){
+    const j=L+1+i;
+    out[j].ks=sortKs(out[j].ks.concat(pp.slice(i?p[i-1]:0,p[i]),pc.slice(i?c[i-1]:0,c[i])),ord);
+  }
+  out.forEach(d=>sortKs(d.ks,ord));
+  S.plan=out.map(d=>d.ks.map(x=>x[0]+':'+x[1]));
+  save();
+  layout();
+  renderHero();renderPlan();renderPicker();refresh();
+  toast('اتنقل الباقي واتوزع على الأيام الجاية','gold');
+}
 function useBuffer(){
   const s=str(T);
   if(S.delays.includes(s)||bufLeft()<=0||T<START||T>=XMAS-1)return;
@@ -676,6 +710,7 @@ document.addEventListener('click',e=>{
     const allDone=keys.every(isDone);
     setKeys(keys,!allDone);
   }else if(a==='buffer')useBuffer();
+  else if(a==='rebal'){if(confirm('ترحّل الإصحاحات اللي لسه ما اتقراتش وتتوزع على باقي الأيام؟'))rebalance()}
   else if(a==='allp'){
     const bi=+b.dataset.k;
     const ds=str(dates[bi]);
@@ -917,6 +952,7 @@ $('suGo').addEventListener('click',()=>{
   const v=suRead();
   const first=S.setup&&S.setup.first?S.setup.first:str(nowNum());
   S.setup={b:v.b,c:v.c,p:v.p,start:str(nowNum()),first};
+  S.plan=null;
   save();
   buildPlan();
   closeSetup();
@@ -959,8 +995,8 @@ setInterval(()=>{if(nowNum()!==T)render();else refresh()},60000);
       setSync(true);
       if((r.t||0)>S.t){
         const delaysChanged=JSON.stringify(r.delays||[])!==JSON.stringify(S.delays);
-        const setupChanged=JSON.stringify(r.setup||null)!==JSON.stringify(S.setup||null);
-        S={done:clean(r.done),delays:r.delays||[],t:r.t||0,setup:r.setup||S.setup||null};
+        const setupChanged=JSON.stringify(r.setup||null)!==JSON.stringify(S.setup||null)||JSON.stringify(r.plan||null)!==JSON.stringify(S.plan||null);
+        S={done:clean(r.done),delays:r.delays||[],t:r.t||0,setup:r.setup||S.setup||null,plan:r.plan||null};
         saveLocal();
         if(delaysChanged||setupChanged){buildPlan();if(S.setup)closeSetup();render()}else{renderHero();refresh()}
       }else if((r.t||0)<S.t){
