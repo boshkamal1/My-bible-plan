@@ -682,7 +682,7 @@ function usePastBuffer(d,k){
   if(S.delays.includes(d)||(S.pb||[]).includes(d)||bufLeft()<=0)return;
   S.pb=(S.pb||[]).concat(d);
   VIEW=null;
-  if(NDAYS-1-lastFrozen()>0){rebalance(undefined,[k]);toast('اتفعّل احتياطي لليوم ده واتنقل الباقي لأيام بعد النهارده','gold')}
+  if(NDAYS-1-k>0){rebalance(k,[k]);toast('اتفعّل احتياطي لليوم ده واتنقلت قراياته من النهارده وبعده','gold')}
   else{save();render();toast('اتفعّل احتياطي لليوم ده')}
 }
 function removePastBuffer(d){
