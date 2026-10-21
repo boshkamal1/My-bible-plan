@@ -350,7 +350,7 @@ let synced=false;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s);
 function clean(d){const o={};Object.keys(d||{}).forEach(k=>{if(VALID.has(k))o[k]=d[k]});return o}
-function loadLocal(){try{const r=JSON.parse(localStorage.getItem(KEY)||'null');if(r&&r.done)S={done:clean(r.done),delays:r.delays||[],t:r.t||0,setup:r.setup||null,plan:r.plan||null}}catch(e){}}
+function loadLocal(){try{const r=JSON.parse(localStorage.getItem(KEY)||'null');if(r&&r.done)S={done:clean(r.done),delays:r.delays||[],t:r.t||0,setup:r.setup||null,plan:r.plan||null,pb:r.pb||[]}}catch(e){}}
 function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 function save(){
   S.t=Date.now();
@@ -358,7 +358,7 @@ function save(){
   if(!cloud)return;
   clearTimeout(timer);
   timer=setTimeout(async()=>{
-    try{await cloud.set({done:S.done,delays:S.delays,t:S.t,setup:S.setup||null});setSync(true)}catch(e){setSync(false)}
+    try{await cloud.set({done:S.done,delays:S.delays,pb:S.pb||[],plan:S.plan||null,t:S.t,setup:S.setup||null});setSync(true)}catch(e){setSync(false)}
   },600);
 }
 function setSync(ok){synced=ok;$('sync').textContent=ok?'محفوظ على حسابك':'محفوظ على الجهاز'}
@@ -404,7 +404,7 @@ function currentK(){
   if(i>=0)return i;
   return -1;
 }
-function bufLeft(){return BUF-S.delays.length}
+function bufLeft(){return BUF-S.delays.length-(S.pb||[]).length}
 function renderHero(){
   const h=$('hero');
   if(VIEW!==null&&dates[VIEW]!==undefined){
@@ -415,7 +415,7 @@ function renderHero(){
     h.innerHTML='<p class="eyebrow">'+(past?'قراية يوم فات':'قراية يوم جاي')+' · اليوم '+(VIEW+1)+' من '+NDAYS+'</p><h2>'+label(dates[VIEW])+'</h2><p class="range">'+(rangeText(d)||'مفيش قراية في اليوم ده')+'</p>'+chipsHTML(d,ds)+
     '<div class="prog"><div class="bar-track"><div class="bar-fill" id="heroFill"></div></div><b id="heroProg"></b></div>'+
     '<p class="muted">'+(past?'دي قراية اليوم ده زي ما هي في الخطة. لو علّمت إصحاح هنا بيتسجل في تاريخ اليوم ده وبيتحسب في سلسلته.':'دي قراية اليوم ده في الخطة. لو علّمت إصحاح هنا بيتحسب قراية النهارده.')+'</p>'+
-    '<div class="row"><button class="btn" data-act="'+(past?'allp':'all')+'" data-k="'+VIEW+'">علّم اليوم كله</button><button class="btn ghost" data-act="today">رجوع لقراية النهارده</button></div>'+(past?'<div class="row"><button class="btn warn" id="rebalBtn" data-act="rebal" hidden></button>'+bufBtn().replace('<button ','<button id="pbuf" data-d="'+ds+'" hidden ').replace('فعّل يوم احتياطي','فعّل يوم احتياطي لليوم ده')+'</div>':'');
+    '<div class="row"><button class="btn" data-act="'+(past?'allp':'all')+'" data-k="'+VIEW+'">علّم اليوم كله</button><button class="btn ghost" data-act="today">رجوع لقراية النهارده</button></div>'+(past?'<div class="row"><button class="btn warn" id="rebalBtn" data-act="rebal" hidden></button>'+bufBtn().replace('<button ','<button id="pbuf" data-d="'+ds+'" data-k="'+VIEW+'" hidden ').replace('فعّل يوم احتياطي','فعّل يوم احتياطي لليوم ده')+'</div>':'');
     return;
   }
   h.classList.remove('pastv');
@@ -460,10 +460,10 @@ function renderPlan(){
   const end=dates[NDAYS-1];
   const bufStart=end+1;
   html+='<div class="card bufcard" id="bufcard"><p class="eyebrow">أسبوع الاحتياطي</p><h2>'+(bufStart<=XMAS-1?sd(bufStart)+' إلى 5 يناير':'اتصرف بالكامل')+'</h2><p class="muted">كل ما تفعّل يوم احتياطي، الأيام الجاية كلها بتتزحزح يوم، وده بياخد من آخر أسبوع. السلسلة بتفضل محمية في اليوم ده.</p><div class="pips">';
-  for(let i=0;i<BUF;i++)html+='<span class="pip'+(i<S.delays.length?' used':'')+'">'+(i+1)+'</span>';
+  for(let i=0;i<BUF;i++)html+='<span class="pip'+(i<S.delays.length+(S.pb||[]).length?' used':'')+'">'+(i+1)+'</span>';
   html+='</div>';
-  if(S.delays.length){
-    html+='<ul class="used-list">'+S.delays.slice().sort().map(s=>'<li><span>'+label(parse(s))+'</span><button data-act="rm" data-d="'+s+'">إلغاء</button></li>').join('')+'</ul>';
+  if(S.delays.length||(S.pb||[]).length){
+    html+='<ul class="used-list">'+S.delays.slice().sort().map(s=>'<li><span>'+label(parse(s))+'</span><button data-act="rm" data-d="'+s+'">إلغاء</button></li>').join('')+(S.pb||[]).slice().sort().map(s=>'<li><span>'+label(parse(s))+' (احتياطي ليوم فات)</span><button data-act="rmp" data-d="'+s+'">إلغاء</button></li>').join('')+'</ul>';
   }
   html+='<div class="row">'+(T>=START&&T<XMAS-1&&!dset.has(T)?bufBtn():'')+'</div></div>';
   root.innerHTML=html;
@@ -493,7 +493,7 @@ function render(){
 }
 function streakInfo(){
   const read=new Set(Object.values(S.done));
-  const frozen=new Set(S.delays);
+  const frozen=new Set(S.delays.concat(S.pb||[]));
   const ts=str(T);
   let n=T;
   let atRisk=false;
@@ -593,7 +593,7 @@ function refresh(){
   msg+=' أطول سلسلة ليك: '+si.best+' يوم.';
   $('stMsg').textContent=msg;
   const read=new Set(Object.values(S.done));
-  const frozen=new Set(S.delays);
+  const frozen=new Set(S.delays.concat(S.pb||[]));
   let w='';
   for(let i=6;i>=0;i--){
     const n=T-i;const s=str(n);
@@ -653,7 +653,7 @@ function pendBefore(){
   for(let k=0;k<=L&&k<NDAYS;k++)DAYS[k].ks.forEach(x=>{if(!isDone(x[0]+':'+x[1]))n++});
   return n;
 }
-function rebalance(v){
+function rebalance(v,only){
   const L=v===undefined||isNaN(v)?lastFrozen():v,m=NDAYS-1-L;
   if(v!==undefined&&!isNaN(v))VIEW=null;
   if(m<=0)return;
@@ -662,7 +662,8 @@ function rebalance(v){
   const out=DAYS.map(d=>({k:d.k,ks:[]}));
   DAYS.forEach((d,k)=>d.ks.forEach(x=>{
     if(isDone(x[0]+':'+x[1]))out[k].ks.push(x);
-    else (isP(x)?pp:pc).push(x);
+    else if(!only||only.includes(k)||k>L)(isP(x)?pp:pc).push(x);
+    else out[k].ks.push(x);
   }));
   sortKs(pc,ord);sortKs(pp,ord);
   const c=cutsFor(pc.map(cw),m),p=cutsFor(pp.map(x=>PSW[x[1]]||1),m);
@@ -677,11 +678,23 @@ function rebalance(v){
   renderHero();renderPlan();renderPicker();refresh();
   toast('اتنقل الباقي واتوزع على الأيام الجاية','gold');
 }
+function usePastBuffer(d,k){
+  if(S.delays.includes(d)||(S.pb||[]).includes(d)||bufLeft()<=0)return;
+  S.pb=(S.pb||[]).concat(d);
+  VIEW=null;
+  if(NDAYS-1-lastFrozen()>0){rebalance(undefined,[k]);toast('اتفعّل احتياطي لليوم ده واتنقل الباقي لأيام بعد النهارده','gold')}
+  else{save();render();toast('اتفعّل احتياطي لليوم ده')}
+}
+function removePastBuffer(d){
+  S.pb=(S.pb||[]).filter(x=>x!==d);
+  save();
+  render();
+  toast('اتلغى الاحتياطي');
+}
 function useBuffer(d){
-  const s=d||str(T);
-  const n=d?parse(d):T;
+  const s=str(T);
+  const n=T;
   if(S.delays.includes(s)||bufLeft()<=0||n<START||n>=XMAS-1)return;
-  if(d)VIEW=null;
   S.delays.push(s);
   save();
   render();
@@ -720,7 +733,8 @@ document.addEventListener('click',e=>{
     const keys=dayKeys(d);
     const allDone=keys.every(isDone);
     setKeys(keys,!allDone);
-  }else if(a==='buffer')useBuffer(b.dataset.d);
+  }else if(a==='buffer'){if(b.dataset.d)usePastBuffer(b.dataset.d,+b.dataset.k);else useBuffer()}
+  else if(a==='rmp')removePastBuffer(b.dataset.d);
   else if(a==='rebal'){if(confirm('ترحّل الإصحاحات اللي لسه ما اتقراتش وتتوزع على باقي الأيام؟'))rebalance(b.dataset.v===undefined?undefined:+b.dataset.v)}
   else if(a==='allp'){
     const bi=+b.dataset.k;
@@ -1005,9 +1019,9 @@ setInterval(()=>{if(nowNum()!==T)render();else refresh()},60000);
       const r=snap.data()||{};
       setSync(true);
       if((r.t||0)>S.t){
-        const delaysChanged=JSON.stringify(r.delays||[])!==JSON.stringify(S.delays);
+        const delaysChanged=JSON.stringify(r.delays||[])!==JSON.stringify(S.delays)||JSON.stringify(r.pb||[])!==JSON.stringify(S.pb||[]);
         const setupChanged=JSON.stringify(r.setup||null)!==JSON.stringify(S.setup||null)||JSON.stringify(r.plan||null)!==JSON.stringify(S.plan||null);
-        S={done:clean(r.done),delays:r.delays||[],t:r.t||0,setup:r.setup||S.setup||null,plan:r.plan||null};
+        S={done:clean(r.done),delays:r.delays||[],t:r.t||0,setup:r.setup||S.setup||null,plan:r.plan||null,pb:r.pb||[]};
         saveLocal();
         if(delaysChanged||setupChanged){buildPlan();if(S.setup)closeSetup();render()}else{renderHero();refresh()}
       }else if((r.t||0)<S.t){
