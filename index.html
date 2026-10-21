@@ -552,8 +552,15 @@ function refresh(){
     if(hp){hp.textContent='قريت '+st.done+' من '+st.total;$('heroFill').style.width=(st.total?st.done/st.total*100:100)+'%'}
   }
   const rb=$('rebalBtn');
-  if(rb){const pn=pendBefore();const vs=VIEW===null?{done:0,total:1}:dayStats(DAYS[VIEW]);rb.hidden=!(pn>0&&NDAYS-1-lastFrozen()>0&&(VIEW===null||vs.done<vs.total));
-    const pb=$('pbuf');if(pb)pb.hidden=!(vs.done<vs.total&&VIEW!==null&&VIEW<KT);rb.textContent='رحّل الباقي ('+pn+') وأعد توزيعه على الأيام الجاية'}
+  if(rb){
+    const pv=VIEW!==null&&VIEW<KT;
+    const vs=pv?dayStats(DAYS[VIEW]):null;
+    const pn=pv?vs.total-vs.done:pendBefore();
+    rb.hidden=!(pn>0&&(pv?NDAYS-1-VIEW>0:NDAYS-1-lastFrozen()>0));
+    if(pv)rb.dataset.v=VIEW;else delete rb.dataset.v;
+    rb.textContent='رحّل الباقي ('+pn+') وأعد توزيعه على الأيام الجاية';
+    const pb=$('pbuf');if(pb)pb.hidden=!(pv&&vs.done<vs.total);
+  }
   const bh=$('behind');
   if(bh){
     const base=NDAYS?TOTAL/NDAYS:0;
@@ -646,8 +653,9 @@ function pendBefore(){
   for(let k=0;k<=L&&k<NDAYS;k++)DAYS[k].ks.forEach(x=>{if(!isDone(x[0]+':'+x[1]))n++});
   return n;
 }
-function rebalance(){
-  const L=lastFrozen(),m=NDAYS-1-L;
+function rebalance(v){
+  const L=v===undefined||isNaN(v)?lastFrozen():v,m=NDAYS-1-L;
+  if(v!==undefined&&!isNaN(v))VIEW=null;
   if(m<=0)return;
   const ord=ordOf();
   const pc=[],pp=[],isP=x=>x[0]===PSB;
@@ -713,7 +721,7 @@ document.addEventListener('click',e=>{
     const allDone=keys.every(isDone);
     setKeys(keys,!allDone);
   }else if(a==='buffer')useBuffer(b.dataset.d);
-  else if(a==='rebal'){if(confirm('ترحّل الإصحاحات اللي لسه ما اتقراتش وتتوزع على باقي الأيام؟'))rebalance()}
+  else if(a==='rebal'){if(confirm('ترحّل الإصحاحات اللي لسه ما اتقراتش وتتوزع على باقي الأيام؟'))rebalance(b.dataset.v===undefined?undefined:+b.dataset.v)}
   else if(a==='allp'){
     const bi=+b.dataset.k;
     const ds=str(dates[bi]);
