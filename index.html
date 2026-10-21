@@ -415,7 +415,7 @@ function renderHero(){
     h.innerHTML='<p class="eyebrow">'+(past?'قراية يوم فات':'قراية يوم جاي')+' · اليوم '+(VIEW+1)+' من '+NDAYS+'</p><h2>'+label(dates[VIEW])+'</h2><p class="range">'+(rangeText(d)||'مفيش قراية في اليوم ده')+'</p>'+chipsHTML(d,ds)+
     '<div class="prog"><div class="bar-track"><div class="bar-fill" id="heroFill"></div></div><b id="heroProg"></b></div>'+
     '<p class="muted">'+(past?'دي قراية اليوم ده زي ما هي في الخطة. لو علّمت إصحاح هنا بيتسجل في تاريخ اليوم ده وبيتحسب في سلسلته.':'دي قراية اليوم ده في الخطة. لو علّمت إصحاح هنا بيتحسب قراية النهارده.')+'</p>'+
-    '<div class="row"><button class="btn" data-act="'+(past?'allp':'all')+'" data-k="'+VIEW+'">علّم اليوم كله</button><button class="btn ghost" data-act="today">رجوع لقراية النهارده</button></div>'+(past?'<div class="row"><button class="btn warn" id="rebalBtn" data-act="rebal" hidden></button>'+bufBtn().replace('<button ','<button id="pbuf" hidden ').replace('فعّل يوم احتياطي','فعّل يوم احتياطي النهارده')+'</div>':'');
+    '<div class="row"><button class="btn" data-act="'+(past?'allp':'all')+'" data-k="'+VIEW+'">علّم اليوم كله</button><button class="btn ghost" data-act="today">رجوع لقراية النهارده</button></div>'+(past?'<div class="row"><button class="btn warn" id="rebalBtn" data-act="rebal" hidden></button>'+bufBtn().replace('<button ','<button id="pbuf" data-d="'+ds+'" hidden ').replace('فعّل يوم احتياطي','فعّل يوم احتياطي لليوم ده')+'</div>':'');
     return;
   }
   h.classList.remove('pastv');
@@ -669,9 +669,11 @@ function rebalance(){
   renderHero();renderPlan();renderPicker();refresh();
   toast('اتنقل الباقي واتوزع على الأيام الجاية','gold');
 }
-function useBuffer(){
-  const s=str(T);
-  if(S.delays.includes(s)||bufLeft()<=0||T<START||T>=XMAS-1)return;
+function useBuffer(d){
+  const s=d||str(T);
+  const n=d?parse(d):T;
+  if(S.delays.includes(s)||bufLeft()<=0||n<START||n>=XMAS-1)return;
+  if(d)VIEW=null;
   S.delays.push(s);
   save();
   render();
@@ -710,7 +712,7 @@ document.addEventListener('click',e=>{
     const keys=dayKeys(d);
     const allDone=keys.every(isDone);
     setKeys(keys,!allDone);
-  }else if(a==='buffer')useBuffer();
+  }else if(a==='buffer')useBuffer(b.dataset.d);
   else if(a==='rebal'){if(confirm('ترحّل الإصحاحات اللي لسه ما اتقراتش وتتوزع على باقي الأيام؟'))rebalance()}
   else if(a==='allp'){
     const bi=+b.dataset.k;
