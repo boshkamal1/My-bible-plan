@@ -276,6 +276,7 @@ const VCOUNT={44:924,45:555,46:15,0:1533,1:1213,2:859,3:1288,4:959,5:658,6:618,7
 const PSW={18:1.5,78:2.5,89:2,105:1.5,106:1.5,107:1.5,119:5,136:1.5};
 const VALID=new Set();
 BOOKS.forEach((b,i)=>{for(let c=1;c<=b[1];c++)VALID.add(i+':'+c)});
+const UNITS=[[44],[45,46]];
 let SKIP=new Set(),CH=[],PS=[],ALL=[],INPLAN=new Set(),TOTAL=0,NDAYS=0,DAYS=[],PRE={};
 const DEF_SETUP={b:4,c:19,p:0};
 function preFor(b,c,p){const o={};BOOKS.forEach((bk,i)=>{o[i]=i===PSB?p:(b<0?0:(i<b?bk[1]:(i===b?c:0)))});return o}
@@ -318,9 +319,18 @@ function buildPlan(){
   INPLAN=new Set(ALL.map(x=>x[0]+':'+x[1]));
   TOTAL=ALL.length;
   NDAYS=TOTAL?lastDay(START)-START+1:0;
-  const bc=cutsFor(CH.map(x=>0.3*28.4+0.7*VCOUNT[x[0]]/BOOKS[x[0]][1]),NDAYS);
+  const units=UNITS.map(u=>CH.filter(x=>u.includes(x[0]))).filter(u=>u.length);
+  const nu=NDAYS>units.length+1?units.length:0;
+  const CH2=nu?CH.filter(x=>!UNITS.flat().includes(x[0])):CH;
+  const nb=NDAYS-nu;
+  const bc=cutsFor(CH2.map(x=>0.3*28.4+0.7*VCOUNT[x[0]]/BOOKS[x[0]][1]),nb);
   const bp=cutsFor(PS.map(x=>PSW[x[1]]||1),NDAYS);
-  BASE=bc.map((e,k)=>({k,ks:PS.slice(k?bp[k-1]:0,bp[k]).concat(CH.slice(k?bc[k-1]:0,e))}));
+  BASE=[];
+  for(let k=0;k<NDAYS;k++){
+    const ps=PS.slice(k?bp[k-1]:0,bp[k]);
+    const chs=k<nb?CH2.slice(k?bc[k-1]:0,bc[k]):(nu?units[k-nb]:[]);
+    BASE.push({k,ks:ps.concat(chs)});
+  }
   DAYS=[];
 }
 let ADJ={left:0,days:0,per:0};
@@ -338,8 +348,14 @@ function layout(){
     const miss=ALL.filter(x=>!have.has(x[0]+':'+x[1]));
     const m0=Math.min(kT,NDAYS-1),mn=NDAYS-m0;
     if(miss.length&&mn>0){
-      const mc=cutsFor(miss.map(x=>x[0]===PSB?PSW[x[1]]||1:cw(x)),mn);
-      miss.length&&mc.forEach((e,i)=>{DAYS[m0+i].ks=DAYS[m0+i].ks.concat(miss.slice(i?mc[i-1]:0,e))});
+      const un=UNITS.map(u=>miss.filter(x=>u.includes(x[0]))).filter(u=>u.length);
+      const rest=miss.filter(x=>!UNITS.flat().includes(x[0]));
+      const nr=Math.max(mn-un.length,1);
+      if(rest.length){
+        const mc=cutsFor(rest.map(x=>x[0]===PSB?PSW[x[1]]||1:cw(x)),nr);
+        mc.forEach((e,i)=>{DAYS[m0+i].ks=DAYS[m0+i].ks.concat(rest.slice(i?mc[i-1]:0,e))});
+      }
+      un.forEach((u,i)=>{const j=Math.min(NDAYS-un.length+i,NDAYS-1);DAYS[Math.max(j,m0)].ks=DAYS[Math.max(j,m0)].ks.concat(u)});
     }
   }
   T0=new Set();
