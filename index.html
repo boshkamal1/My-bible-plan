@@ -177,6 +177,14 @@ h1{text-shadow:0 1px 0 rgba(226,187,94,.55)}
 .su-f span{font-family:var(--f-label);font-weight:600;font-size:.95rem;color:var(--vel)}
 .su-f select{font-family:var(--f-body);font-size:1.08rem;color:var(--ink);background:var(--paper);border:1.5px solid var(--gold);border-radius:4px;padding:10px 12px;width:100%}
 .su-f select:disabled{opacity:.5}
+.su-pick{display:flex;flex-direction:column;gap:10px;max-height:34vh;overflow:auto;padding:8px;border:1.5px solid var(--gold);border-radius:4px;background:var(--paper)}
+.su-g h5{margin:0 0 6px;display:flex;justify-content:space-between;align-items:center;font-family:var(--f-label);font-size:.95rem;color:var(--vel)}
+.su-g h5 button{font:inherit;font-size:.8rem;background:none;border:1px solid var(--gold);border-radius:12px;padding:2px 10px;color:var(--vel);cursor:pointer;margin-inline-start:6px}
+.su-b{display:flex;flex-wrap:wrap;gap:6px}
+.su-b label{display:flex;align-items:center;gap:5px;padding:5px 9px;border:1px solid var(--gold);border-radius:14px;font-size:.92rem;cursor:pointer}
+.su-b label.off{opacity:.45;text-decoration:line-through}
+.su-b label.fin{opacity:.6;cursor:default}
+.su-b input{accent-color:var(--vel)}
 .su-sum{margin:0;background:var(--paper2);border:1px dashed var(--gold);border-radius:4px;padding:10px 14px;font-size:1rem}
 body.lock{overflow:hidden}
 .picker{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:nowrap;scroll-margin-top:12px}
@@ -234,10 +242,11 @@ body.lock{overflow:hidden}
   <div class="card su-card">
     <svg class="star" viewBox="190 60 140 120" aria-hidden="true"><path d="M256 76L264 106L294 94L282 120L312 120L286 134L304 160L274 148L256 164L238 148L208 160L226 134L200 120L230 120L218 94L248 106Z" fill="#a8741f"/></svg>
     <h2 id="suTitle">نظّم رحلتك</h2>
-    <p class="muted">قولي وصلت لفين في العهد القديم، وهوزع اللي فاضل على الأيام لحد عيد الميلاد.</p>
+    <p class="muted">قولي وصلت لفين، واختار الأسفار اللي عايز تقراها، وهوزع اللي فاضل على الأيام لحد عيد الميلاد.</p>
     <label class="su-f"><span>وصلت لحد أنهي سفر؟</span><select id="suBook"></select></label>
     <label class="su-f"><span>آخر إصحاح خلصته فيه</span><select id="suCh"></select></label>
     <label class="su-f"><span>وفي المزامير، آخر مزمور خلصته</span><select id="suPs"></select></label>
+    <div class="su-f"><span>وعايز تقرا أنهي أسفار؟ (المزامير دايمًا داخلة)</span><div class="su-pick" id="suPick"></div></div>
     <p class="su-sum" id="suSum" aria-live="polite"></p>
     <div class="row"><button class="btn" id="suGo" type="button">ابدأ الرحلة</button><button class="btn ghost" id="suCancel" type="button" hidden>إلغاء</button></div>
   </div>
@@ -267,10 +276,10 @@ const VCOUNT={0:1533,1:1213,2:859,3:1288,4:959,5:658,6:618,7:85,8:810,9:695,10:8
 const PSW={18:1.5,78:2.5,89:2,105:1.5,106:1.5,107:1.5,119:5,136:1.5};
 const VALID=new Set();
 BOOKS.forEach((b,i)=>{for(let c=1;c<=b[1];c++)VALID.add(i+':'+c)});
-let CH=[],PS=[],ALL=[],INPLAN=new Set(),TOTAL=0,NDAYS=0,DAYS=[],PRE={};
+let SKIP=new Set(),CH=[],PS=[],ALL=[],INPLAN=new Set(),TOTAL=0,NDAYS=0,DAYS=[],PRE={};
 const DEF_SETUP={b:4,c:19,p:0};
 function preFor(b,c,p){const o={};BOOKS.forEach((bk,i)=>{o[i]=i===PSB?p:(b<0?0:(i<b?bk[1]:(i===b?c:0)))});return o}
-function remaining(pre){let ch=0;BOOKS.forEach((bk,i)=>{if(i!==PSB)ch+=bk[1]-pre[i]});return{ch,ps:BOOKS[PSB][1]-pre[PSB]}}
+function remaining(pre,skip){const sk=new Set(skip||[]);let ch=0;BOOKS.forEach((bk,i)=>{if(i!==PSB&&!sk.has(i))ch+=bk[1]-pre[i]});return{ch,ps:BOOKS[PSB][1]-pre[PSB]}}
 function lastDay(t){return t<=END?END:(t<=XMAS-1?XMAS-1:t)}
 function cutsFor(w,n){
   const out=[];
@@ -303,7 +312,8 @@ function buildPlan(){
   FIRST=parse(su.first||su.start);
   PRE=preFor(su.b,su.c,su.p);
   CH=[];PS=[];
-  BOOKS.forEach((bk,i)=>{for(let c=PRE[i]+1;c<=bk[1];c++){if(i===PSB)PS.push([i,c]);else CH.push([i,c])}});
+  SKIP=new Set(su.skip||[]);
+  BOOKS.forEach((bk,i)=>{if(i!==PSB&&SKIP.has(i))return;for(let c=PRE[i]+1;c<=bk[1];c++){if(i===PSB)PS.push([i,c]);else CH.push([i,c])}});
   ALL=CH.concat(PS);
   INPLAN=new Set(ALL.map(x=>x[0]+':'+x[1]));
   TOTAL=ALL.length;
@@ -576,7 +586,7 @@ function refresh(){
     const full=c===BOOKS[b][1];
     el.classList.toggle('done',full);
     const pre=PRE[b]||0;
-    el.querySelector('.bc').textContent=pre===BOOKS[b][1]?'خلصته قبل الخطة · '+BOOKS[b][1]+' إصحاح':(pre>0?c+' / '+BOOKS[b][1]+' إصحاح · '+pre+' قبل الخطة':c+' / '+BOOKS[b][1]+' إصحاح');
+    el.querySelector('.bc').textContent=(SKIP.has(b)&&c===0)?'مش في الخطة · '+BOOKS[b][1]+' إصحاح':pre===BOOKS[b][1]?'خلصته قبل الخطة · '+BOOKS[b][1]+' إصحاح':(pre>0?c+' / '+BOOKS[b][1]+' إصحاح · '+pre+' قبل الخطة':c+' / '+BOOKS[b][1]+' إصحاح');
     el.querySelector('.bar-fill').style.width=(c/BOOKS[b][1]*100)+'%';
     const bb=el.querySelector('.bk');
     if(bb){bb.hidden=pre===BOOKS[b][1];bb.textContent=full?'إلغاء تعليم السفر':'علّم السفر كله'}
@@ -934,10 +944,35 @@ function fillPsalms(v){
   $('suPs').innerHTML=h;
   $('suPs').value=String(v||0);
 }
-function suRead(){return{b:+$('suBook').value,c:+$('suCh').value,p:+$('suPs').value}}
+function suRead(){
+  const skip=[];
+  document.querySelectorAll('#suPick input[data-b]').forEach(i=>{if(!i.disabled&&!i.checked)skip.push(+i.dataset.b)});
+  return{b:+$('suBook').value,c:+$('suCh').value,p:+$('suPs').value,skip}
+}
+let suSkip=[];
+function fillPick(){
+  const b0=+$('suBook').value,c0=+$('suCh').value;
+  const keep=new Set(suSkip);
+  let h='';
+  GROUPS.forEach(g=>{
+    h+='<div class="su-g"><h5><span>'+g[0]+'</span><span><button type="button" data-g="1" data-a="'+g[1]+'" data-z="'+g[2]+'">اختار الكل</button><button type="button" data-g="0" data-a="'+g[1]+'" data-z="'+g[2]+'">شيل الكل</button></span></h5><div class="su-b">';
+    for(let b=g[1];b<=g[2];b++){
+      if(b===PSB)continue;
+      const fin=b0>=0&&(b<b0||(b===b0&&c0===BOOKS[b][1]));
+      h+='<label class="'+(fin?'fin':(keep.has(b)?'off':''))+'"><input type="checkbox" data-b="'+b+'"'+(fin?' disabled checked':(keep.has(b)?'':' checked'))+'>'+BOOKS[b][0]+(fin?' ✓':'')+'</label>';
+    }
+    h+='</div></div>';
+  });
+  $('suPick').innerHTML=h;
+}
+function suSync(){
+  document.querySelectorAll('#suPick label').forEach(l=>{const i=l.querySelector('input');if(!i.disabled)l.className=i.checked?'':'off'});
+  suSkip=suRead().skip;
+  suPreview();
+}
 function suPreview(){
   const v=suRead();
-  const r=remaining(preFor(v.b,v.c,v.p));
+  const r=remaining(preFor(v.b,v.c,v.p),v.skip);
   const t=nowNum();
   const last=lastDay(t);
   const n=last-t+1;
@@ -953,6 +988,8 @@ function openSetup(cancelable){
   $('suBook').value=String(su.b);
   fillChapters(su.b,su.c);
   fillPsalms(su.p);
+  suSkip=su.skip||[];
+  fillPick();
   $('suCancel').hidden=!cancelable;
   $('setup').hidden=false;
   document.body.classList.add('lock');
@@ -963,8 +1000,10 @@ function closeSetup(){
   $('setup').hidden=true;
   document.body.classList.remove('lock');
 }
-$('suBook').addEventListener('change',()=>{fillChapters(+$('suBook').value,0);suPreview()});
-$('suCh').addEventListener('change',suPreview);
+$('suBook').addEventListener('change',()=>{fillChapters(+$('suBook').value,0);suSkip=suRead().skip;fillPick();suPreview()});
+$('suCh').addEventListener('change',()=>{suSkip=suRead().skip;fillPick();suPreview()});
+$('suPick').addEventListener('change',suSync);
+$('suPick').addEventListener('click',e=>{const b=e.target.closest('button[data-g]');if(!b)return;const on=b.dataset.g==='1';document.querySelectorAll('#suPick input[data-b]').forEach(i=>{const n=+i.dataset.b;if(!i.disabled&&n>=+b.dataset.a&&n<=+b.dataset.z)i.checked=on});suSync()});
 $('suPs').addEventListener('change',suPreview);
 $('pSel').addEventListener('change',e=>setView(viewOf(e.target.value)));
 $('pPrev').addEventListener('click',()=>{const i=ORDER.indexOf(VIEW===null?'t':String(VIEW));if(i>0)setView(viewOf(ORDER[i-1]))});
@@ -976,7 +1015,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('setup').hidden&
 $('suGo').addEventListener('click',()=>{
   const v=suRead();
   const first=S.setup&&S.setup.first?S.setup.first:str(nowNum());
-  S.setup={b:v.b,c:v.c,p:v.p,start:str(nowNum()),first};
+  S.setup={b:v.b,c:v.c,p:v.p,skip:v.skip,start:str(nowNum()),first};
   S.plan=null;
   save();
   buildPlan();
