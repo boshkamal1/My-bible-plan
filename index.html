@@ -253,7 +253,7 @@ body.lock{overflow:hidden}
 </div>
 <div class="toasts" id="toasts" aria-live="polite"></div>
 <script>
-const BOOKS=[["التكوين", 50], ["الخروج", 40], ["اللاويين", 27], ["العدد", 36], ["التثنية", 34], ["يشوع", 24], ["القضاة", 21], ["راعوث", 4], ["صموئيل الأول", 31], ["صموئيل الثاني", 24], ["الملوك الأول", 22], ["الملوك الثاني", 25], ["أخبار الأيام الأول", 29], ["أخبار الأيام الثاني", 36], ["عزرا", 10], ["نحميا", 13], ["طوبيا", 14], ["يهوديت", 16], ["أستير", 10], ["أيوب", 42], ["المزامير", 150], ["الأمثال", 31], ["الجامعة", 12], ["نشيد الأنشاد", 8], ["الحكمة", 19], ["يشوع بن سيراخ", 51], ["إشعياء", 66], ["إرميا", 52], ["مراثي إرميا", 5], ["باروخ", 6], ["حزقيال", 48], ["دانيال", 14], ["هوشع", 14], ["يوئيل", 3], ["عاموس", 9], ["عوبديا", 1], ["يونان", 4], ["ميخا", 7], ["ناحوم", 3], ["حبقوق", 3], ["صفنيا", 3], ["حجي", 2], ["زكريا", 14], ["ملاخي", 4], ["المكابيين الأول", 16], ["المكابيين الثاني", 15], ["صلاة منسى", 1]];
+const BOOKS=[["التكوين", 50], ["الخروج", 40], ["اللاويين", 27], ["العدد", 36], ["التثنية", 34], ["يشوع", 24], ["القضاة", 21], ["راعوث", 4], ["صموئيل الأول", 31], ["صموئيل الثاني", 24], ["الملوك الأول", 22], ["الملوك الثاني", 25], ["أخبار الأيام الأول", 29], ["أخبار الأيام الثاني", 36], ["عزرا", 10], ["نحميا", 13], ["طوبيا", 14], ["يهوديت", 16], ["أستير", 10], ["أيوب", 42], ["المزامير", 150], ["الأمثال", 31], ["الجامعة", 12], ["نشيد الأنشاد", 8], ["الحكمة", 19], ["يشوع بن سيراخ", 51], ["إشعياء", 66], ["إرميا", 52], ["مراثي إرميا", 5], ["باروخ", 6], ["حزقيال", 48], ["دانيال", 12], ["هوشع", 14], ["يوئيل", 3], ["عاموس", 9], ["عوبديا", 1], ["يونان", 4], ["ميخا", 7], ["ناحوم", 3], ["حبقوق", 3], ["صفنيا", 3], ["حجي", 2], ["زكريا", 14], ["ملاخي", 4], ["المكابيين الأول", 16], ["المكابيين الثاني", 15], ["صلاة منسى", 1], ["تتمة دانيال", 3], ["تتمة أستير", 6]];
 
 const DAY=86400000;
 const WD=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
@@ -269,17 +269,21 @@ let FIRST=START;
 const END=num(2026,12,29);
 const XMAS=num(2027,1,6);
 const BUF=7;
-const DEUT=new Set([16,17,24,25,29,44,45,46]);
-const GROUPS=[['أسفار موسى',0,4],['الأسفار التاريخية',5,18],['أسفار الحكمة والشعر',19,25],['الأنبياء',26,43],['قانونية ثانية إضافية',44,46]];
+const DEUT=new Set([16,17,24,25,29,44,45,46,47,48]);
+const GROUPS=[['أسفار موسى',0,4],['الأسفار التاريخية',5,18],['أسفار الحكمة والشعر',19,25],['الأنبياء',26,43],['قانونية ثانية إضافية',44,48]];
 const PSB=20;
-const VCOUNT={44:924,45:555,46:15,0:1533,1:1213,2:859,3:1288,4:959,5:658,6:618,7:85,8:810,9:695,10:816,11:719,12:942,13:822,14:280,15:406,16:244,17:340,18:270,19:1070,20:2461,21:915,22:222,23:117,24:435,25:1400,26:1292,27:1364,28:154,29:213,30:1273,31:357,32:197,33:73,34:146,35:21,36:48,37:105,38:47,39:56,40:53,41:38,42:211,43:55};
+const PLAN_ORDER=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,46,14,15,16,17,18,48,44,45,19,20,21,22,23,24,25,26,27,28,29,30,31,47,32,33,34,35,36,37,38,39,40,41,42,43];
+const POS={};PLAN_ORDER.forEach((b,i)=>POS[b]=i);
+const VCOUNT={44:924,45:555,46:15,47:173,48:107,0:1533,1:1213,2:859,3:1288,4:959,5:658,6:618,7:85,8:810,9:695,10:816,11:719,12:942,13:822,14:280,15:406,16:244,17:340,18:167,19:1070,20:2461,21:915,22:222,23:117,24:435,25:1400,26:1292,27:1364,28:154,29:213,30:1273,31:357,32:197,33:73,34:146,35:21,36:48,37:105,38:47,39:56,40:53,41:38,42:211,43:55};
 const PSW={18:1.5,78:2.5,89:2,105:1.5,106:1.5,107:1.5,119:5,136:1.5};
 const VALID=new Set();
 BOOKS.forEach((b,i)=>{for(let c=1;c<=b[1];c++)VALID.add(i+':'+c)});
-const UNITS=[[44],[45,46]];
+const UNITS=[[44],[45]];
+const itemsOf=l=>{const out=[],at={};l.forEach(x=>{if(UNITS.flat().includes(x[0])){if(at[x[0]]===undefined){at[x[0]]=out.length;out.push([])}out[at[x[0]]].push(x)}else out.push([x])});return out};
+const itemW=it=>it.reduce((a,x)=>a+(x[0]===PSB?(PSW[x[1]]||1):0.3*28.4+0.7*VCOUNT[x[0]]/BOOKS[x[0]][1]),0);
 let SKIP=new Set(),CH=[],PS=[],ALL=[],INPLAN=new Set(),TOTAL=0,NDAYS=0,DAYS=[],PRE={};
 const DEF_SETUP={b:4,c:19,p:0};
-function preFor(b,c,p){const o={};BOOKS.forEach((bk,i)=>{o[i]=i===PSB?p:(b<0?0:(i<b?bk[1]:(i===b?c:0)))});return o}
+function preFor(b,c,p){const o={};BOOKS.forEach((bk,i)=>{o[i]=i===PSB?p:(b<0?0:(POS[i]<POS[b]?bk[1]:(i===b?c:0)))});return o}
 function remaining(pre,skip){const sk=new Set(skip||[]);let ch=0;BOOKS.forEach((bk,i)=>{if(i!==PSB&&!sk.has(i))ch+=bk[1]-pre[i]});return{ch,ps:BOOKS[PSB][1]-pre[PSB]}}
 function lastDay(t){return t<=END?END:(t<=XMAS-1?XMAS-1:t)}
 function cutsFor(w,n){
@@ -314,23 +318,44 @@ function buildPlan(){
   PRE=preFor(su.b,su.c,su.p);
   CH=[];PS=[];
   SKIP=new Set(su.skip||[]);
-  BOOKS.forEach((bk,i)=>{if(i!==PSB&&SKIP.has(i))return;for(let c=PRE[i]+1;c<=bk[1];c++){if(i===PSB)PS.push([i,c]);else CH.push([i,c])}});
+  PLAN_ORDER.forEach(i=>{const bk=BOOKS[i];if(i!==PSB&&SKIP.has(i))return;for(let c=PRE[i]+1;c<=bk[1];c++){if(i===PSB)PS.push([i,c]);else CH.push([i,c])}});
   ALL=CH.concat(PS);
   INPLAN=new Set(ALL.map(x=>x[0]+':'+x[1]));
   TOTAL=ALL.length;
   NDAYS=TOTAL?lastDay(START)-START+1:0;
-  const units=UNITS.map(u=>CH.filter(x=>u.includes(x[0]))).filter(u=>u.length);
-  const nu=NDAYS>units.length+1?units.length:0;
-  const CH2=nu?CH.filter(x=>!UNITS.flat().includes(x[0])):CH;
+  const uAll=UNITS.flat();
+  const unitsP=[];
+  let before=0;
+  CH.forEach(x=>{if(uAll.includes(x[0])){let u=unitsP.find(q=>q.b===x[0]);if(!u){u={b:x[0],p:before,ks:[]};unitsP.push(u)}u.ks.push(x)}else before++});
+  const nu=NDAYS>unitsP.length+1?unitsP.length:0;
+  const CH2=CH.filter(x=>!uAll.includes(x[0]));
   const nb=NDAYS-nu;
-  const bc=cutsFor(CH2.map(x=>0.3*28.4+0.7*VCOUNT[x[0]]/BOOKS[x[0]][1]),nb);
+  const cuts=nu?unitsP.map(u=>u.p):[];
+  const segsC=[];
+  let st=0;
+  cuts.forEach(p=>{segsC.push(CH2.slice(st,p));st=p});
+  segsC.push(CH2.slice(st));
+  const sw=segsC.map(g=>g.reduce((a,x)=>a+0.3*28.4+0.7*VCOUNT[x[0]]/BOOKS[x[0]][1],0));
+  const swT=sw.reduce((a,b)=>a+b,0)||1;
+  let dn=segsC.map((g,i)=>g.length?Math.max(1,Math.round(nb*sw[i]/swT)):0);
+  let diff=nb-dn.reduce((a,b)=>a+b,0);
+  while(diff!==0){
+    let bi=-1;
+    dn.forEach((v,i)=>{if(!segsC[i].length)return;if(diff>0){if(bi<0||sw[i]/dn[i]>sw[bi]/dn[bi])bi=i}else if(dn[i]>1){if(bi<0||sw[i]/dn[i]<sw[bi]/dn[bi])bi=i}});
+    if(bi<0)break;
+    dn[bi]+=diff>0?1:-1;diff+=diff>0?-1:1;
+  }
+  const rows=[];
+  segsC.forEach((g,i)=>{
+    if(g.length){
+      const c=cutsFor(g.map(x=>0.3*28.4+0.7*VCOUNT[x[0]]/BOOKS[x[0]][1]),dn[i]);
+      c.forEach((e,k)=>rows.push(g.slice(k?c[k-1]:0,e)));
+    }
+    if(i<unitsP.length&&nu)rows.push(unitsP[i].ks);
+  });
   const bp=cutsFor(PS.map(x=>PSW[x[1]]||1),NDAYS);
   BASE=[];
-  for(let k=0;k<NDAYS;k++){
-    const ps=PS.slice(k?bp[k-1]:0,bp[k]);
-    const chs=k<nb?CH2.slice(k?bc[k-1]:0,bc[k]):(nu?units[k-nb]:[]);
-    BASE.push({k,ks:ps.concat(chs)});
-  }
+  for(let k=0;k<NDAYS;k++)BASE.push({k,ks:PS.slice(k?bp[k-1]:0,bp[k]).concat(rows[k]||[])});
   DAYS=[];
 }
 let ADJ={left:0,days:0,per:0};
@@ -348,14 +373,10 @@ function layout(){
     const miss=ALL.filter(x=>!have.has(x[0]+':'+x[1]));
     const m0=Math.min(kT,NDAYS-1),mn=NDAYS-m0;
     if(miss.length&&mn>0){
-      const un=UNITS.map(u=>miss.filter(x=>u.includes(x[0]))).filter(u=>u.length);
-      const rest=miss.filter(x=>!UNITS.flat().includes(x[0]));
-      const nr=Math.max(mn-un.length,1);
-      if(rest.length){
-        const mc=cutsFor(rest.map(x=>x[0]===PSB?PSW[x[1]]||1:cw(x)),nr);
-        mc.forEach((e,i)=>{DAYS[m0+i].ks=DAYS[m0+i].ks.concat(rest.slice(i?mc[i-1]:0,e))});
-      }
-      un.forEach((u,i)=>{const j=Math.min(NDAYS-un.length+i,NDAYS-1);DAYS[Math.max(j,m0)].ks=DAYS[Math.max(j,m0)].ks.concat(u)});
+      const it=itemsOf(miss);
+      const mc=cutsFor(it.map(itemW),mn);
+      mc.forEach((e,i)=>{DAYS[m0+i].ks=DAYS[m0+i].ks.concat(it.slice(i?mc[i-1]:0,e).flat())});
+      const od=ordOf();DAYS.forEach(d=>sortKs(d.ks,od));
     }
   }
   T0=new Set();
@@ -702,10 +723,11 @@ function rebalance(v,only){
     else out[k].ks.push(x);
   }));
   sortKs(pc,ord);sortKs(pp,ord);
-  const c=cutsFor(pc.map(cw),m),p=cutsFor(pp.map(x=>PSW[x[1]]||1),m);
+  const ci=itemsOf(pc);
+  const c=cutsFor(ci.map(itemW),m),p=cutsFor(pp.map(x=>PSW[x[1]]||1),m);
   for(let i=0;i<m;i++){
     const j=L+1+i;
-    out[j].ks=sortKs(out[j].ks.concat(pp.slice(i?p[i-1]:0,p[i]),pc.slice(i?c[i-1]:0,c[i])),ord);
+    out[j].ks=sortKs(out[j].ks.concat(pp.slice(i?p[i-1]:0,p[i]),ci.slice(i?c[i-1]:0,c[i]).flat()),ord);
   }
   out.forEach(d=>sortKs(d.ks,ord));
   S.plan=out.map(d=>d.ks.map(x=>x[0]+':'+x[1]));
@@ -948,11 +970,7 @@ function renderHeader(){
 }
 function fillBooks(){
   let h='<option value="-1">لسه ما بدأتش العهد القديم</option>';
-  GROUPS.forEach(g=>{
-    h+='<optgroup label="'+g[0]+'">';
-    for(let b=g[1];b<=g[2];b++){if(b===PSB)continue;h+='<option value="'+b+'">'+BOOKS[b][0]+(DEUT.has(b)?' (قانوني ثاني)':'')+'</option>'}
-    h+='</optgroup>';
-  });
+  PLAN_ORDER.forEach(b=>{if(b===PSB)return;h+='<option value="'+b+'">'+BOOKS[b][0]+(DEUT.has(b)?' (قانوني ثاني)':'')+'</option>'});
   $('suBook').innerHTML=h;
 }
 function fillChapters(b,v){
@@ -979,15 +997,17 @@ let suSkip=[];
 function fillPick(){
   const b0=+$('suBook').value,c0=+$('suCh').value;
   const keep=new Set(suSkip);
+  const lab=(b)=>{
+    const fin=b0>=0&&(POS[b]<POS[b0]||(b===b0&&c0===BOOKS[b][1]));
+    return '<label class="'+(fin?'fin':(keep.has(b)?'off':''))+'"><input type="checkbox" data-b="'+b+'"'+(fin?' disabled checked':(keep.has(b)?'':' checked'))+'>'+BOOKS[b][0]+(fin?' ✓':'')+'</label>';
+  };
+  const secs=GROUPS.slice(0,4).map(g=>[g[0],PLAN_ORDER.filter(b=>b>=g[1]&&b<=g[2]&&b!==PSB&&!DEUT.has(b))]);
+  secs.push(['الأسفار القانونية الثانية',PLAN_ORDER.filter(b=>DEUT.has(b))]);
   let h='';
-  GROUPS.forEach(g=>{
-    h+='<div class="su-g"><h5><span>'+g[0]+'</span><span><button type="button" data-g="1" data-a="'+g[1]+'" data-z="'+g[2]+'">اختار الكل</button><button type="button" data-g="0" data-a="'+g[1]+'" data-z="'+g[2]+'">شيل الكل</button></span></h5><div class="su-b">';
-    for(let b=g[1];b<=g[2];b++){
-      if(b===PSB)continue;
-      const fin=b0>=0&&(b<b0||(b===b0&&c0===BOOKS[b][1]));
-      h+='<label class="'+(fin?'fin':(keep.has(b)?'off':''))+'"><input type="checkbox" data-b="'+b+'"'+(fin?' disabled checked':(keep.has(b)?'':' checked'))+'>'+BOOKS[b][0]+(fin?' ✓':'')+'</label>';
-    }
-    h+='</div></div>';
+  secs.forEach(g=>{
+    const bs=g[1];
+    if(!bs.length)return;
+    h+='<div class="su-g"><h5><span>'+g[0]+'</span><span><button type="button" data-g="1" data-bs="'+bs.join(',')+'">اختار الكل</button><button type="button" data-g="0" data-bs="'+bs.join(',')+'">شيل الكل</button></span></h5><div class="su-b">'+bs.map(lab).join('')+'</div></div>';
   });
   $('suPick').innerHTML=h;
 }
@@ -1029,7 +1049,7 @@ function closeSetup(){
 $('suBook').addEventListener('change',()=>{fillChapters(+$('suBook').value,0);suSkip=suRead().skip;fillPick();suPreview()});
 $('suCh').addEventListener('change',()=>{suSkip=suRead().skip;fillPick();suPreview()});
 $('suPick').addEventListener('change',suSync);
-$('suPick').addEventListener('click',e=>{const b=e.target.closest('button[data-g]');if(!b)return;const on=b.dataset.g==='1';document.querySelectorAll('#suPick input[data-b]').forEach(i=>{const n=+i.dataset.b;if(!i.disabled&&n>=+b.dataset.a&&n<=+b.dataset.z)i.checked=on});suSync()});
+$('suPick').addEventListener('click',e=>{const b=e.target.closest('button[data-g]');if(!b)return;const on=b.dataset.g==='1';const set=new Set(b.dataset.bs.split(',').map(Number));document.querySelectorAll('#suPick input[data-b]').forEach(i=>{if(!i.disabled&&set.has(+i.dataset.b))i.checked=on});suSync()});
 $('suPs').addEventListener('change',suPreview);
 $('pSel').addEventListener('change',e=>setView(viewOf(e.target.value)));
 $('pPrev').addEventListener('click',()=>{const i=ORDER.indexOf(VIEW===null?'t':String(VIEW));if(i>0)setView(viewOf(ORDER[i-1]))});
