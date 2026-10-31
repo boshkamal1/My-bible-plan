@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#2c4a82"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="رحلة العهد القديم"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="icon" type="image/svg+xml" href="icons/logo.svg"><link rel="icon" type="image/png" sizes="64x64" href="icons/favicon.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>رحلة العهد القديم</title>
+<title>رحلة الكتاب المقدس</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Aref+Ruqaa:wght@400;700&family=Reem+Kufi:wght@500;600&display=swap">
@@ -185,6 +185,9 @@ h1{text-shadow:0 1px 0 rgba(226,187,94,.55)}
 .su-b label.off{opacity:.45;text-decoration:line-through}
 .su-b label.fin{opacity:.6;cursor:default}
 .su-b input{accent-color:var(--vel)}
+.su-b .pre{font:inherit;font-size:.92rem;background:none;border:1px solid var(--gold);border-radius:14px;padding:5px 12px;color:var(--vel);cursor:pointer}
+.su-in{font-family:var(--f-body);font-size:1.08rem;color:var(--ink);background:var(--paper);border:1.5px solid var(--gold);border-radius:4px;padding:10px 12px;width:100%}
+#suRepHint{color:var(--ink2);font-size:.85rem}
 .su-sum{margin:0;background:var(--paper2);border:1px dashed var(--gold);border-radius:4px;padding:10px 14px;font-size:1rem}
 body.lock{overflow:hidden}
 .picker{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:nowrap;scroll-margin-top:12px}
@@ -198,7 +201,7 @@ body.lock{overflow:hidden}
 </style>
 <div class="wrap" dir="rtl" lang="ar">
   <header class="top"><svg viewBox="0 0 512 512" aria-hidden="true"><rect width="512" height="512" rx="112" fill="#2c4a82"/><path d="M256 200C222 172 172 166 116 180V348C172 336 222 342 256 372Z" fill="#fffdf7"/><path d="M256 200C290 172 340 166 396 180V348C340 336 290 342 256 372Z" fill="#fffdf7"/><path d="M256 198V374" stroke="#b0802a" stroke-width="8"/><path d="M116 360L256 388L396 360V372L256 400L116 372Z" fill="#b0802a"/><path d="M256 76L264 106L294 94L282 120L312 120L286 134L304 160L274 148L256 164L238 148L208 160L226 134L200 120L230 120L218 94L248 106Z" fill="#d6a74a"/></svg>
-    <h1>رحلة العهد القديم</h1>
+    <h1>رحلة الكتاب المقدس</h1>
     <p class="sub" id="subA"></p>
     <div class="orn"><i></i></div>
     <p class="sub" id="subB"></p>
@@ -236,24 +239,39 @@ body.lock{overflow:hidden}
 <div class="bar"><div class="bar-in">
   <div class="cnt"><strong id="cToday">0</strong><span>قريت النهارده</span></div>
   <div class="cnt"><strong id="cLeft">0</strong><span>إصحاح فاضل</span></div>
-  <div class="cnt"><strong id="cDays">0</strong><span>يوم لحد عيد الميلاد</span></div>
+  <div class="cnt"><strong id="cDays">0</strong><span id="cDaysL">يوم لحد نهاية الخطة</span></div>
 </div></div>
 <div class="setup" id="setup" role="dialog" aria-modal="true" aria-labelledby="suTitle" hidden>
   <div class="card su-card">
     <svg class="star" viewBox="190 60 140 120" aria-hidden="true"><path d="M256 76L264 106L294 94L282 120L312 120L286 134L304 160L274 148L256 164L238 148L208 160L226 134L200 120L230 120L218 94L248 106Z" fill="#a8741f"/></svg>
     <h2 id="suTitle">نظّم رحلتك</h2>
-    <p class="muted">قولي وصلت لفين، واختار الأسفار اللي عايز تقراها، وهوزع اللي فاضل على الأيام لحد عيد الميلاد.</p>
-    <label class="su-f"><span>وصلت لحد أنهي سفر؟</span><select id="suBook"></select></label>
-    <label class="su-f"><span>آخر إصحاح خلصته فيه</span><select id="suCh"></select></label>
-    <label class="su-f"><span>وفي المزامير، آخر مزمور خلصته</span><select id="suPs"></select></label>
-    <div class="su-f"><span>وعايز تقرا أنهي أسفار؟ (المزامير دايمًا داخلة)</span><div class="su-pick" id="suPick"></div></div>
+    <p class="muted">اختار هتقرا إيه، وانت وصلت لفين، وعايز تخلص امتى، وأنا أوزع القراية على الأيام.</p>
+    <div class="su-f"><span>هتقرا إيه؟</span><div class="su-b" id="suScope"><label><input type="radio" name="sc" value="ot" checked>العهد القديم</label><label><input type="radio" name="sc" value="nt">العهد الجديد</label><label><input type="radio" name="sc" value="all">الكتاب المقدس كامل</label></div></div>
+    <div id="suOT">
+      <label class="su-f"><span>العهد القديم: وصلت لحد أنهي سفر؟</span><select id="suBook"></select></label>
+      <label class="su-f"><span>آخر إصحاح خلصته فيه</span><select id="suCh"></select></label>
+      <label class="su-f"><span>وفي المزامير، آخر مزمور خلصته</span><select id="suPs"></select></label>
+    </div>
+    <div id="suNT">
+      <label class="su-f"><span>العهد الجديد: وصلت لحد أنهي سفر؟</span><select id="suNBook"></select></label>
+      <label class="su-f"><span>آخر إصحاح خلصته فيه</span><select id="suNCh"></select></label>
+    </div>
+    <div class="su-f"><span>وعايز تقرا أنهي أسفار؟</span><div class="su-pick" id="suPick"></div></div>
+    <div class="su-f" id="suModeBox" hidden><span>ترتيب القراية في الكتاب كامل</span><div class="su-b"><label><input type="radio" name="md" value="seq" checked>القديم كله وبعده الجديد</label><label><input type="radio" name="md" value="mix">الاتنين مع بعض كل يوم</label></div></div>
+    <div class="su-f"><span>عايز تخلص امتى؟</span>
+      <div class="su-b" id="suPre"><button type="button" class="pre" data-r="10">سريع</button><button type="button" class="pre" data-r="5">متوسط</button><button type="button" class="pre" data-r="2">هادي</button></div>
+      <div class="su-b"><label><input type="radio" name="tt" value="days" checked>بعدد أيام</label><label><input type="radio" name="tt" value="date">بتاريخ</label></div>
+      <input type="number" id="suDays" min="1" max="1500" value="100" class="su-in">
+      <input type="date" id="suEnd" class="su-in" hidden>
+    </div>
+    <label class="su-f"><span>كام مرة تقراه؟</span><select id="suRep"></select><small id="suRepHint"></small></label>
     <p class="su-sum" id="suSum" aria-live="polite"></p>
     <div class="row"><button class="btn" id="suGo" type="button">ابدأ الرحلة</button><button class="btn ghost" id="suCancel" type="button" hidden>إلغاء</button></div>
   </div>
 </div>
 <div class="toasts" id="toasts" aria-live="polite"></div>
 <script>
-const BOOKS=[["التكوين", 50], ["الخروج", 40], ["اللاويين", 27], ["العدد", 36], ["التثنية", 34], ["يشوع", 24], ["القضاة", 21], ["راعوث", 4], ["صموئيل الأول", 31], ["صموئيل الثاني", 24], ["الملوك الأول", 22], ["الملوك الثاني", 25], ["أخبار الأيام الأول", 29], ["أخبار الأيام الثاني", 36], ["عزرا", 10], ["نحميا", 13], ["طوبيا", 14], ["يهوديت", 16], ["أستير", 10], ["أيوب", 42], ["المزامير", 150], ["الأمثال", 31], ["الجامعة", 12], ["نشيد الأنشاد", 8], ["الحكمة", 19], ["يشوع بن سيراخ", 51], ["إشعياء", 66], ["إرميا", 52], ["مراثي إرميا", 5], ["باروخ", 6], ["حزقيال", 48], ["دانيال", 12], ["هوشع", 14], ["يوئيل", 3], ["عاموس", 9], ["عوبديا", 1], ["يونان", 4], ["ميخا", 7], ["ناحوم", 3], ["حبقوق", 3], ["صفنيا", 3], ["حجي", 2], ["زكريا", 14], ["ملاخي", 4], ["المكابيين الأول", 16], ["المكابيين الثاني", 15], ["صلاة منسى", 1], ["تتمة دانيال", 3], ["تتمة أستير", 6]];
+const BOOKS=[["التكوين", 50], ["الخروج", 40], ["اللاويين", 27], ["العدد", 36], ["التثنية", 34], ["يشوع", 24], ["القضاة", 21], ["راعوث", 4], ["صموئيل الأول", 31], ["صموئيل الثاني", 24], ["الملوك الأول", 22], ["الملوك الثاني", 25], ["أخبار الأيام الأول", 29], ["أخبار الأيام الثاني", 36], ["عزرا", 10], ["نحميا", 13], ["طوبيا", 14], ["يهوديت", 16], ["أستير", 10], ["أيوب", 42], ["المزامير", 150], ["الأمثال", 31], ["الجامعة", 12], ["نشيد الأنشاد", 8], ["الحكمة", 19], ["يشوع بن سيراخ", 51], ["إشعياء", 66], ["إرميا", 52], ["مراثي إرميا", 5], ["باروخ", 6], ["حزقيال", 48], ["دانيال", 12], ["هوشع", 14], ["يوئيل", 3], ["عاموس", 9], ["عوبديا", 1], ["يونان", 4], ["ميخا", 7], ["ناحوم", 3], ["حبقوق", 3], ["صفنيا", 3], ["حجي", 2], ["زكريا", 14], ["ملاخي", 4], ["المكابيين الأول", 16], ["المكابيين الثاني", 15], ["صلاة منسى", 1], ["تتمة دانيال", 3], ["تتمة أستير", 6], ["متى", 28], ["مرقس", 16], ["لوقا", 24], ["يوحنا", 21], ["أعمال الرسل", 28], ["رومية", 16], ["كورنثوس الأولى", 16], ["كورنثوس الثانية", 13], ["غلاطية", 6], ["أفسس", 6], ["فيلبي", 4], ["كولوسي", 4], ["تسالونيكي الأولى", 5], ["تسالونيكي الثانية", 3], ["تيموثاوس الأولى", 6], ["تيموثاوس الثانية", 4], ["تيطس", 3], ["فليمون", 1], ["العبرانيين", 13], ["يعقوب", 5], ["بطرس الأولى", 5], ["بطرس الثانية", 3], ["يوحنا الأولى", 5], ["يوحنا الثانية", 1], ["يوحنا الثالثة", 1], ["يهوذا", 1], ["الرؤيا", 22]];
 
 const DAY=86400000;
 const WD=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
@@ -266,26 +284,47 @@ const sd=n=>{const d=new Date(n*DAY);return d.getUTCDate()+' '+MO[d.getUTCMonth(
 const label=n=>WD[new Date(n*DAY).getUTCDay()]+' '+sd(n);
 let START=num(2026,10,10);
 let FIRST=START;
-const END=num(2026,12,29);
-const XMAS=num(2027,1,6);
-const BUF=7;
+let END=num(2026,12,29);
+let XMAS=num(2027,1,6);
+let BUF=7;
+const NBK=BOOKS.length;
+const NT_ORDER=[];for(let i=49;i<NBK;i++)NT_ORDER.push(i);
+const isNT=i=>i%100>=49;
+const isPs=i=>i%100===PSB;
 const DEUT=new Set([16,17,24,25,29,44,45,46,47,48]);
-const GROUPS=[['أسفار موسى',0,4],['الأسفار التاريخية',5,18],['أسفار الحكمة والشعر',19,25],['الأنبياء',26,43],['قانونية ثانية إضافية',44,48]];
+const GROUPS=[['أسفار موسى',0,4],['الأسفار التاريخية',5,18],['أسفار الحكمة والشعر',19,25],['الأنبياء',26,43],['قانونية ثانية إضافية',44,48],['الأناجيل وأعمال الرسل',49,53],['رسائل بولس',54,67],['الرسائل الجامعة والرؤيا',68,75]];
 const PSB=20;
 const PLAN_ORDER=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,46,14,15,16,17,18,48,44,45,19,20,21,22,23,24,25,26,27,28,29,30,31,47,32,33,34,35,36,37,38,39,40,41,42,43];
-const POS={};PLAN_ORDER.forEach((b,i)=>POS[b]=i);
-const VCOUNT={44:924,45:555,46:15,47:173,48:107,0:1533,1:1213,2:859,3:1288,4:959,5:658,6:618,7:85,8:810,9:695,10:816,11:719,12:942,13:822,14:280,15:406,16:244,17:340,18:167,19:1070,20:2461,21:915,22:222,23:117,24:435,25:1400,26:1292,27:1364,28:154,29:213,30:1273,31:357,32:197,33:73,34:146,35:21,36:48,37:105,38:47,39:56,40:53,41:38,42:211,43:55};
+const POS={};PLAN_ORDER.forEach((b,i)=>POS[b]=i);NT_ORDER.forEach((b,i)=>POS[b]=i);
+const VCOUNT={49:1071,50:678,51:1151,52:879,53:1007,54:433,55:437,56:257,57:149,58:155,59:104,60:95,61:89,62:47,63:113,64:83,65:46,66:25,67:303,68:108,69:105,70:61,71:105,72:13,73:15,74:25,75:404,44:924,45:555,46:15,47:173,48:107,0:1533,1:1213,2:859,3:1288,4:959,5:658,6:618,7:85,8:810,9:695,10:816,11:719,12:942,13:822,14:280,15:406,16:244,17:340,18:167,19:1070,20:2461,21:915,22:222,23:117,24:435,25:1400,26:1292,27:1364,28:154,29:213,30:1273,31:357,32:197,33:73,34:146,35:21,36:48,37:105,38:47,39:56,40:53,41:38,42:211,43:55};
 const PSW={18:1.5,78:2.5,89:2,105:1.5,106:1.5,107:1.5,119:5,136:1.5};
-const VALID=new Set();
-BOOKS.forEach((b,i)=>{for(let c=1;c<=b[1];c++)VALID.add(i+':'+c)});
+const VALID={has:k=>{const a=String(k).split(':');const b=+a[0],c=+a[1];if(!(b>=0)||!(c>=1))return false;const bb=b%100;return bb<NBK&&c<=BOOKS[bb][1]}};
 const UNITS=[[44],[45]];
-const itemsOf=l=>{const out=[],at={};l.forEach(x=>{if(UNITS.flat().includes(x[0])){if(at[x[0]]===undefined){at[x[0]]=out.length;out.push([])}out[at[x[0]]].push(x)}else out.push([x])});return out};
-const itemW=it=>it.reduce((a,x)=>a+(x[0]===PSB?(PSW[x[1]]||1):0.3*28.4+0.7*VCOUNT[x[0]]/BOOKS[x[0]][1]),0);
-let SKIP=new Set(),CH=[],PS=[],ALL=[],INPLAN=new Set(),TOTAL=0,NDAYS=0,DAYS=[],PRE={};
-const DEF_SETUP={b:4,c:19,p:0};
-function preFor(b,c,p){const o={};BOOKS.forEach((bk,i)=>{o[i]=i===PSB?p:(b<0?0:(POS[i]<POS[b]?bk[1]:(i===b?c:0)))});return o}
-function remaining(pre,skip){const sk=new Set(skip||[]);let ch=0;BOOKS.forEach((bk,i)=>{if(i!==PSB&&!sk.has(i))ch+=bk[1]-pre[i]});return{ch,ps:BOOKS[PSB][1]-pre[PSB]}}
-function lastDay(t){return t<=END?END:(t<=XMAS-1?XMAS-1:t)}
+const itemsOf=l=>{const out=[],at={};l.forEach(x=>{if(UNITS.flat().includes(x[0]%100)){if(at[x[0]]===undefined){at[x[0]]=out.length;out.push([])}out[at[x[0]]].push(x)}else out.push([x])});return out};
+const wOf=x=>isPs(x[0])?(PSW[x[1]]||1):0.3*28.4+0.7*VCOUNT[x[0]%100]/BOOKS[x[0]%100][1];
+const itemW=it=>it.reduce((a,x)=>a+wOf(x),0);
+let SCOPE='ot',SKIP=new Set(),CH=[],PS=[],ALL=[],INPLAN=new Set(),TOTAL=0,NDAYS=0,DAYS=[],PRE={};
+const DEF_SETUP={scope:'ot',ot:{b:-1,c:0,p:0},nt:{b:-1,c:0},skip:[],mode:'seq',days:100,end:null,repeats:1};
+function normSetup(su){
+  if(!su)return null;
+  if(su.scope)return su;
+  return{scope:'ot',ot:{b:su.b,c:su.c,p:su.p},nt:{b:-1,c:0},skip:su.skip||[],mode:'seq',days:0,end:'2026-12-29',repeats:1,start:su.start,first:su.first};
+}
+function preFor(ot,nt){
+  const o={};
+  BOOKS.forEach((bk,i)=>{
+    if(i===PSB)o[i]=ot?ot.p:0;
+    else if(i>=49)o[i]=!nt||nt.b<0?0:(POS[i]<POS[nt.b]?bk[1]:(i===nt.b?nt.c:0));
+    else o[i]=!ot||ot.b<0?0:(POS[i]<POS[ot.b]?bk[1]:(i===ot.b?ot.c:0));
+  });
+  return o;
+}
+function scopeBooks(scope){return(scope==='nt'?[]:PLAN_ORDER).concat(scope==='ot'?[]:NT_ORDER)}
+function remaining(pre,skip,scope){
+  const sk=new Set(skip||[]);let ch=0,ps=0;
+  scopeBooks(scope||'ot').forEach(i=>{if(i===PSB)ps=BOOKS[PSB][1]-pre[PSB];else if(!sk.has(i))ch+=BOOKS[i][1]-pre[i]});
+  return{ch,ps}
+}
 function cutsFor(w,n){
   const out=[];
   if(!n)return out;
@@ -310,34 +349,22 @@ function cutsFor(w,n){
   }
   return out;
 }
-function buildPlan(){
-  const t=nowNum();
-  const su=S.setup||{b:DEF_SETUP.b,c:DEF_SETUP.c,p:DEF_SETUP.p,start:str(t),first:str(t)};
-  START=parse(su.start);
-  FIRST=parse(su.first||su.start);
-  PRE=preFor(su.b,su.c,su.p);
-  CH=[];PS=[];
-  SKIP=new Set(su.skip||[]);
-  PLAN_ORDER.forEach(i=>{const bk=BOOKS[i];if(i!==PSB&&SKIP.has(i))return;for(let c=PRE[i]+1;c<=bk[1];c++){if(i===PSB)PS.push([i,c]);else CH.push([i,c])}});
-  ALL=CH.concat(PS);
-  INPLAN=new Set(ALL.map(x=>x[0]+':'+x[1]));
-  TOTAL=ALL.length;
-  NDAYS=TOTAL?lastDay(START)-START+1:0;
+function rowsFor(list,nd){
   const uAll=UNITS.flat();
   const unitsP=[];
   let before=0;
-  CH.forEach(x=>{if(uAll.includes(x[0])){let u=unitsP.find(q=>q.b===x[0]);if(!u){u={b:x[0],p:before,ks:[]};unitsP.push(u)}u.ks.push(x)}else before++});
-  const nu=NDAYS>unitsP.length+1?unitsP.length:0;
-  const CH2=CH.filter(x=>!uAll.includes(x[0]));
-  const nb=NDAYS-nu;
+  list.forEach(x=>{if(uAll.includes(x[0]%100)){let u=unitsP.find(q=>q.b===x[0]);if(!u){u={b:x[0],p:before,ks:[]};unitsP.push(u)}u.ks.push(x)}else before++});
+  const nu=nd>unitsP.length+1?unitsP.length:0;
+  const norm=list.filter(x=>!uAll.includes(x[0]%100));
+  const nb=nd-nu;
   const cuts=nu?unitsP.map(u=>u.p):[];
   const segsC=[];
   let st=0;
-  cuts.forEach(p=>{segsC.push(CH2.slice(st,p));st=p});
-  segsC.push(CH2.slice(st));
-  const sw=segsC.map(g=>g.reduce((a,x)=>a+0.3*28.4+0.7*VCOUNT[x[0]]/BOOKS[x[0]][1],0));
+  cuts.forEach(p=>{segsC.push(norm.slice(st,p));st=p});
+  segsC.push(norm.slice(st));
+  const sw=segsC.map(g=>g.reduce((a,x)=>a+wOf(x),0));
   const swT=sw.reduce((a,b)=>a+b,0)||1;
-  let dn=segsC.map((g,i)=>g.length?Math.max(1,Math.round(nb*sw[i]/swT)):0);
+  const dn=segsC.map((g,i)=>g.length?Math.max(1,Math.round(nb*sw[i]/swT)):0);
   let diff=nb-dn.reduce((a,b)=>a+b,0);
   while(diff!==0){
     let bi=-1;
@@ -348,19 +375,72 @@ function buildPlan(){
   const rows=[];
   segsC.forEach((g,i)=>{
     if(g.length){
-      const c=cutsFor(g.map(x=>0.3*28.4+0.7*VCOUNT[x[0]]/BOOKS[x[0]][1]),dn[i]);
+      const c=cutsFor(g.map(wOf),dn[i]);
       c.forEach((e,k)=>rows.push(g.slice(k?c[k-1]:0,e)));
     }
     if(i<unitsP.length&&nu)rows.push(unitsP[i].ks);
   });
-  const bp=cutsFor(PS.map(x=>PSW[x[1]]||1),NDAYS);
+  while(rows.length<nd)rows.push([]);
+  return rows;
+}
+function planDays(su,t){
+  const R=Math.max(1,su.repeats||1);
+  const start=parse(su.start||str(t));
+  let nd;
+  if(su.end)nd=Math.max(1,parse(su.end)-start+1);
+  else nd=Math.max(1,(su.days||100)*R);
+  return{start,nd};
+}
+function buildPlan(){
+  const t=nowNum();
+  const su=normSetup(S.setup)||Object.assign({},DEF_SETUP,{start:str(t),first:str(t)});
+  su.start=su.start||str(t);
+  const sc=su.scope;
+  SCOPE=sc;
+  START=parse(su.start);
+  FIRST=parse(su.first||su.start);
+  PRE=preFor(sc==='nt'?null:su.ot,sc==='ot'?null:su.nt);
+  const R=Math.max(1,su.repeats||1);
+  const skipSet=new Set(su.skip||[]);
+  const out=new Set();
+  if(sc==='nt')PLAN_ORDER.forEach(i=>out.add(i));
+  if(sc==='ot')NT_ORDER.forEach(i=>out.add(i));
+  SKIP=new Set([...skipSet,...out]);
+  const chOT=[],chNT=[];PS=[];
+  for(let r=0;r<R;r++){
+    PLAN_ORDER.forEach(i=>{
+      if(SKIP.has(i))return;
+      const from=r?1:PRE[i]+1;
+      for(let c=from;c<=BOOKS[i][1];c++){if(i===PSB)PS.push([r*100+i,c]);else chOT.push([r*100+i,c])}
+    });
+    NT_ORDER.forEach(i=>{
+      if(SKIP.has(i))return;
+      const from=r?1:PRE[i]+1;
+      for(let c=from;c<=BOOKS[i][1];c++)chNT.push([r*100+i,c]);
+    });
+  }
+  CH=chOT.concat(chNT);
+  ALL=CH.concat(PS);
+  INPLAN=new Set(ALL.map(x=>x[0]+':'+x[1]));
+  TOTAL=ALL.length;
+  const pd=planDays(su,t);
+  NDAYS=TOTAL?pd.nd:0;
+  END=START+Math.max(NDAYS,1)-1;
+  BUF=Math.min(7,Math.floor(NDAYS/10));
+  XMAS=END+BUF+1;
+  let rows;
+  if(sc==='all'&&su.mode==='mix'){
+    const a=rowsFor(chOT,NDAYS),b=rowsFor(chNT,NDAYS);
+    rows=a.map((x,k)=>x.concat(b[k]||[]));
+  }else rows=rowsFor(CH,NDAYS);
+  const bp=cutsFor(PS.map(wOf),NDAYS);
   BASE=[];
   for(let k=0;k<NDAYS;k++)BASE.push({k,ks:PS.slice(k?bp[k-1]:0,bp[k]).concat(rows[k]||[])});
   DAYS=[];
 }
 let ADJ={left:0,days:0,per:0};
 let T0=new Set(),AHEAD=0,BASE=[],VIEW=null,KT=0;
-const cw=x=>0.3*28.4+0.7*VCOUNT[x[0]]/BOOKS[x[0]][1];
+const cw=wOf;
 function layout(){
   let kT=dates.findIndex(x=>x>=T);
   if(kT<0)kT=NDAYS;
@@ -427,6 +507,7 @@ function schedule(){
 }
 const isDone=k=>!!S.done[k];
 const doneCount=()=>{let c=0;for(const k in S.done)if(INPLAN.has(k))c++;return c};
+const bname=b=>BOOKS[b%100][0]+(b>=100?' (مرة '+(Math.floor(b/100)+1)+')':'');
 function dayKeys(d){return d.ks.map(x=>x[0]+':'+x[1])}
 function dayStats(d){const k=dayKeys(d);return{done:k.filter(isDone).length,total:k.length}}
 function bookStats(b){const p=PRE[b]||0;let c=p;for(let x=p+1;x<=BOOKS[b][1];x++){if(isDone(b+':'+x))c++}return c}
@@ -443,16 +524,16 @@ function segs(d){
 function rangeText(d){
   return segs(d).map(g=>{
     const a=g.cs[0],z=g.cs[g.cs.length-1];
-    return BOOKS[g.b][0]+' '+(a===z?a:a+'–'+z);
+    return bname(g.b)+' '+(a===z?a:a+'–'+z);
   }).join(' · ');
 }
 function chipsHTML(d,ds){
-  return segs(d).map(g=>'<div class="seg"><div class="segname">'+BOOKS[g.b][0]+(DEUT.has(g.b)?'<i>قانوني ثاني</i>':'')+'</div><div class="chips">'+g.cs.map(c=>'<label class="chip"><input type="checkbox" data-key="'+g.b+':'+c+'"'+(ds?' data-ds="'+ds+'"':'')+' aria-label="'+BOOKS[g.b][0]+' '+c+'"><span>'+c+'</span></label>').join('')+'</div></div>').join('');
+  return segs(d).map(g=>'<div class="seg"><div class="segname">'+bname(g.b)+(DEUT.has(g.b%100)?'<i>قانوني ثاني</i>':'')+'</div><div class="chips">'+g.cs.map(c=>'<label class="chip"><input type="checkbox" data-key="'+g.b+':'+c+'"'+(ds?' data-ds="'+ds+'"':'')+' aria-label="'+bname(g.b)+' '+c+'"><span>'+c+'</span></label>').join('')+'</div></div>').join('');
 }
 function listChipsHTML(idxs){
   const out=[];
   idxs.forEach(i=>{const b=ALL[i][0];const last=out[out.length-1];if(last&&last.b===b)last.cs.push(ALL[i][1]);else out.push({b,cs:[ALL[i][1]]})});
-  return out.map(g=>'<div class="seg"><div class="segname">'+BOOKS[g.b][0]+'</div><div class="chips">'+g.cs.map(c=>'<label class="chip"><input type="checkbox" data-key="'+g.b+':'+c+'" aria-label="'+BOOKS[g.b][0]+' '+c+'"><span>'+c+'</span></label>').join('')+'</div></div>').join('');
+  return out.map(g=>'<div class="seg"><div class="segname">'+bname(g.b)+'</div><div class="chips">'+g.cs.map(c=>'<label class="chip"><input type="checkbox" data-key="'+g.b+':'+c+'" aria-label="'+BOOKS[g.b][0]+' '+c+'"><span>'+c+'</span></label>').join('')+'</div></div>').join('');
 }
 function currentK(){
   if(dset.has(T))return -2;
@@ -480,7 +561,7 @@ function renderHero(){
   const all=doneCount()>=TOTAL;
   let html='';
   if(all){
-    html='<div class="finale"><p class="eyebrow">تمت الرحلة</p><h2>أتممت العهد القديم والأسفار القانونية الثانية</h2><p class="muted">خلصت كل الإصحاحات اللي في الخطة والمزامير كلها. المجد لله دائمًا.</p></div>';
+    html='<div class="finale"><p class="eyebrow">تمت الرحلة</p><h2>أتممت القراية المخطط لها</h2><p class="muted">خلصت كل الإصحاحات اللي في الخطة والمزامير كلها. المجد لله دائمًا.</p></div>';
   }else if(k>=0){
     const d=DAYS[k];
     html='<p class="eyebrow">قراية النهارده · اليوم '+(k+1)+' من '+NDAYS+'</p><h2>'+label(T)+'</h2><p class="range">'+(rangeText(d)||'قراية النهارده اتنقلت للأيام الجاية')+'</p>'+chipsHTML(d)+
@@ -516,7 +597,7 @@ function renderPlan(){
   html+='</div>';
   const end=dates[NDAYS-1];
   const bufStart=end+1;
-  html+='<div class="card bufcard" id="bufcard"><p class="eyebrow">أسبوع الاحتياطي</p><h2>'+(bufStart<=XMAS-1?sd(bufStart)+' إلى 5 يناير':'اتصرف بالكامل')+'</h2><p class="muted">كل ما تفعّل يوم احتياطي، الأيام الجاية كلها بتتزحزح يوم، وده بياخد من آخر أسبوع. السلسلة بتفضل محمية في اليوم ده.</p><div class="pips">';
+  html+='<div class="card bufcard" id="bufcard"><p class="eyebrow">أسبوع الاحتياطي</p><h2>'+(bufStart<=XMAS-1?sd(bufStart)+' إلى '+sd(XMAS-1):'اتصرف بالكامل')+'</h2><p class="muted">كل ما تفعّل يوم احتياطي، الأيام الجاية كلها بتتزحزح يوم، وده بياخد من آخر أسبوع. السلسلة بتفضل محمية في اليوم ده.</p><div class="pips">';
   for(let i=0;i<BUF;i++)html+='<span class="pip'+(i<S.delays.length+(S.pb||[]).length?' used':'')+'">'+(i+1)+'</span>';
   html+='</div>';
   if(S.delays.length||(S.pb||[]).length){
@@ -703,7 +784,7 @@ function setKeys(keys,val,ds){
   }
 }
 const ordOf=()=>{const m=new Map();ALL.forEach((x,i)=>m.set(x[0]+':'+x[1],i));return m};
-function sortKs(a,m){return a.sort((p,q)=>((p[0]===PSB?0:1)-(q[0]===PSB?0:1))||((m.get(p[0]+':'+p[1])||0)-(m.get(q[0]+':'+q[1])||0)))}
+function sortKs(a,m){return a.sort((p,q)=>((isPs(p[0])?0:1)-(isPs(q[0])?0:1))||((m.get(p[0]+':'+p[1])||0)-(m.get(q[0]+':'+q[1])||0)))}
 const lastFrozen=()=>dates[KT]===T?KT:KT-1;
 function pendBefore(){
   const L=lastFrozen();let n=0;
@@ -715,7 +796,7 @@ function rebalance(v,only){
   if(v!==undefined&&!isNaN(v))VIEW=null;
   if(m<=0)return;
   const ord=ordOf();
-  const pc=[],pp=[],isP=x=>x[0]===PSB;
+  const pc=[],pp=[],isP=x=>isPs(x[0]);
   const out=DAYS.map(d=>({k:d.k,ks:[]}));
   DAYS.forEach((d,k)=>d.ks.forEach(x=>{
     if(isDone(x[0]+':'+x[1]))out[k].ks.push(x);
@@ -822,6 +903,16 @@ document.addEventListener('click',e=>{
 });
 
 const VERSES=[
+[52,3,'16','لأَنَّهُ هكَذَا أَحَبَّ اللهُ الْعَالَمَ حَتَّى بَذَلَ ابْنَهُ الْوَحِيدَ، لِكَيْ لاَ يَهْلِكَ كُلُّ مَنْ يُؤْمِنُ بِهِ، بَلْ تَكُونُ لَهُ الْحَيَاةُ الأَبَدِيَّةُ.'],
+[49,11,'28','تَعَالَوْا إِلَيَّ يَا جَمِيعَ الْمُتْعَبِينَ وَالثَّقِيلِي الأَحْمَالِ، وَأَنَا أُرِيحُكُمْ.'],
+[49,6,'33','لكِنِ اطْلُبُوا أَوَّلاً مَلَكُوتَ اللهِ وَبِرَّهُ، وَهذِهِ كُلُّهَا تُزَادُ لَكُمْ.'],
+[49,28,'20','وَهَا أَنَا مَعَكُمْ كُلَّ الأَيَّامِ إِلَى انْقِضَاءِ الدَّهْرِ». آمِينَ.'],
+[54,8,'28','وَنَحْنُ نَعْلَمُ أَنَّ كُلَّ الأَشْيَاءِ تَعْمَلُ مَعًا لِلْخَيْرِ لِلَّذِينَ يُحِبُّونَ اللهَ، الَّذِينَ هُمْ مَدْعُوُّونَ حَسَبَ قَصْدِهِ.'],
+[55,13,'13','أَمَّا الآنَ فَيَثْبُتُ: الإِيمَانُ وَالرَّجَاءُ وَالْمَحَبَّةُ، هذِهِ الثَّلاَثَةُ، وَلكِنَّ أَعْظَمَهُنَّ الْمَحَبَّةُ.'],
+[58,2,'8','لأَنَّكُمْ بِالنِّعْمَةِ مُخَلَّصُونَ، بِالإِيمَانِ، وَذلِكَ لَيْسَ مِنْكُمْ. هُوَ عَطِيَّةُ اللهِ.'],
+[59,4,'6','لاَ تَهْتَمُّوا بِشَيْءٍ، بَلْ فِي كُلِّ شَيْءٍ بِالصَّلاَةِ وَالدُّعَاءِ مَعَ الشُّكْرِ، لِتُعْلَمْ طِلْبَاتُكُمْ لَدَى اللهِ.'],
+[59,4,'13','أَسْتَطِيعُ كُلَّ شَيْءٍ فِي الْمَسِيحِ الَّذِي يُقَوِّينِي.'],
+[67,11,'1','وَأَمَّا الإِيمَانُ فَهُوَ الثِّقَةُ بِمَا يُرْجَى، وَالإِيقَانُ بِأُمُورٍ لاَ تُرَى.'],
 [4,31,'6','تَشَدَّدُوا وَتَشَجَّعُوا. لاَ تَخَافُوا وَلاَ تَرْهَبُوا وَجُوهَهُمْ، لأَنَّ الرَّبَّ إِلهَكَ سَائِرٌ مَعَكَ. لاَ يُهْمِلُكَ وَلاَ يَتْرُكُكَ.'],
 [5,1,'9','أَمَا أَمَرْتُكَ؟ تَشَدَّدْ وَتَشَجَّعْ. لاَ تَرْهَبْ وَلاَ تَرْتَعِبْ لأَنَّ الرَّبَّ إِلهَكَ مَعَكَ حَيْثُمَا تَذْهَبُ.'],
 [5,24,'15','أَمَّا أَنَا وَبَيْتِي فَنَعْبُدُ الرَّبَّ.'],
@@ -861,15 +952,15 @@ function renderVerse(){
   const k=currentK();
   let pick=null,level=0,seed;
   if(k>=0){
-    const keys=new Set(dayKeys(DAYS[k]));
-    const books=new Set(segs(DAYS[k]).map(g=>g.b));
+    const keys=new Set(DAYS[k].ks.map(x=>(x[0]%100)+':'+x[1]));
+    const books=new Set(segs(DAYS[k]).map(g=>g.b%100));
     let pool=VERSES.filter(v=>keys.has(v[0]+':'+v[1]));
     level=2;
     if(!pool.length){pool=VERSES.filter(v=>books.has(v[0]));level=1}
     if(pool.length)pick=pool[k%pool.length];
     seed=k;
   }else seed=Math.max(T-START,0);
-  if(!pick){pick=VERSES[seed%VERSES.length];level=0}
+  if(!pick){const vp=VERSES.filter(v=>SCOPE==='all'||(SCOPE==='nt')===(v[0]>=49));const vs=vp.length?vp:VERSES;pick=vs[seed%vs.length];level=0}
   $('vText').textContent=pick[3];
   $('vRef').textContent=BOOKS[pick[0]][0]+' '+pick[1]+':'+pick[2];
   $('vNote').textContent=level===2?'من قراية النهارده':(level===1?'من سفر النهارده':'');
@@ -966,21 +1057,23 @@ function setView(v){
 const viewOf=v=>v==='t'?null:+v;
 function renderHeader(){
   $('subA').textContent=TOTAL?(TOTAL+' إصحاحًا والمزامير موزعة على '+NDAYS+' يوم'):'خلصت كل الإصحاحات';
-  $('subB').textContent=NDAYS?('من '+label(dates[0])+' حتى '+label(dates[NDAYS-1])+'، وأسبوع احتياطي لحد 5 يناير، وعيد الميلاد 6 يناير'):'عيد الميلاد 6 يناير';
+  $('subB').textContent=NDAYS?('من '+label(dates[0])+' حتى '+label(dates[NDAYS-1])+'، وأسبوع احتياطي لحد '+sd(XMAS-1)):'';
 }
 function fillBooks(){
   let h='<option value="-1">لسه ما بدأتش العهد القديم</option>';
   PLAN_ORDER.forEach(b=>{if(b===PSB)return;h+='<option value="'+b+'">'+BOOKS[b][0]+(DEUT.has(b)?' (قانوني ثاني)':'')+'</option>'});
   $('suBook').innerHTML=h;
+  let n='<option value="-1">لسه ما بدأتش العهد الجديد</option>';
+  NT_ORDER.forEach(b=>{n+='<option value="'+b+'">'+BOOKS[b][0]+'</option>'});
+  $('suNBook').innerHTML=n;
 }
-function fillChapters(b,v){
-  const sel=$('suCh');
-  if(b<0){sel.innerHTML='<option value="0">—</option>';sel.disabled=true;return}
-  sel.disabled=false;
+function fillCh(el,b,v){
+  if(b<0){el.innerHTML='<option value="0">—</option>';el.disabled=true;return}
+  el.disabled=false;
   let h='<option value="0">لسه ما بدأتش السفر ده</option>';
   for(let c=1;c<=BOOKS[b][1];c++)h+='<option value="'+c+'">إصحاح '+c+(c===BOOKS[b][1]?' (آخر السفر)':'')+'</option>';
-  sel.innerHTML=h;
-  sel.value=String(v||0);
+  el.innerHTML=h;
+  el.value=String(v||0);
 }
 function fillPsalms(v){
   let h='<option value="0">لسه ما بدأت المزامير</option>';
@@ -988,21 +1081,30 @@ function fillPsalms(v){
   $('suPs').innerHTML=h;
   $('suPs').value=String(v||0);
 }
+const radio=n=>{const e=document.querySelector('input[name="'+n+'"]:checked');return e?e.value:null};
 function suRead(){
   const skip=[];
   document.querySelectorAll('#suPick input[data-b]').forEach(i=>{if(!i.disabled&&!i.checked)skip.push(+i.dataset.b)});
-  return{b:+$('suBook').value,c:+$('suCh').value,p:+$('suPs').value,skip}
+  const type=radio('tt');
+  return{scope:radio('sc')||'ot',ot:{b:+$('suBook').value,c:+$('suCh').value,p:+$('suPs').value},nt:{b:+$('suNBook').value,c:+$('suNCh').value},skip,mode:radio('md')||'seq',days:type==='days'?Math.max(1,+$('suDays').value||1):0,end:type==='date'?($('suEnd').value||null):null,repeats:+$('suRep').value||1}
 }
 let suSkip=[];
 function fillPick(){
-  const b0=+$('suBook').value,c0=+$('suCh').value;
+  const sc=radio('sc')||'ot';
+  const b0=+$('suBook').value,c0=+$('suCh').value,n0=+$('suNBook').value,m0=+$('suNCh').value;
   const keep=new Set(suSkip);
-  const lab=(b)=>{
-    const fin=b0>=0&&(POS[b]<POS[b0]||(b===b0&&c0===BOOKS[b][1]));
+  const lab=b=>{
+    const nt=b>=49;
+    const pb=nt?n0:b0,pc=nt?m0:c0;
+    const fin=pb>=0&&(POS[b]<POS[pb]||(b===pb&&pc===BOOKS[b][1]));
     return '<label class="'+(fin?'fin':(keep.has(b)?'off':''))+'"><input type="checkbox" data-b="'+b+'"'+(fin?' disabled checked':(keep.has(b)?'':' checked'))+'>'+BOOKS[b][0]+(fin?' ✓':'')+'</label>';
   };
-  const secs=GROUPS.slice(0,4).map(g=>[g[0],PLAN_ORDER.filter(b=>b>=g[1]&&b<=g[2]&&b!==PSB&&!DEUT.has(b))]);
-  secs.push(['الأسفار القانونية الثانية',PLAN_ORDER.filter(b=>DEUT.has(b))]);
+  const secs=[];
+  if(sc!=='nt'){
+    GROUPS.slice(0,4).forEach(g=>secs.push([g[0],PLAN_ORDER.filter(b=>b>=g[1]&&b<=g[2]&&b!==PSB&&!DEUT.has(b))]));
+    secs.push(['الأسفار القانونية الثانية',PLAN_ORDER.filter(b=>DEUT.has(b))]);
+  }
+  if(sc!=='ot')GROUPS.slice(5).forEach(g=>secs.push([g[0],NT_ORDER.filter(b=>b>=g[1]&&b<=g[2])]));
   let h='';
   secs.forEach(g=>{
     const bs=g[1];
@@ -1016,41 +1118,95 @@ function suSync(){
   suSkip=suRead().skip;
   suPreview();
 }
+function suCounts(v){
+  const pre=preFor(v.scope==='nt'?null:v.ot,v.scope==='ot'?null:v.nt);
+  const r=remaining(pre,v.skip,v.scope);
+  const full=remaining(preFor(null,null),v.skip,v.scope);
+  return{r,full,tot:r.ch+r.ps,fullTot:full.ch+full.ps}
+}
 function suPreview(){
-  const v=suRead();
-  const r=remaining(preFor(v.b,v.c,v.p),v.skip);
+  const sc=radio('sc')||'ot';
+  $('suOT').hidden=sc==='nt';
+  $('suNT').hidden=sc==='ot';
+  $('suModeBox').hidden=sc!=='all';
+  const type=radio('tt');
+  $('suDays').hidden=type!=='days';
+  $('suEnd').hidden=type!=='date';
   const t=nowNum();
-  const last=lastDay(t);
-  const n=last-t+1;
+  if(!$('suEnd').value)$('suEnd').value=str(t+99);
+  $('suEnd').min=str(t);
+  const v=suRead();
+  const c=suCounts(v);
   const el=$('suSum');
-  if(r.ch+r.ps===0){el.textContent='خلصت العهد القديم كله والمزامير. المجد لله!';$('suGo').disabled=true;return}
+  const rate=x=>Math.max(1,Math.ceil(c.tot/x));
+  document.querySelectorAll('#suPre .pre').forEach(b=>{b.title='حوالي '+rate(+b.dataset.r)+' يوم'});
+  let R=v.repeats;
+  let cyc,nd;
+  if(type==='date'){
+    nd=Math.max(0,parse($('suEnd').value||str(t))-t+1);
+    cyc=Math.floor(nd/R);
+    $('suRepHint').textContent=nd>=R?'':'المدة قصيرة على التكرار ده';
+  }else{
+    cyc=v.days;
+    const mx=Math.max(1,Math.min(6,Math.floor(365/cyc)));
+    $('suRepHint').textContent='ينفع تقراه '+mx+(mx===1?' مرة':' مرات')+' في السنة';
+    if(R>mx&&false)R=mx;
+    nd=cyc*R;
+  }
+  const keepR=$('suRep').value;
+  let ro='';for(let i=1;i<=6;i++)ro+='<option value="'+i+'">'+(i===1?'مرة واحدة':i+' مرات')+'</option>';
+  if($('suRep').options.length!==6){$('suRep').innerHTML=ro;$('suRep').value=keepR||'1'}
+  if(c.tot===0){el.textContent='مفيش حاجة فاضلة في الاختيار ده. المجد لله!';$('suGo').disabled=true;return}
+  if(nd<1||(type==='date'&&parse($('suEnd').value||str(t))<t)){el.textContent='اختار تاريخ نهاية جاي.';$('suGo').disabled=true;return}
   $('suGo').disabled=false;
+  const items=c.tot+(R-1)*c.fullTot;
   const f=x=>String(Math.round(x*10)/10);
-  el.textContent='فاضل '+r.ch+' إصحاح و'+r.ps+' مزمور، هيتوزعوا على '+n+' يوم من النهارده لحد '+sd(last)+'. يعني حوالي '+f(r.ch/n)+' إصحاح و'+f(r.ps/n)+' مزمور في اليوم.';
+  const bufn=Math.min(7,Math.floor(nd/10));
+  el.textContent='فاضل '+c.r.ch+' إصحاح'+(c.r.ps?' و'+c.r.ps+' مزمور':'')+(R>1?'، وهتقراه '+R+' مرات':'')+'، هيتوزعوا على '+nd+' يوم لحد '+sd(t+nd-1)+'. يعني حوالي '+f(items/nd)+' في اليوم'+(bufn?'، وبعدها أسبوع احتياطي':'')+'.';
 }
 function openSetup(cancelable){
-  const su=S.setup||DEF_SETUP;
+  const su=normSetup(S.setup)||DEF_SETUP;
   fillBooks();
-  $('suBook').value=String(su.b);
-  fillChapters(su.b,su.c);
-  fillPsalms(su.p);
+  document.querySelector('input[name="sc"][value="'+su.scope+'"]').checked=true;
+  document.querySelector('input[name="md"][value="'+(su.mode||'seq')+'"]').checked=true;
+  $('suBook').value=String(su.ot.b);
+  fillCh($('suCh'),su.ot.b,su.ot.c);
+  fillPsalms(su.ot.p);
+  $('suNBook').value=String(su.nt.b);
+  fillCh($('suNCh'),su.nt.b,su.nt.c);
+  const tt=su.end?'date':'days';
+  document.querySelector('input[name="tt"][value="'+tt+'"]').checked=true;
+  $('suDays').value=String(su.days||100);
+  $('suEnd').value=su.end||'';
   suSkip=su.skip||[];
   fillPick();
+  $('suRep').innerHTML='';
+  suPreview();
+  $('suRep').value=String(su.repeats||1);
+  suPreview();
   $('suCancel').hidden=!cancelable;
   $('setup').hidden=false;
   document.body.classList.add('lock');
-  suPreview();
-  $('suBook').focus();
 }
 function closeSetup(){
   $('setup').hidden=true;
   document.body.classList.remove('lock');
 }
-$('suBook').addEventListener('change',()=>{fillChapters(+$('suBook').value,0);suSkip=suRead().skip;fillPick();suPreview()});
-$('suCh').addEventListener('change',()=>{suSkip=suRead().skip;fillPick();suPreview()});
+const suRefresh=()=>{suSkip=suRead().skip;fillPick();suPreview()};
+$('suBook').addEventListener('change',()=>{fillCh($('suCh'),+$('suBook').value,0);suRefresh()});
+$('suCh').addEventListener('change',suRefresh);
+$('suNBook').addEventListener('change',()=>{fillCh($('suNCh'),+$('suNBook').value,0);suRefresh()});
+$('suNCh').addEventListener('change',suRefresh);
+$('suScope').addEventListener('change',suRefresh);
+$('suPs').addEventListener('change',suPreview);
+$('suModeBox').addEventListener('change',suPreview);
+$('suRep').addEventListener('change',suPreview);
+$('suDays').addEventListener('input',suPreview);
+$('suEnd').addEventListener('change',suPreview);
+document.querySelectorAll('input[name="tt"]').forEach(e=>e.addEventListener('change',suPreview));
+$('suPre').addEventListener('click',e=>{const b=e.target.closest('.pre');if(!b)return;const c=suCounts(suRead());document.querySelector('input[name="tt"][value="days"]').checked=true;$('suDays').value=String(Math.max(1,Math.ceil(c.tot/+b.dataset.r)));suPreview()});
 $('suPick').addEventListener('change',suSync);
 $('suPick').addEventListener('click',e=>{const b=e.target.closest('button[data-g]');if(!b)return;const on=b.dataset.g==='1';const set=new Set(b.dataset.bs.split(',').map(Number));document.querySelectorAll('#suPick input[data-b]').forEach(i=>{if(!i.disabled&&set.has(+i.dataset.b))i.checked=on});suSync()});
-$('suPs').addEventListener('change',suPreview);
 $('pSel').addEventListener('change',e=>setView(viewOf(e.target.value)));
 $('pPrev').addEventListener('click',()=>{const i=ORDER.indexOf(VIEW===null?'t':String(VIEW));if(i>0)setView(viewOf(ORDER[i-1]))});
 $('pNext').addEventListener('click',()=>{const i=ORDER.indexOf(VIEW===null?'t':String(VIEW));if(i<ORDER.length-1)setView(viewOf(ORDER[i+1]))});
@@ -1061,7 +1217,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('setup').hidden&
 $('suGo').addEventListener('click',()=>{
   const v=suRead();
   const first=S.setup&&S.setup.first?S.setup.first:str(nowNum());
-  S.setup={b:v.b,c:v.c,p:v.p,skip:v.skip,start:str(nowNum()),first};
+  S.setup=Object.assign(v,{start:str(nowNum()),first});
   S.plan=null;
   save();
   buildPlan();
