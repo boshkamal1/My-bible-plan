@@ -6,7 +6,6 @@ import 'package:share_plus/share_plus.dart';
 import '../core/bible_repo.dart';
 import '../core/books.dart';
 import '../core/i18n.dart';
-import '../services/tts.dart';
 import '../state/app_state.dart';
 import 'theme.dart';
 
@@ -33,7 +32,6 @@ class _ReaderScreenState extends State<ReaderScreen> {
   bool loading = true;
   final Stopwatch _sw = Stopwatch()..start();
   final ScrollController _sc = ScrollController();
-  late Speaker _speaker;
   late AppState _st;
   final Map<int, GlobalKey> _keys = {};
 
@@ -46,7 +44,6 @@ class _ReaderScreenState extends State<ReaderScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _speaker = context.read<Speaker>();
     _st = context.read<AppState>();
   }
 
@@ -54,8 +51,6 @@ class _ReaderScreenState extends State<ReaderScreen> {
   void dispose() {
     final secs = _sw.elapsed.inSeconds.clamp(0, 1800);
     _st.addSeconds(secs);
-    _speaker.onFinished = null;
-    _speaker.stop();
     _sc.dispose();
     super.dispose();
   }
@@ -101,7 +96,6 @@ class _ReaderScreenState extends State<ReaderScreen> {
 
   void _go(int dir) {
     final q = widget.queue;
-    _speaker.stop();
     if (q != null && _qi >= 0) {
       final n = q[_qi + dir];
       b = n.b;
@@ -122,31 +116,6 @@ class _ReaderScreenState extends State<ReaderScreen> {
       }
     }
     _load();
-  }
-
-  Future<void> _listen() async {
-    final t = text;
-    if (t == null) return;
-    if (_speaker.playing) {
-      await _speaker.stop();
-      return;
-    }
-    _speaker.onFinished = () {
-      if (!mounted) return;
-      final st = context.read<AppState>();
-      st.markChapter('$b:$c', true);
-      if (_hasNext) {
-        _go(1);
-        Future.delayed(const Duration(milliseconds: 600), () {
-          if (mounted && text != null)
-            _speaker.play(
-              text!.verses,
-              text!.translation == 'kjv' ? 'en' : 'ar',
-            );
-        });
-      }
-    };
-    await _speaker.play(t.verses, t.translation == 'kjv' ? 'en' : 'ar');
   }
 
   String _ref(int v) {
@@ -249,21 +218,6 @@ class _ReaderScreenState extends State<ReaderScreen> {
                           Share.share('$verse\n— ${_ref(v)}');
                         },
                       ),
-                      ActionChip(
-                        avatar: const Icon(Icons.volume_up),
-                        label: Text(tr('listen')),
-                        onPressed: () {
-                          Navigator.pop(ctx);
-                          final t = text;
-                          if (t != null) {
-                            _speaker.play(
-                              t.verses,
-                              t.translation == 'kjv' ? 'en' : 'ar',
-                              from: v - 1,
-                            );
-                          }
-                        },
-                      ),
                     ],
                   ),
                 ],
@@ -311,7 +265,6 @@ class _ReaderScreenState extends State<ReaderScreen> {
   @override
   Widget build(BuildContext context) {
     final st = context.watch<AppState>();
-    final sp = context.watch<Speaker>();
     final scheme = Theme.of(context).colorScheme;
     final key = '$b:$c';
     final done = st.isDone(key);
@@ -329,7 +282,6 @@ class _ReaderScreenState extends State<ReaderScreen> {
             icon: const Icon(Icons.translate),
             onPressed: () {
               st.setTranslation(st.translation == 'svd' ? 'kjv' : 'svd');
-              _speaker.stop();
               _load();
             },
           ),
@@ -375,34 +327,12 @@ class _ReaderScreenState extends State<ReaderScreen> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           for (var i = 0; i < t.verses.length; i++)
-                            _verse(st, sp, i + 1, t.verses[i], scheme),
+                            _verse(st, i + 1, t.verses[i], scheme),
                         ],
                       ),
                     ),
                   ),
                 ),
-                if (sp.playing)
-                  Container(
-                    color: scheme.surfaceContainerHighest,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.speed, size: 20),
-                        Expanded(
-                          child: Slider(
-                            min: 0.25,
-                            max: 0.75,
-                            value: sp.rate.clamp(0.25, 0.75),
-                            onChanged: (v) => sp.setRate(v),
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.stop_circle_outlined),
-                          onPressed: _speaker.stop,
-                        ),
-                      ],
-                    ),
-                  ),
                 SafeArea(
                   top: false,
                   child: Padding(
@@ -412,13 +342,6 @@ class _ReaderScreenState extends State<ReaderScreen> {
                         IconButton(
                           icon: const Icon(Icons.chevron_left),
                           onPressed: _hasPrev ? () => _go(-1) : null,
-                        ),
-                        IconButton(
-                          icon: Icon(
-                            sp.playing ? Icons.pause_circle : Icons.headphones,
-                          ),
-                          tooltip: tr('listen'),
-                          onPressed: _listen,
                         ),
                         Expanded(
                           child: FilledButton.icon(
@@ -448,16 +371,9 @@ class _ReaderScreenState extends State<ReaderScreen> {
     );
   }
 
-  Widget _verse(
-    AppState st,
-    Speaker sp,
-    int v,
-    String verse,
-    ColorScheme scheme,
-  ) {
+  Widget _verse(AppState st, int v, String verse, ColorScheme scheme) {
     final vk = '$b:$c:$v';
     final h = st.hl[vk];
-    final playing = sp.playing && sp.current == v - 1;
     _keys.putIfAbsent(v, () => GlobalKey());
     return InkWell(
       key: _keys[v],
@@ -467,9 +383,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
         margin: const EdgeInsets.symmetric(vertical: 2),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         decoration: BoxDecoration(
-          color: playing
-              ? kGold.withValues(alpha: 0.25)
-              : (h != null ? kHlColors[h].withValues(alpha: 0.55) : null),
+          color: (h != null ? kHlColors[h].withValues(alpha: 0.55) : null),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Column(

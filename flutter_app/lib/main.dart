@@ -6,7 +6,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'core/i18n.dart';
 import 'services/cloud.dart';
 import 'services/notifications.dart';
-import 'services/tts.dart';
 import 'services/widget_sync.dart';
 import 'state/app_state.dart';
 import 'ui/root.dart';
@@ -28,7 +27,6 @@ Future<void> main() async {
       providers: [
         ChangeNotifierProvider<AppState>.value(value: state),
         ChangeNotifierProvider<Cloud>.value(value: cloud),
-        ChangeNotifierProvider<Speaker>(create: (_) => Speaker()),
       ],
       child: const App(),
     ),

@@ -134,9 +134,8 @@ async function openReader(b,c,queue,verse){
   await drawReader();
 }
 async function drawReader(){
-  stopSpeak();
   const key=rd.b+':'+rd.c;
-  ro.innerHTML='<div class="xhead"><button class="xb" id="xrClose">✕</button><h2>'+esc(title(rd.b,rd.c))+'</h2><button class="xb" id="xrTr">'+(rd.tr==='svd'?'KJV':'SVD')+'</button><button class="xb" id="xrFm">A−</button><button class="xb" id="xrFp">A+</button></div><div class="xbody" id="xrBody">…</div><div class="xfoot"><button class="xb" id="xrPrev">‹</button><button class="xb" id="xrListen">🎧 '+X('listen')+'</button><button class="xb pri" id="xrDone"></button><button class="xb" id="xrNext">›</button></div>';
+  ro.innerHTML='<div class="xhead"><button class="xb" id="xrClose">✕</button><h2>'+esc(title(rd.b,rd.c))+'</h2><button class="xb" id="xrTr">'+(rd.tr==='svd'?'KJV':'SVD')+'</button><button class="xb" id="xrFm">A−</button><button class="xb" id="xrFp">A+</button></div><div class="xbody" id="xrBody">…</div><div class="xfoot"><button class="xb" id="xrPrev">‹</button><button class="xb pri" id="xrDone"></button><button class="xb" id="xrNext">›</button></div>';
   const data=await getChapter(rd.b,rd.c,rd.tr);
   rd.data=data;
   const body=q('xrBody');
@@ -186,41 +185,14 @@ function go(dir){
   drawReader();
   return true;
 }
-let synth=window.speechSynthesis;
-function stopSpeak(){rd.playing=false;rd.cur=-1;try{synth&&synth.cancel()}catch(e){}markPlay()}
-function markPlay(){document.querySelectorAll('#xrBody .xv.pl').forEach(e=>e.classList.remove('pl'));if(rd.cur>=0){const e=document.querySelector('#xrBody [data-v="'+(rd.cur+1)+'"]');if(e){e.classList.add('pl');e.scrollIntoView({block:'center',behavior:'smooth'})}}const b=q('xrListen');if(b)b.textContent=rd.playing?'⏹ '+X('stop'):'🎧 '+X('listen')}
-function speakFrom(i){
-  if(!synth||!rd.data)return;
-  try{synth.cancel()}catch(e){}
-  rd.playing=true;rd.cur=i;
-  const lang=rd.data.tr==='svd'?'ar-SA':'en-US';
-  const loop=()=>{
-    if(!rd.playing)return;
-    if(rd.cur>=rd.data.v.length){
-      rd.playing=false;rd.cur=-1;markPlay();
-      const key=rd.b+':'+rd.c;
-      if(!isDone(key))setKeys([key],true);
-      if(go(1))setTimeout(()=>{if(rd.data)speakFrom(0)},900);
-      return;
-    }
-    const u=new SpeechSynthesisUtterance(rd.data.v[rd.cur]);
-    u.lang=lang;u.rate=.9;
-    u.onend=()=>{if(rd.playing){rd.cur++;markPlay();loop()}};
-    u.onerror=()=>{rd.playing=false;markPlay()};
-    markPlay();
-    synth.speak(u);
-  };
-  loop();
-}
 ro.addEventListener('click',e=>{
   const t=e.target;
-  if(t.closest('#xrClose')){stopSpeak();addSecs();sheet.hidden=true;closeOv(ro);return}
+  if(t.closest('#xrClose')){addSecs();sheet.hidden=true;closeOv(ro);return}
   if(t.closest('#xrTr')){E.set.tr=rd.tr=rd.tr==='svd'?'kjv':'svd';saveE();drawReader();return}
   if(t.closest('#xrFm')){E.set.fs=Math.max(14,E.set.fs-2);saveE();q('xrBody').style.fontSize=E.set.fs+'px';return}
   if(t.closest('#xrFp')){E.set.fs=Math.min(40,E.set.fs+2);saveE();q('xrBody').style.fontSize=E.set.fs+'px';return}
   if(t.closest('#xrPrev')){go(-1);return}
   if(t.closest('#xrNext')){go(1);return}
-  if(t.closest('#xrListen')){if(rd.playing)stopSpeak();else speakFrom(0);return}
   if(t.closest('#xrDone')){
     const key=rd.b+':'+rd.c;
     const was=isDone(key);
@@ -237,7 +209,7 @@ function openSheet(v){
   const ref=title(rd.b,rd.c)+':'+nf(v);
   const cur=E.hl[k];
   sheet.hidden=false;
-  sheet.innerHTML='<b>'+esc(ref)+'</b><div class="r">'+HLC.map((c,i)=>'<span class="xdot'+(cur===i?' sel':'')+'" data-hl="'+i+'" style="background:'+c+'"></span>').join('')+'<button class="xb" data-a="nohl">⌀</button></div><div class="r"><button class="xb'+(E.fav.includes(k)?' on':'')+'" data-a="fav">★ '+X('fav')+'</button><button class="xb" data-a="note">📝 '+X('note')+'</button><button class="xb" data-a="copy">'+X('copy')+'</button><button class="xb" data-a="share">'+X('share')+'</button><button class="xb" data-a="listen">🎧</button><button class="xb" data-a="x">✕</button></div>';
+  sheet.innerHTML='<b>'+esc(ref)+'</b><div class="r">'+HLC.map((c,i)=>'<span class="xdot'+(cur===i?' sel':'')+'" data-hl="'+i+'" style="background:'+c+'"></span>').join('')+'<button class="xb" data-a="nohl">⌀</button></div><div class="r"><button class="xb'+(E.fav.includes(k)?' on':'')+'" data-a="fav">★ '+X('fav')+'</button><button class="xb" data-a="note">📝 '+X('note')+'</button><button class="xb" data-a="copy">'+X('copy')+'</button><button class="xb" data-a="share">'+X('share')+'</button><button class="xb" data-a="x">✕</button></div>';
   sheet.onclick=async ev=>{
     const el=ev.target.closest('[data-hl],[data-a]');if(!el)return;
     const a=el.dataset.a;
@@ -252,7 +224,6 @@ function openSheet(v){
     if(a==='nd'){delete E.notes[k];bump();refreshVerse(v);sheet.hidden=true;return}
     if(a==='copy'){try{await navigator.clipboard.writeText(txt+'\n— '+ref);toast(X('copied'))}catch(e){}sheet.hidden=true;return}
     if(a==='share'){const t=txt+'\n— '+ref;sheet.hidden=true;if(navigator.share){try{await navigator.share({text:t})}catch(e){}}else{try{await navigator.clipboard.writeText(t);toast(X('copied'))}catch(e){}}return}
-    if(a==='listen'){sheet.hidden=true;speakFrom(v-1);return}
     if(a==='x'){sheet.hidden=true}
   };
 }
