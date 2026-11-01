@@ -32,8 +32,10 @@ class _PlanScreenState extends State<PlanScreen> {
       appBar: AppBar(title: Text(tr('plan'))),
       body: ListView.builder(
         controller: _sc ??= ScrollController(
-            initialScrollOffset:
-                (cur * 76.0 - 120).clamp(0, double.infinity).toDouble()),
+          initialScrollOffset: (cur * 76.0 - 120)
+              .clamp(0, double.infinity)
+              .toDouble(),
+        ),
         padding: const EdgeInsets.all(12),
         itemCount: p.nDays + 1,
         itemBuilder: (ctx, i) {
@@ -42,12 +44,15 @@ class _PlanScreenState extends State<PlanScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(tr('buffer'),
-                          style: const TextStyle(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 6),
-                      Row(children: [
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      tr('buffer'),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
                         for (var j = 0; j < p.buf; j++)
                           Container(
                             margin: const EdgeInsetsDirectional.only(end: 6),
@@ -61,11 +66,15 @@ class _PlanScreenState extends State<PlanScreen> {
                                   : Colors.transparent,
                               border: Border.all(color: kGold),
                             ),
-                            child: Text(nf(j + 1),
-                                style: const TextStyle(fontSize: 12)),
+                            child: Text(
+                              nf(j + 1),
+                              style: const TextStyle(fontSize: 12),
+                            ),
                           ),
-                      ]),
-                    ]),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             );
           }
@@ -78,20 +87,24 @@ class _PlanScreenState extends State<PlanScreen> {
           return Card(
             color: isCur ? kGold.withValues(alpha: 0.14) : null,
             child: ListTile(
-              onTap: () => Navigator.of(context)
-                  .push(MaterialPageRoute(builder: (_) => DayScreen(k: k))),
+              onTap: () =>
+                  Navigator.of(context)
+                      .push(MaterialPageRoute(builder: (_) => DayScreen(k: k))),
               leading: CircleAvatar(
                 backgroundColor: complete
                     ? Colors.green
                     : (date < s.today
-                        ? Colors.orange.withValues(alpha: 0.4)
-                        : null),
+                          ? Colors.orange.withValues(alpha: 0.4)
+                          : null),
                 child: complete
                     ? const Icon(Icons.check, color: Colors.white)
                     : Text(nf(k + 1)),
               ),
-              title: Text(s.rangeLabel(list),
-                  maxLines: 2, overflow: TextOverflow.ellipsis),
+              title: Text(
+                s.rangeLabel(list),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
               subtitle: Text('${dateLabel(date)}${frozen ? '  🛡' : ''}'),
               trailing: Text('${nf(s.doneInDay(k))}/${nf(list.length)}'),
             ),
@@ -110,7 +123,9 @@ class DayScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text('${tr('day')} ${nf(k + 1)}')),
       body: ListView(
-          padding: const EdgeInsets.all(16), children: [DayView(k: k)]),
+        padding: const EdgeInsets.all(16),
+        children: [DayView(k: k)],
+      ),
     );
   }
 }

@@ -33,31 +33,31 @@ class Setup {
   });
 
   Setup copyWith({String? start, String? first}) => Setup(
-        scope: scope,
-        otB: otB,
-        otC: otC,
-        otP: otP,
-        ntB: ntB,
-        ntC: ntC,
-        skip: skip,
-        mode: mode,
-        days: days,
-        end: end,
-        start: start ?? this.start,
-        first: first ?? this.first,
-      );
+    scope: scope,
+    otB: otB,
+    otC: otC,
+    otP: otP,
+    ntB: ntB,
+    ntC: ntC,
+    skip: skip,
+    mode: mode,
+    days: days,
+    end: end,
+    start: start ?? this.start,
+    first: first ?? this.first,
+  );
 
   Map<String, dynamic> toJson() => {
-        'scope': scope,
-        'ot': {'b': otB, 'c': otC, 'p': otP},
-        'nt': {'b': ntB, 'c': ntC},
-        'skip': skip,
-        'mode': mode,
-        'days': days,
-        'end': end,
-        'start': start,
-        'first': first,
-      };
+    'scope': scope,
+    'ot': {'b': otB, 'c': otC, 'p': otP},
+    'nt': {'b': ntB, 'c': ntC},
+    'skip': skip,
+    'mode': mode,
+    'days': days,
+    'end': end,
+    'start': start,
+    'first': first,
+  };
 
   static Setup fromJson(Map<String, dynamic> j) {
     final ot = (j['ot'] as Map?) ?? const {};
@@ -172,7 +172,7 @@ List<List<Chap>> rowsFor(List<Chap> list, int nd) {
   if (swT == 0) swT = 1;
   final dn = <int>[
     for (var i = 0; i < segsC.length; i++)
-      segsC[i].isNotEmpty ? math.max(1, (nb * sw[i] / swT).round()) : 0
+      segsC[i].isNotEmpty ? math.max(1, (nb * sw[i] / swT).round()) : 0,
   ];
   var diff = nb - dn.fold(0, (a, b) => a + b);
   while (diff != 0) {
@@ -242,12 +242,15 @@ Map<int, int> preFor(Setup? su, bool useOt, bool useNt) {
 }
 
 List<int> scopeBooks(String scope) => [
-      if (scope != 'nt') ...kPlanOrderOt,
-      if (scope != 'ot') ...kPlanOrderNt,
-    ];
+  if (scope != 'nt') ...kPlanOrderOt,
+  if (scope != 'ot') ...kPlanOrderNt,
+];
 
 ({int ch, int ps}) remainingFor(
-    Map<int, int> pre, List<int> skip, String scope) {
+  Map<int, int> pre,
+  List<int> skip,
+  String scope,
+) {
   final sk = skip.toSet();
   var ch = 0;
   var ps = 0;
@@ -343,7 +346,7 @@ PlanData buildPlan(Setup su) {
     final a = rowsFor(chOt, nDays);
     final b = rowsFor(chNt, nDays);
     rows = [
-      for (var k = 0; k < nDays; k++) [...a[k], ...b[k]]
+      for (var k = 0; k < nDays; k++) [...a[k], ...b[k]],
     ];
   } else {
     rows = rowsFor(ch, nDays);
@@ -353,7 +356,7 @@ PlanData buildPlan(Setup su) {
   for (var k = 0; k < nDays; k++) {
     base.add([
       ...ps.sublist(k > 0 ? bp[k - 1] : 0, bp[k]),
-      ...(k < rows.length ? rows[k] : <Chap>[])
+      ...(k < rows.length ? rows[k] : <Chap>[]),
     ]);
   }
   return PlanData(
@@ -409,7 +412,11 @@ void sortChaps(List<Chap> a, Map<String, int> ord) {
 }
 
 List<List<Chap>> layoutDays(
-    PlanData p, List<int> dates, int today, List<List<String>>? saved) {
+  PlanData p,
+  List<int> dates,
+  int today,
+  List<List<String>>? saved,
+) {
   final kT = firstIndexOnOrAfter(dates, today);
   final useSaved = saved != null && saved.length == p.nDays;
   final days = <List<Chap>>[];
@@ -439,8 +446,9 @@ List<List<Chap>> layoutDays(
       final it = itemsOf(miss);
       final mc = cutsFor(it.map(itemWeight).toList(), mn);
       for (var i = 0; i < mc.length; i++) {
-        days[m0 + i]
-            .addAll(it.sublist(i > 0 ? mc[i - 1] : 0, mc[i]).expand((e) => e));
+        days[m0 + i].addAll(
+          it.sublist(i > 0 ? mc[i - 1] : 0, mc[i]).expand((e) => e),
+        );
       }
       final ord = _orderMap(p);
       for (final d in days) {
@@ -500,7 +508,12 @@ class StreakInfo {
   final bool readToday;
   final bool frozenToday;
   const StreakInfo(
-      this.cur, this.best, this.atRisk, this.readToday, this.frozenToday);
+    this.cur,
+    this.best,
+    this.atRisk,
+    this.readToday,
+    this.frozenToday,
+  );
 }
 
 StreakInfo streakOf({
@@ -541,5 +554,10 @@ StreakInfo streakOf({
     }
   }
   return StreakInfo(
-      cur, best, atRisk, readDates.contains(ts), frozen.contains(ts));
+    cur,
+    best,
+    atRisk,
+    readDates.contains(ts),
+    frozen.contains(ts),
+  );
 }

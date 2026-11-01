@@ -23,14 +23,16 @@ Future<void> main() async {
     WidgetSync.update(s);
     if (cloud.signedIn) cloud.sync(s);
   };
-  runApp(MultiProvider(
-    providers: [
-      ChangeNotifierProvider<AppState>.value(value: state),
-      ChangeNotifierProvider<Cloud>.value(value: cloud),
-      ChangeNotifierProvider<Speaker>(create: (_) => Speaker()),
-    ],
-    child: const App(),
-  ));
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider<AppState>.value(value: state),
+        ChangeNotifierProvider<Cloud>.value(value: cloud),
+        ChangeNotifierProvider<Speaker>(create: (_) => Speaker()),
+      ],
+      child: const App(),
+    ),
+  );
   await cloud.init();
   if (cloud.signedIn) cloud.sync(state);
   Notifier.reschedule(state);

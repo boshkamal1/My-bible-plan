@@ -70,8 +70,10 @@ class PrivacyScreen extends StatelessWidget {
       appBar: AppBar(title: Text(tr('privacy'))),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
-        child: Text(gEn ? _en : _ar,
-            style: const TextStyle(height: 1.7, fontSize: 15)),
+        child: Text(
+          gEn ? _en : _ar,
+          style: const TextStyle(height: 1.7, fontSize: 15),
+        ),
       ),
     );
   }

@@ -23,18 +23,23 @@ class BooksScreen extends StatelessWidget {
               Card(
                 child: ExpansionTile(
                   shape: const Border(),
-                  title: Text(tr('bookGroup_${g.id}'),
-                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                  title: Text(
+                    tr('bookGroup_${g.id}'),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                   children: [
                     for (final b in g.books)
                       ListTile(
                         title: Text(s.bookName(b)),
                         subtitle: LinearProgressIndicator(
-                            value: _prog(s, b), color: kGold, minHeight: 4),
+                          value: _prog(s, b),
+                          color: kGold,
+                          minHeight: 4,
+                        ),
                         trailing: Text(nf(kChapters[b])),
                         onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute(
-                                builder: (_) => ChapterGrid(b: b))),
+                          MaterialPageRoute(builder: (_) => ChapterGrid(b: b)),
+                        ),
                       ),
                   ],
                 ),
@@ -65,7 +70,10 @@ class ChapterGrid extends StatelessWidget {
       body: GridView.builder(
         padding: const EdgeInsets.all(16),
         gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-            maxCrossAxisExtent: 64, mainAxisSpacing: 10, crossAxisSpacing: 10),
+          maxCrossAxisExtent: 64,
+          mainAxisSpacing: 10,
+          crossAxisSpacing: 10,
+        ),
         itemCount: kChapters[b],
         itemBuilder: (ctx, i) {
           final c = i + 1;
@@ -73,17 +81,23 @@ class ChapterGrid extends StatelessWidget {
           return InkWell(
             borderRadius: BorderRadius.circular(12),
             onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => ReaderScreen(b: b, c: c))),
+              MaterialPageRoute(
+                builder: (_) => ReaderScreen(b: b, c: c),
+              ),
+            ),
             child: Container(
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: d ? Colors.green.withValues(alpha: 0.25) : null,
                 border: Border.all(
-                    color: d ? Colors.green : kGold.withValues(alpha: 0.5)),
+                  color: d ? Colors.green : kGold.withValues(alpha: 0.5),
+                ),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Text(nf(c),
-                  style: const TextStyle(fontWeight: FontWeight.bold)),
+              child: Text(
+                nf(c),
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
           );
         },

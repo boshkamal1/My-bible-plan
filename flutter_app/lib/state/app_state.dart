@@ -79,8 +79,9 @@ class AppState extends ChangeNotifier {
   }
 
   void _fromMap(Map<String, dynamic> j, {required bool withSettings}) {
-    done = ((j['done'] as Map?) ?? {})
-        .map((k, v) => MapEntry(k as String, v as String));
+    done = ((j['done'] as Map?) ?? {}).map(
+      (k, v) => MapEntry(k as String, v as String),
+    );
     hist = ((j['hist'] as List?) ?? []).map((e) => e as String).toSet();
     delays = ((j['delays'] as List?) ?? []).map((e) => e as String).toList();
     pb = ((j['pb'] as List?) ?? []).map((e) => e as String).toList();
@@ -96,16 +97,20 @@ class AppState extends ChangeNotifier {
     final s = j['setup'];
     setup = s is Map ? Setup.fromJson(Map<String, dynamic>.from(s)) : null;
     t = (j['t'] as num?)?.toInt() ?? 0;
-    notes = ((j['notes'] as Map?) ?? {})
-        .map((k, v) => MapEntry(k as String, v as String));
-    hl = ((j['hl'] as Map?) ?? {})
-        .map((k, v) => MapEntry(k as String, (v as num).toInt()));
+    notes = ((j['notes'] as Map?) ?? {}).map(
+      (k, v) => MapEntry(k as String, v as String),
+    );
+    hl = ((j['hl'] as Map?) ?? {}).map(
+      (k, v) => MapEntry(k as String, (v as num).toInt()),
+    );
     fav = ((j['fav'] as List?) ?? []).map((e) => e as String).toSet();
-    secs = ((j['secs'] as Map?) ?? {})
-        .map((k, v) => MapEntry(k as String, (v as num).toInt()));
+    secs = ((j['secs'] as Map?) ?? {}).map(
+      (k, v) => MapEntry(k as String, (v as num).toInt()),
+    );
     if (withSettings) {
-      groupCodes =
-          ((j['groups'] as List?) ?? []).map((e) => e as String).toList();
+      groupCodes = ((j['groups'] as List?) ?? [])
+          .map((e) => e as String)
+          .toList();
       final st = (j['settings'] as Map?) ?? {};
       lang = (st['lang'] as String?) ?? 'ar';
       translation = (st['tr'] as String?) ?? 'svd';
@@ -121,34 +126,34 @@ class AppState extends ChangeNotifier {
   }
 
   Map<String, dynamic> toMap({bool cloud = false}) => {
-        'done': done,
-        'hist': hist.toList(),
-        'delays': delays,
-        'pb': pb,
-        // Firestore does not allow nested arrays; store each day as a comma string.
-        'plan': planOverride?.map((d) => d.join(',')).toList(),
-        'setup': setup?.toJson(),
-        't': t,
-        'notes': notes,
-        'hl': hl,
-        'fav': fav.toList(),
-        'secs': secs,
-        if (!cloud) ...{
-          'groups': groupCodes,
-          'settings': {
-            'lang': lang,
-            'tr': translation,
-            'fs': fontSize,
-            'theme': themeMode,
-            'rem': remindOn,
-            'risk': riskOn,
-            'rh': remindH,
-            'rm': remindM,
-            'welcome': seenWelcome,
-            'name': displayName,
-          },
-        },
-      };
+    'done': done,
+    'hist': hist.toList(),
+    'delays': delays,
+    'pb': pb,
+    // Firestore does not allow nested arrays; store each day as a comma string.
+    'plan': planOverride?.map((d) => d.join(',')).toList(),
+    'setup': setup?.toJson(),
+    't': t,
+    'notes': notes,
+    'hl': hl,
+    'fav': fav.toList(),
+    'secs': secs,
+    if (!cloud) ...{
+      'groups': groupCodes,
+      'settings': {
+        'lang': lang,
+        'tr': translation,
+        'fs': fontSize,
+        'theme': themeMode,
+        'rem': remindOn,
+        'risk': riskOn,
+        'rh': remindH,
+        'rm': remindM,
+        'welcome': seenWelcome,
+        'name': displayName,
+      },
+    },
+  };
 
   /// Applies a cloud snapshot if it is newer. Returns true when applied.
   bool applyRemote(Map<String, dynamic> j) {
@@ -195,8 +200,10 @@ class AppState extends ChangeNotifier {
 
   void _scheduleAfter() {
     _deb?.cancel();
-    _deb =
-        Timer(const Duration(milliseconds: 900), () => afterChange?.call(this));
+    _deb = Timer(
+      const Duration(milliseconds: 900),
+      () => afterChange?.call(this),
+    );
   }
 
   /// Mark a data change (bumps the sync timestamp).
@@ -332,11 +339,11 @@ class AppState extends ChangeNotifier {
   Set<String> get readDates => {...done.values, ...hist};
 
   StreakInfo get streak => streakOf(
-        readDates: readDates,
-        frozen: frozenDates,
-        today: today,
-        first: setup == null ? today : parseDay(setup!.first),
-      );
+    readDates: readDates,
+    frozen: frozenDates,
+    today: today,
+    first: setup == null ? today : parseDay(setup!.first),
+  );
 
   // ---- mutations
   void toggleChapter(String key) {
@@ -414,7 +421,12 @@ class AppState extends ChangeNotifier {
   void _rebalance(int k, List<int>? only) {
     final p = plan!;
     final out = rebalanceDays(
-        p: p, days: days, lastFrozen: k, isDone: isDone, only: only);
+      p: p,
+      days: days,
+      lastFrozen: k,
+      isDone: isDone,
+      only: only,
+    );
     planOverride = out;
   }
 
@@ -524,9 +536,10 @@ class AppState extends ChangeNotifier {
 
   int minutesForChap(Chap c) {
     final v = kVerses[c.b] / kChapters[c.b];
-    return ((c.isPsalm ? 0.8 * (kPsalmVerses(c.c)) : v) * 0.12)
-        .ceil()
-        .clamp(1, 60);
+    return ((c.isPsalm ? 0.8 * (kPsalmVerses(c.c)) : v) * 0.12).ceil().clamp(
+      1,
+      60,
+    );
   }
 
   int minutesForDay(int k) =>
@@ -588,8 +601,13 @@ class AppState extends ChangeNotifier {
       BadgeDef('c1000', '١٠٠٠ أصحاح', '1000 chapters', '👑', n >= 1000),
       BadgeDef('b1', 'أول سفر كامل', 'First full book', '✅', bk >= 1),
       BadgeDef('b10', '١٠ أسفار', '10 books', '🎖️', bk >= 10),
-      BadgeDef('plan', 'خلصت الخطة', 'Plan completed', '🎉',
-          plan != null && plan!.total > 0 && totalDone >= plan!.total),
+      BadgeDef(
+        'plan',
+        'خلصت الخطة',
+        'Plan completed',
+        '🎉',
+        plan != null && plan!.total > 0 && totalDone >= plan!.total,
+      ),
     ];
   }
 

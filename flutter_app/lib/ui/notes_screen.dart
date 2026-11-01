@@ -16,14 +16,17 @@ class NotesScreen extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: Text(tr('notes')),
-          bottom: TabBar(tabs: [
-            Tab(text: tr('notes')),
-            Tab(text: tr('favorites')),
-            Tab(text: tr('highlights'))
-          ]),
+          bottom: TabBar(
+            tabs: [
+              Tab(text: tr('notes')),
+              Tab(text: tr('favorites')),
+              Tab(text: tr('highlights')),
+            ],
+          ),
         ),
         body: const TabBarView(
-            children: [_List(kind: 0), _List(kind: 1), _List(kind: 2)]),
+          children: [_List(kind: 0), _List(kind: 1), _List(kind: 2)],
+        ),
       ),
     );
   }
@@ -36,12 +39,13 @@ class _List extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.watch<AppState>();
-    final keys = (kind == 0
-            ? s.notes.keys
-            : kind == 1
+    final keys =
+        (kind == 0
+                ? s.notes.keys
+                : kind == 1
                 ? s.fav
                 : s.hl.keys)
-        .toList();
+            .toList();
     keys.sort((a, b) {
       final x = a.split(':').map(int.parse).toList();
       final y = b.split(':').map(int.parse).toList();
@@ -63,9 +67,10 @@ class _List extends StatelessWidget {
             leading: kind == 2
                 ? CircleAvatar(radius: 10, backgroundColor: kHlColors[s.hl[k]!])
                 : null,
-            title: Text('$name ${nf(p[1])}:${nf(p[2])}',
-                style:
-                    const TextStyle(color: kGold, fontWeight: FontWeight.bold)),
+            title: Text(
+              '$name ${nf(p[1])}:${nf(p[2])}',
+              style: const TextStyle(color: kGold, fontWeight: FontWeight.bold),
+            ),
             subtitle: kind == 0 ? Text(s.notes[k]!) : null,
             trailing: IconButton(
               icon: const Icon(Icons.delete_outline),
@@ -75,9 +80,12 @@ class _List extends StatelessWidget {
                 if (kind == 2) s.setHighlight(k, null);
               },
             ),
-            onTap: () => Navigator.of(context).push(MaterialPageRoute(
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
                 builder: (_) =>
-                    ReaderScreen(b: p[0], c: p[1], scrollToVerse: p[2]))),
+                    ReaderScreen(b: p[0], c: p[1], scrollToVerse: p[2]),
+              ),
+            ),
           ),
         );
       },

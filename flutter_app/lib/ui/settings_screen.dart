@@ -13,8 +13,9 @@ class SettingsScreen extends StatelessWidget {
 
   Future<void> _pickTime(BuildContext context, AppState s) async {
     final t = await showTimePicker(
-        context: context,
-        initialTime: TimeOfDay(hour: s.remindH, minute: s.remindM));
+      context: context,
+      initialTime: TimeOfDay(hour: s.remindH, minute: s.remindM),
+    );
     if (t != null) s.setReminders(h: t.hour, m: t.minute);
   }
 
@@ -31,7 +32,7 @@ class SettingsScreen extends StatelessWidget {
           SegmentedButton<String>(
             segments: [
               ButtonSegment(value: 'ar', label: Text(tr('arabic'))),
-              const ButtonSegment(value: 'en', label: Text('English'))
+              const ButtonSegment(value: 'en', label: Text('English')),
             ],
             selected: {s.lang},
             onSelectionChanged: (v) => s.setLang(v.first),
@@ -41,7 +42,7 @@ class SettingsScreen extends StatelessWidget {
           SegmentedButton<String>(
             segments: [
               ButtonSegment(value: 'svd', label: Text(tr('svd'))),
-              ButtonSegment(value: 'kjv', label: Text(tr('kjv')))
+              ButtonSegment(value: 'kjv', label: Text(tr('kjv'))),
             ],
             selected: {s.translation},
             onSelectionChanged: (v) => s.setTranslation(v.first),
@@ -49,12 +50,13 @@ class SettingsScreen extends StatelessWidget {
           const SizedBox(height: 16),
           _h(tr('fontSize')),
           Slider(
-              min: 14,
-              max: 34,
-              divisions: 10,
-              value: s.fontSize.clamp(14, 34),
-              label: s.fontSize.round().toString(),
-              onChanged: s.setFont),
+            min: 14,
+            max: 34,
+            divisions: 10,
+            value: s.fontSize.clamp(14, 34),
+            label: s.fontSize.round().toString(),
+            onChanged: s.setFont,
+          ),
           _h(tr('theme')),
           SegmentedButton<int>(
             segments: [
@@ -79,8 +81,9 @@ class SettingsScreen extends StatelessWidget {
             enabled: s.remindOn,
             title: Text(tr('reminderTime')),
             trailing: Text(
-                '${s.remindH.toString().padLeft(2, '0')}:${s.remindM.toString().padLeft(2, '0')}',
-                style: const TextStyle(fontWeight: FontWeight.bold)),
+              '${s.remindH.toString().padLeft(2, '0')}:${s.remindM.toString().padLeft(2, '0')}',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
             onTap: s.remindOn ? () => _pickTime(context, s) : null,
           ),
           SwitchListTile(
@@ -106,23 +109,31 @@ class SettingsScreen extends StatelessWidget {
             TextField(
               controller: TextEditingController(text: s.displayName),
               decoration: InputDecoration(
-                  labelText: gEn ? 'Display name' : 'الاسم المعروض',
-                  border: const OutlineInputBorder()),
+                labelText: gEn ? 'Display name' : 'الاسم المعروض',
+                border: const OutlineInputBorder(),
+              ),
               onSubmitted: s.setName,
             ),
             const SizedBox(height: 8),
-            Wrap(spacing: 8, children: [
-              FilledButton.tonalIcon(
+            Wrap(
+              spacing: 8,
+              children: [
+                FilledButton.tonalIcon(
                   icon: const Icon(Icons.sync),
                   label: Text(tr('syncNow')),
-                  onPressed: cl.busy ? null : () => cl.sync(s)),
-              OutlinedButton(onPressed: cl.signOut, child: Text(tr('signOut'))),
-              TextButton(
-                style: TextButton.styleFrom(foregroundColor: Colors.red),
-                onPressed: () => _deleteAccount(context, s, cl),
-                child: Text(tr('deleteAccount')),
-              ),
-            ]),
+                  onPressed: cl.busy ? null : () => cl.sync(s),
+                ),
+                OutlinedButton(
+                  onPressed: cl.signOut,
+                  child: Text(tr('signOut')),
+                ),
+                TextButton(
+                  style: TextButton.styleFrom(foregroundColor: Colors.red),
+                  onPressed: () => _deleteAccount(context, s, cl),
+                  child: Text(tr('deleteAccount')),
+                ),
+              ],
+            ),
           ],
           const Divider(height: 32),
           ListTile(
@@ -134,14 +145,17 @@ class SettingsScreen extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.delete_sweep_outlined, color: Colors.red),
-            title: Text(tr('resetData'),
-                style: const TextStyle(color: Colors.red)),
+            title: Text(
+              tr('resetData'),
+              style: const TextStyle(color: Colors.red),
+            ),
             onTap: () async {
               final ok = await _confirm(
-                  context,
-                  gEn
-                      ? 'Erase all data on this device?'
-                      : 'هتتمسح كل بيانات الجهاز. متأكد؟');
+                context,
+                gEn
+                    ? 'Erase all data on this device?'
+                    : 'هتتمسح كل بيانات الجهاز. متأكد؟',
+              );
               if (ok) await s.wipeLocal();
             },
           ),
@@ -151,7 +165,10 @@ class SettingsScreen extends StatelessWidget {
   }
 
   Future<void> _deleteAccount(
-      BuildContext context, AppState s, Cloud cl) async {
+    BuildContext context,
+    AppState s,
+    Cloud cl,
+  ) async {
     final ok = await _confirm(context, tr('deleteConfirm'));
     if (!ok) return;
     final err = await cl.deleteAccount(s);
@@ -160,10 +177,9 @@ class SettingsScreen extends StatelessWidget {
         toast(context, tr('ok'));
       } else if (err == 'requires-recent-login') {
         toast(
-            context,
-            gEn
-                ? 'Sign in again, then retry'
-                : 'سجّل الدخول من جديد وحاول تاني');
+          context,
+          gEn ? 'Sign in again, then retry' : 'سجّل الدخول من جديد وحاول تاني',
+        );
         await cl.signOut();
       } else {
         toast(context, err);
@@ -173,9 +189,12 @@ class SettingsScreen extends StatelessWidget {
 }
 
 Widget _h(String t) => Padding(
-    padding: const EdgeInsets.only(bottom: 8),
-    child: Text(t,
-        style: const TextStyle(fontWeight: FontWeight.bold, color: kGold)));
+  padding: const EdgeInsets.only(bottom: 8),
+  child: Text(
+    t,
+    style: const TextStyle(fontWeight: FontWeight.bold, color: kGold),
+  ),
+);
 
 Future<bool> _confirm(BuildContext context, String msg) async {
   final r = await showDialog<bool>(
@@ -184,10 +203,13 @@ Future<bool> _confirm(BuildContext context, String msg) async {
       content: Text(msg),
       actions: [
         TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(tr('cancel'))),
+          onPressed: () => Navigator.pop(ctx, false),
+          child: Text(tr('cancel')),
+        ),
         FilledButton(
-            onPressed: () => Navigator.pop(ctx, true), child: Text(tr('yes'))),
+          onPressed: () => Navigator.pop(ctx, true),
+          child: Text(tr('yes')),
+        ),
       ],
     ),
   );
@@ -227,46 +249,65 @@ class _SignInState extends State<_SignIn> {
   @override
   Widget build(BuildContext context) {
     final cl = context.read<Cloud>();
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      FilledButton.icon(
-        icon: const Icon(Icons.login),
-        label: Text(tr('signInGoogle')),
-        onPressed: busy ? null : () => _run(cl.signInGoogle),
-      ),
-      const SizedBox(height: 12),
-      TextField(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        FilledButton.icon(
+          icon: const Icon(Icons.login),
+          label: Text(tr('signInGoogle')),
+          onPressed: busy ? null : () => _run(cl.signInGoogle),
+        ),
+        const SizedBox(height: 12),
+        TextField(
           controller: _e,
           keyboardType: TextInputType.emailAddress,
           decoration: InputDecoration(
-              labelText: tr('email'), border: const OutlineInputBorder())),
-      const SizedBox(height: 8),
-      TextField(
+            labelText: tr('email'),
+            border: const OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextField(
           controller: _p,
           obscureText: true,
           decoration: InputDecoration(
-              labelText: tr('password'), border: const OutlineInputBorder())),
-      const SizedBox(height: 8),
-      Row(children: [
-        Expanded(
-            child: OutlinedButton(
+            labelText: tr('password'),
+            border: const OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
                 onPressed: busy
                     ? null
                     : () => _run(() => cl.signInEmail(_e.text, _p.text)),
-                child: Text(tr('signIn')))),
-        const SizedBox(width: 8),
-        Expanded(
-            child: OutlinedButton(
+                child: Text(tr('signIn')),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: OutlinedButton(
                 onPressed: busy
                     ? null
                     : () => _run(
-                        () => cl.signInEmail(_e.text, _p.text, create: true)),
-                child: Text(tr('register')))),
-      ]),
-      if (err != null)
-        Padding(
+                        () => cl.signInEmail(_e.text, _p.text, create: true),
+                      ),
+                child: Text(tr('register')),
+              ),
+            ),
+          ],
+        ),
+        if (err != null)
+          Padding(
             padding: const EdgeInsets.only(top: 8),
-            child: Text(err!,
-                style: const TextStyle(color: Colors.red, fontSize: 12))),
-    ]);
+            child: Text(
+              err!,
+              style: const TextStyle(color: Colors.red, fontSize: 12),
+            ),
+          ),
+      ],
+    );
   }
 }

@@ -34,13 +34,20 @@ class Notifier {
 
   static Future<bool> requestPermission() async {
     if (!_ready) return false;
-    final a = _p.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    final a = _p
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     final r1 = await a?.requestNotificationsPermission();
-    final i = _p.resolvePlatformSpecificImplementation<
-        IOSFlutterLocalNotificationsPlugin>();
-    final r2 =
-        await i?.requestPermissions(alert: true, badge: true, sound: true);
+    final i = _p
+        .resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin
+        >();
+    final r2 = await i?.requestPermissions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
     return (r1 ?? r2 ?? true);
   }
 
@@ -62,14 +69,21 @@ class Notifier {
       if (!s.hasPlan) return;
       final now = tz.TZDateTime.now(tz.local);
       final st = s.streak;
-      final todayRead = st.readToday ||
+      final todayRead =
+          st.readToday ||
           s.frozenDates.contains(dayStr(s.today)) ||
           s.dayComplete(s.dayIndex);
       for (var i = 0; i < 14; i++) {
         final day = now.add(Duration(days: i));
         if (s.remindOn && !(i == 0 && todayRead)) {
           final at = tz.TZDateTime(
-              tz.local, day.year, day.month, day.day, s.remindH, s.remindM);
+            tz.local,
+            day.year,
+            day.month,
+            day.day,
+            s.remindH,
+            s.remindM,
+          );
           if (at.isAfter(now)) {
             await _p.zonedSchedule(
               100 + i,
@@ -84,8 +98,14 @@ class Notifier {
           }
         }
         if (s.riskOn && st.cur > 0 && !(i == 0 && todayRead)) {
-          final at =
-              tz.TZDateTime(tz.local, day.year, day.month, day.day, 20, 30);
+          final at = tz.TZDateTime(
+            tz.local,
+            day.year,
+            day.month,
+            day.day,
+            20,
+            30,
+          );
           if (at.isAfter(now)) {
             await _p.zonedSchedule(
               200 + i,

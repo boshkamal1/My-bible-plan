@@ -21,7 +21,7 @@ const Map<String, List<String>> _m = {
   'bestStreak': ['أطول سلسلة', 'Best streak'],
   'streakRisk': [
     'سلسلتك في خطر! اقرأ النهاردة',
-    'Your streak is at risk! Read today'
+    'Your streak is at risk! Read today',
   ],
   'settings': ['الإعدادات', 'Settings'],
   'language': ['اللغة', 'Language'],
@@ -39,7 +39,7 @@ const Map<String, List<String>> _m = {
   'dailyReminder': ['تذكير يومي', 'Daily reminder'],
   'streakReminder': [
     'تنبيه السلسلة (المساء)',
-    'Streak-at-risk alert (evening)'
+    'Streak-at-risk alert (evening)',
   ],
   'reminderTime': ['وقت التذكير', 'Reminder time'],
   'account': ['الحساب', 'Account'],
@@ -51,14 +51,14 @@ const Map<String, List<String>> _m = {
   'register': ['إنشاء حساب', 'Create account'],
   'cloudOff': [
     'المزامنة السحابية غير مفعّلة في هذه النسخة',
-    'Cloud sync is not configured in this build'
+    'Cloud sync is not configured in this build',
   ],
   'synced': ['تمت المزامنة', 'Synced'],
   'syncNow': ['زامن الآن', 'Sync now'],
   'deleteAccount': ['حذف الحساب وبياناتي', 'Delete account and my data'],
   'deleteConfirm': [
     'هيتم حذف حسابك وبياناتك السحابية نهائيًا. متأكد؟',
-    'Your account and cloud data will be permanently deleted. Sure?'
+    'Your account and cloud data will be permanently deleted. Sure?',
   ],
   'resetData': ['مسح بيانات الجهاز', 'Erase on-device data'],
   'privacy': ['سياسة الخصوصية', 'Privacy policy'],
@@ -102,7 +102,7 @@ const Map<String, List<String>> _m = {
   'redistribute': ['وزّع الأصحاحات', 'Redistribute chapters'],
   'redistributed': [
     'اتوزعت الأصحاحات على الأيام الجاية',
-    'Chapters redistributed'
+    'Chapters redistributed',
   ],
   'bufferUsed': ['اتفعّل يوم احتياطي', 'Buffer day used'],
   'undo': ['تراجع', 'Undo'],
@@ -135,11 +135,11 @@ const Map<String, List<String>> _m = {
   'bookGroup_paul': ['رسائل بولس', 'Paul’s letters'],
   'bookGroup_general': [
     'الرسائل العامة والرؤيا',
-    'General letters & Revelation'
+    'General letters & Revelation',
   ],
   'deutNoteAr': [
     'النص العربي لهذا السفر غير متاح بعد، بيظهر بالإنجليزية (KJV).',
-    'Arabic text for this book is not bundled yet; showing KJV.'
+    'Arabic text for this book is not bundled yet; showing KJV.',
   ],
   'prev': ['السابق', 'Previous'],
   'next': ['التالي', 'Next'],
@@ -150,18 +150,18 @@ const Map<String, List<String>> _m = {
   'notifRiskTitle': ['السلسلة في خطر', 'Streak at risk'],
   'notifRiskBody': [
     'لسه ما قريتش النهاردة. خمس دقايق كفاية.',
-    "You haven't read today. Five minutes is enough."
+    "You haven't read today. Five minutes is enough.",
   ],
   'verses': ['آيات', 'verses'],
   'shareText': [
     'أنا ماشي في رحلة الكتاب المقدس',
-    "I'm on my Bible reading journey"
+    "I'm on my Bible reading journey",
   ],
   'widgetNone': ['افتح التطبيق لتبدأ', 'Open the app to start'],
   'welcome': ['أهلاً بيك', 'Welcome'],
   'welcomeSub': [
     'ابدأ رحلة قراءة منتظمة في الكتاب المقدس',
-    'Start a steady Bible reading journey'
+    'Start a steady Bible reading journey',
   ],
   'planDone': ['خلصت الخطة! 🎉', 'Plan completed! 🎉'],
   'copied': ['اتنسخ', 'Copied'],
@@ -170,7 +170,7 @@ const Map<String, List<String>> _m = {
   'restartPlan': ['ابدأ خطة جديدة', 'Start a new plan'],
   'restartConfirm': [
     'هتتمسح الخطة الحالية. متأكد؟',
-    'The current plan will be replaced. Sure?'
+    'The current plan will be replaced. Sure?',
   ],
   'error': ['حصلت مشكلة', 'Something went wrong'],
   'members0': ['مفيش أعضاء', 'No members'],

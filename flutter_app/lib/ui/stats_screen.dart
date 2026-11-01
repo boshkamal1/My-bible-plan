@@ -23,24 +23,33 @@ class StatsScreen extends StatelessWidget {
             icon: const Icon(Icons.ios_share),
             tooltip: tr('shareProgress'),
             onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const ShareProgressScreen())),
+              MaterialPageRoute(builder: (_) => const ShareProgressScreen()),
+            ),
           ),
         ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Row(children: [
-            _tile(context, '🔥', nf(st.cur), tr('streak')),
-            _tile(context, '🏆', nf(st.best), tr('bestStreak')),
-            _tile(context, '📖', nf(s.totalDone), tr('chaptersRead')),
-          ]),
-          Row(children: [
-            _tile(context, '⏱', nf(s.totalMinutesTracked),
-                '${tr('readingTime')} (${tr('minutes')})'),
-            _tile(context, '🎖️', nf(s.booksFinished), tr('books')),
-            _tile(context, '📅', nf(s.daysLeft), tr('daysLeft')),
-          ]),
+          Row(
+            children: [
+              _tile(context, '🔥', nf(st.cur), tr('streak')),
+              _tile(context, '🏆', nf(st.best), tr('bestStreak')),
+              _tile(context, '📖', nf(s.totalDone), tr('chaptersRead')),
+            ],
+          ),
+          Row(
+            children: [
+              _tile(
+                context,
+                '⏱',
+                nf(s.totalMinutesTracked),
+                '${tr('readingTime')} (${tr('minutes')})',
+              ),
+              _tile(context, '🎖️', nf(s.booksFinished), tr('books')),
+              _tile(context, '📅', nf(s.daysLeft), tr('daysLeft')),
+            ],
+          ),
           const SizedBox(height: 12),
           Text(tr('last30'), style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
@@ -48,11 +57,16 @@ class StatsScreen extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: SizedBox(
-                  height: 120,
-                  child: CustomPaint(
-                      painter: _Bars(
-                          per.values.toList(), kGold, scheme.outlineVariant),
-                      size: Size.infinite)),
+                height: 120,
+                child: CustomPaint(
+                  painter: _Bars(
+                    per.values.toList(),
+                    kGold,
+                    scheme.outlineVariant,
+                  ),
+                  size: Size.infinite,
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 12),
@@ -72,17 +86,20 @@ class StatsScreen extends StatelessWidget {
                   child: Card(
                     margin: EdgeInsets.zero,
                     child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(b.icon, style: const TextStyle(fontSize: 32)),
-                          const SizedBox(height: 4),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 6),
-                            child: Text(b.title,
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(fontSize: 12)),
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(b.icon, style: const TextStyle(fontSize: 32)),
+                        const SizedBox(height: 4),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                          child: Text(
+                            b.title,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontSize: 12),
                           ),
-                        ]),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
             ],
@@ -93,21 +110,26 @@ class StatsScreen extends StatelessWidget {
   }
 
   Widget _tile(BuildContext c, String e, String v, String l) => Expanded(
-        child: Card(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
-            child: Column(children: [
-              Text(e, style: const TextStyle(fontSize: 22)),
-              Text(v,
-                  style: const TextStyle(
-                      fontSize: 20, fontWeight: FontWeight.bold)),
-              Text(l,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 11)),
-            ]),
-          ),
+    child: Card(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+        child: Column(
+          children: [
+            Text(e, style: const TextStyle(fontSize: 22)),
+            Text(
+              v,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              l,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 11),
+            ),
+          ],
         ),
-      );
+      ),
+    ),
+  );
 }
 
 class _Bars extends CustomPainter {
@@ -124,8 +146,9 @@ class _Bars extends CustomPainter {
     for (var i = 0; i < v.length; i++) {
       final h = v[i] == 0 ? 3.0 : (v[i] / mx) * size.height;
       final r = RRect.fromRectAndRadius(
-          Rect.fromLTWH(i * w + 1.5, size.height - h, w - 3, h),
-          const Radius.circular(3));
+        Rect.fromLTWH(i * w + 1.5, size.height - h, w - 3, h),
+        const Radius.circular(3),
+      );
       canvas.drawRRect(r, v[i] == 0 ? q : p);
     }
   }

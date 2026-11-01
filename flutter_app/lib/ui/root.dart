@@ -25,35 +25,44 @@ class _RootState extends State<Root> {
     final s = context.watch<AppState>();
     if (!s.hasPlan) return const WelcomeScreen();
     return Scaffold(
-      body: IndexedStack(index: _i, children: const [
-        HomeScreen(),
-        PlanScreen(),
-        BooksScreen(),
-        StatsScreen(),
-        MoreScreen(),
-      ]),
+      body: IndexedStack(
+        index: _i,
+        children: const [
+          HomeScreen(),
+          PlanScreen(),
+          BooksScreen(),
+          StatsScreen(),
+          MoreScreen(),
+        ],
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _i,
         onDestinationSelected: (v) => setState(() => _i = v),
         destinations: [
           NavigationDestination(
-              icon: const Icon(Icons.home_outlined),
-              selectedIcon: const Icon(Icons.home),
-              label: tr('home')),
+            icon: const Icon(Icons.home_outlined),
+            selectedIcon: const Icon(Icons.home),
+            label: tr('home'),
+          ),
           NavigationDestination(
-              icon: const Icon(Icons.calendar_month_outlined),
-              selectedIcon: const Icon(Icons.calendar_month),
-              label: tr('plan')),
+            icon: const Icon(Icons.calendar_month_outlined),
+            selectedIcon: const Icon(Icons.calendar_month),
+            label: tr('plan'),
+          ),
           NavigationDestination(
-              icon: const Icon(Icons.menu_book_outlined),
-              selectedIcon: const Icon(Icons.menu_book),
-              label: tr('books')),
+            icon: const Icon(Icons.menu_book_outlined),
+            selectedIcon: const Icon(Icons.menu_book),
+            label: tr('books'),
+          ),
           NavigationDestination(
-              icon: const Icon(Icons.insights_outlined),
-              selectedIcon: const Icon(Icons.insights),
-              label: tr('stats')),
+            icon: const Icon(Icons.insights_outlined),
+            selectedIcon: const Icon(Icons.insights),
+            label: tr('stats'),
+          ),
           NavigationDestination(
-              icon: const Icon(Icons.more_horiz), label: tr('more')),
+            icon: const Icon(Icons.more_horiz),
+            label: tr('more'),
+          ),
         ],
       ),
     );
@@ -75,12 +84,12 @@ class WelcomeScreen extends StatelessWidget {
             children: [
               const Icon(Icons.auto_stories, size: 88, color: kGold),
               const SizedBox(height: 20),
-              Text(tr('appName'),
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context)
-                      .textTheme
-                      .headlineMedium
-                      ?.copyWith(fontWeight: FontWeight.bold)),
+              Text(
+                tr('appName'),
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.headlineMedium
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 8),
               Text(tr('welcomeSub'), textAlign: TextAlign.center),
               const SizedBox(height: 28),
@@ -96,12 +105,16 @@ class WelcomeScreen extends StatelessWidget {
               FilledButton.icon(
                 icon: const Icon(Icons.play_arrow),
                 label: Text(tr('start')),
-                onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const SetupScreen())),
+                onPressed: () => Navigator.of(
+                  context,
+                ).push(MaterialPageRoute(builder: (_) => const SetupScreen())),
               ),
               TextButton(
-                onPressed: () => Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => const SetupScreen(showReady: true))),
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const SetupScreen(showReady: true),
+                  ),
+                ),
                 child: Text(tr('readyPlans')),
               ),
             ],

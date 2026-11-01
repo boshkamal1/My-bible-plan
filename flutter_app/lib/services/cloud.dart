@@ -17,7 +17,13 @@ class GroupMember {
   final bool readToday;
   final int pct;
   const GroupMember(
-      this.uid, this.name, this.done, this.streak, this.readToday, this.pct);
+    this.uid,
+    this.name,
+    this.done,
+    this.streak,
+    this.readToday,
+    this.pct,
+  );
 }
 
 class GroupInfo {
@@ -62,7 +68,9 @@ class Cloud extends ChangeNotifier {
       if (g == null) return 'cancelled';
       final a = await g.authentication;
       final cred = GoogleAuthProvider.credential(
-          accessToken: a.accessToken, idToken: a.idToken);
+        accessToken: a.accessToken,
+        idToken: a.idToken,
+      );
       await FirebaseAuth.instance.signInWithCredential(cred);
       return null;
     } catch (e) {
@@ -70,16 +78,23 @@ class Cloud extends ChangeNotifier {
     }
   }
 
-  Future<String?> signInEmail(String email, String pass,
-      {bool create = false}) async {
+  Future<String?> signInEmail(
+    String email,
+    String pass, {
+    bool create = false,
+  }) async {
     if (!available) return 'unavailable';
     try {
       if (create) {
         await FirebaseAuth.instance.createUserWithEmailAndPassword(
-            email: email.trim(), password: pass);
+          email: email.trim(),
+          password: pass,
+        );
       } else {
-        await FirebaseAuth.instance
-            .signInWithEmailAndPassword(email: email.trim(), password: pass);
+        await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: email.trim(),
+          password: pass,
+        );
       }
       return null;
     } on FirebaseAuthException catch (e) {
@@ -162,13 +177,13 @@ class Cloud extends ChangeNotifier {
             .collection('members')
             .doc(user!.uid)
             .set({
-          'name': name,
-          'done': s.totalDone,
-          'pct': (s.percent * 100).round(),
-          'streak': st.cur,
-          'readDay': st.readToday ? dayStr(s.today) : '',
-          'updated': FieldValue.serverTimestamp(),
-        });
+              'name': name,
+              'done': s.totalDone,
+              'pct': (s.percent * 100).round(),
+              'streak': st.cur,
+              'readDay': st.readToday ? dayStr(s.today) : '',
+              'updated': FieldValue.serverTimestamp(),
+            });
       } catch (_) {}
     }
   }
@@ -231,10 +246,11 @@ class Cloud extends ChangeNotifier {
       if (!d.exists) return null;
       final m = d.data()!;
       return GroupInfo(
-          code,
-          (m['name'] as String?) ?? code,
-          (m['owner'] as String?) ?? '',
-          (m['setup'] as Map?)?.cast<String, dynamic>());
+        code,
+        (m['name'] as String?) ?? code,
+        (m['owner'] as String?) ?? '',
+        (m['setup'] as Map?)?.cast<String, dynamic>(),
+      );
     } catch (_) {
       return null;
     }
@@ -242,8 +258,11 @@ class Cloud extends ChangeNotifier {
 
   Future<List<GroupMember>> members(String code) async {
     try {
-      final q =
-          await _db.collection('groups').doc(code).collection('members').get();
+      final q = await _db
+          .collection('groups')
+          .doc(code)
+          .collection('members')
+          .get();
       final l = q.docs.map((d) {
         final m = d.data();
         return GroupMember(

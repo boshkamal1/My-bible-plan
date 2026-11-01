@@ -231,7 +231,7 @@ const List<int> kChapters = [
   1,
   1,
   1,
-  22
+  22,
 ];
 const List<int> kVerses = [
   1533,
@@ -309,5 +309,5 @@ const List<int> kVerses = [
   13,
   14,
   25,
-  404
+  404,
 ];

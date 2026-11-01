@@ -17,8 +17,16 @@ class ReadyPlan {
   final String mode;
   final int days;
   final List<int> skip;
-  const ReadyPlan(this.ar, this.en, this.descAr, this.descEn, this.scope,
-      this.mode, this.days, this.skip);
+  const ReadyPlan(
+    this.ar,
+    this.en,
+    this.descAr,
+    this.descEn,
+    this.scope,
+    this.mode,
+    this.days,
+    this.skip,
+  );
 }
 
 List<int> _onlyOt(List<int> keep) =>
@@ -28,53 +36,95 @@ List<int> _onlyNt(List<int> keep) =>
 
 final List<ReadyPlan> kReady = [
   const ReadyPlan(
-      'الكتاب المقدس في سنة',
-      'Whole Bible in a year',
-      'العهد القديم ثم الجديد، ٣٦٥ يوم',
-      'Old then New Testament, 365 days',
-      'all',
-      'seq',
-      365, []),
+    'الكتاب المقدس في سنة',
+    'Whole Bible in a year',
+    'العهد القديم ثم الجديد، ٣٦٥ يوم',
+    'Old then New Testament, 365 days',
+    'all',
+    'seq',
+    365,
+    [],
+  ),
   const ReadyPlan(
-      'القديم والجديد معًا في سنة',
-      'Both testaments daily, one year',
-      'كل يوم من القديم وكل يوم من الجديد',
-      'A bit of each testament every day',
-      'all',
-      'mix',
-      365, []),
+    'القديم والجديد معًا في سنة',
+    'Both testaments daily, one year',
+    'كل يوم من القديم وكل يوم من الجديد',
+    'A bit of each testament every day',
+    'all',
+    'mix',
+    365,
+    [],
+  ),
   const ReadyPlan(
-      'الكتاب المقدس في ٩٠ يوم',
-      'Whole Bible in 90 days',
-      'للمتحمسين، قراءة كثيرة يوميًا',
-      'An intensive pace',
-      'all',
-      'seq',
-      90, []),
+    'الكتاب المقدس في ٩٠ يوم',
+    'Whole Bible in 90 days',
+    'للمتحمسين، قراءة كثيرة يوميًا',
+    'An intensive pace',
+    'all',
+    'seq',
+    90,
+    [],
+  ),
   const ReadyPlan(
-      'العهد الجديد في ٣٠ يوم',
-      'New Testament in 30 days',
-      'شهر واحد مع العهد الجديد',
-      'One month in the New Testament',
-      'nt',
-      'seq',
-      30, []),
-  const ReadyPlan('العهد الجديد في ٩٠ يوم', 'New Testament in 90 days',
-      'وتيرة هادئة', 'A calm pace', 'nt', 'seq', 90, []),
+    'العهد الجديد في ٣٠ يوم',
+    'New Testament in 30 days',
+    'شهر واحد مع العهد الجديد',
+    'One month in the New Testament',
+    'nt',
+    'seq',
+    30,
+    [],
+  ),
   const ReadyPlan(
-      'العهد القديم في سنة',
-      'Old Testament in a year',
-      'العهد القديم كامل بالأسفار القانونية الثانية',
-      'Whole OT including deuterocanon',
-      'ot',
-      'seq',
-      365, []),
-  ReadyPlan('الأناجيل وأعمال الرسل', 'Gospels & Acts', '٣٠ يوم', '30 days',
-      'nt', 'seq', 30, _onlyNt([49, 50, 51, 52, 53])),
-  ReadyPlan('المزامير والأمثال', 'Psalms & Proverbs', '٦٠ يوم', '60 days', 'ot',
-      'seq', 60, _onlyOt([kPsalms, 21])),
-  ReadyPlan('أسفار موسى الخمسة', 'The Pentateuch', '٦٠ يوم', '60 days', 'ot',
-      'seq', 60, _onlyOt([0, 1, 2, 3, 4])),
+    'العهد الجديد في ٩٠ يوم',
+    'New Testament in 90 days',
+    'وتيرة هادئة',
+    'A calm pace',
+    'nt',
+    'seq',
+    90,
+    [],
+  ),
+  const ReadyPlan(
+    'العهد القديم في سنة',
+    'Old Testament in a year',
+    'العهد القديم كامل بالأسفار القانونية الثانية',
+    'Whole OT including deuterocanon',
+    'ot',
+    'seq',
+    365,
+    [],
+  ),
+  ReadyPlan(
+    'الأناجيل وأعمال الرسل',
+    'Gospels & Acts',
+    '٣٠ يوم',
+    '30 days',
+    'nt',
+    'seq',
+    30,
+    _onlyNt([49, 50, 51, 52, 53]),
+  ),
+  ReadyPlan(
+    'المزامير والأمثال',
+    'Psalms & Proverbs',
+    '٦٠ يوم',
+    '60 days',
+    'ot',
+    'seq',
+    60,
+    _onlyOt([kPsalms, 21]),
+  ),
+  ReadyPlan(
+    'أسفار موسى الخمسة',
+    'The Pentateuch',
+    '٦٠ يوم',
+    '60 days',
+    'ot',
+    'seq',
+    60,
+    _onlyOt([0, 1, 2, 3, 4]),
+  ),
 ];
 
 class ReadyPlansScreen extends StatelessWidget {
@@ -89,22 +139,28 @@ class ReadyPlansScreen extends StatelessWidget {
           for (final r in kReady)
             Card(
               child: ListTile(
-                title: Text(gEn ? r.en : r.ar,
-                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                title: Text(
+                  gEn ? r.en : r.ar,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
                 subtitle: Text(gEn ? r.descEn : r.descAr),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
                   final t = dayStr(todayNum());
-                  Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => SetupScreen(
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => SetupScreen(
                         initial: Setup(
-                            scope: r.scope,
-                            mode: r.mode,
-                            days: r.days,
-                            skip: r.skip,
-                            start: t,
-                            first: t)),
-                  ));
+                          scope: r.scope,
+                          mode: r.mode,
+                          days: r.days,
+                          skip: r.skip,
+                          start: t,
+                          first: t,
+                        ),
+                      ),
+                    ),
+                  );
                 },
               ),
             ),
@@ -189,8 +245,10 @@ class _SetupScreenState extends State<SetupScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text(tr('scope'),
-              style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(
+            tr('scope'),
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 8),
           SegmentedButton<String>(
             segments: [
@@ -203,59 +261,67 @@ class _SetupScreenState extends State<SetupScreen> {
           ),
           if (scope == 'all') ...[
             const SizedBox(height: 16),
-            Text(tr('order'),
-                style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text(
+              tr('order'),
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
             SegmentedButton<String>(
               segments: [
                 ButtonSegment(value: 'seq', label: Text(tr('seq'))),
-                ButtonSegment(value: 'mix', label: Text(tr('mix')))
+                ButtonSegment(value: 'mix', label: Text(tr('mix'))),
               ],
               selected: {mode},
               onSelectionChanged: (v) => setState(() => mode = v.first),
             ),
           ],
           const SizedBox(height: 20),
-          Text(tr('finishIn'),
-              style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(
+            tr('finishIn'),
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 8),
           SegmentedButton<bool>(
             segments: [
               ButtonSegment(value: false, label: Text(tr('inDays'))),
-              ButtonSegment(value: true, label: Text(tr('byDate')))
+              ButtonSegment(value: true, label: Text(tr('byDate'))),
             ],
             selected: {useDate},
             onSelectionChanged: (v) => setState(() => useDate = v.first),
           ),
           const SizedBox(height: 8),
           if (!useDate) ...[
-            Wrap(spacing: 8, children: [
-              for (final d in [30, 60, 90, 100, 180, 365])
-                ChoiceChip(
-                  label: Text(nf(d)),
-                  selected: days == d,
-                  onSelected: (_) => setState(() {
-                    days = d;
-                    _daysCtl.text = '$d';
-                  }),
-                ),
-            ]),
+            Wrap(
+              spacing: 8,
+              children: [
+                for (final d in [30, 60, 90, 100, 180, 365])
+                  ChoiceChip(
+                    label: Text(nf(d)),
+                    selected: days == d,
+                    onSelected: (_) => setState(() {
+                      days = d;
+                      _daysCtl.text = '$d';
+                    }),
+                  ),
+              ],
+            ),
             const SizedBox(height: 8),
             TextField(
               controller: _daysCtl,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
-                  labelText: tr('daysCount'),
-                  border: const OutlineInputBorder()),
+                labelText: tr('daysCount'),
+                border: const OutlineInputBorder(),
+              ),
               onChanged: (v) =>
                   setState(() => days = (int.tryParse(v) ?? 1).clamp(1, 3000)),
             ),
           ] else
             OutlinedButton.icon(
               icon: const Icon(Icons.event),
-              label: Text(endDate == null
-                  ? tr('endDate')
-                  : dayStr(dayFromDate(endDate!))),
+              label: Text(
+                endDate == null ? tr('endDate') : dayStr(dayFromDate(endDate!)),
+              ),
               onPressed: () async {
                 final now = DateTime.now();
                 final d = await showDatePicker(
@@ -269,25 +335,31 @@ class _SetupScreenState extends State<SetupScreen> {
             ),
           if (scope != 'nt') ...[
             const SizedBox(height: 20),
-            Text('${tr('startFrom')} (${tr('ot')})',
-                style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text(
+              '${tr('startFrom')} (${tr('ot')})',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
             _pointer(true),
-            Row(children: [
-              Expanded(child: Text('${tr('psalm')}: ${tr('done')}')),
-              DropdownButton<int>(
-                value: otP,
-                items: [
-                  for (var i = 0; i <= 150; i++)
-                    DropdownMenuItem(value: i, child: Text(nf(i)))
-                ],
-                onChanged: (v) => setState(() => otP = v ?? 0),
-              ),
-            ]),
+            Row(
+              children: [
+                Expanded(child: Text('${tr('psalm')}: ${tr('done')}')),
+                DropdownButton<int>(
+                  value: otP,
+                  items: [
+                    for (var i = 0; i <= 150; i++)
+                      DropdownMenuItem(value: i, child: Text(nf(i))),
+                  ],
+                  onChanged: (v) => setState(() => otP = v ?? 0),
+                ),
+              ],
+            ),
           ],
           if (scope != 'ot') ...[
             const SizedBox(height: 12),
-            Text('${tr('startFrom')} (${tr('nt')})',
-                style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text(
+              '${tr('startFrom')} (${tr('nt')})',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
             _pointer(false),
           ],
           const SizedBox(height: 12),
@@ -304,10 +376,15 @@ class _SetupScreenState extends State<SetupScreen> {
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                       child: Align(
-                          alignment: AlignmentDirectional.centerStart,
-                          child: Text(tr('bookGroup_${g.id}'),
-                              style: const TextStyle(
-                                  color: kGold, fontWeight: FontWeight.bold))),
+                        alignment: AlignmentDirectional.centerStart,
+                        child: Text(
+                          tr('bookGroup_${g.id}'),
+                          style: const TextStyle(
+                            color: kGold,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
                     ),
                     for (final b in g.books.where((b) => b != kPsalms))
                       CheckboxListTile(
@@ -315,7 +392,8 @@ class _SetupScreenState extends State<SetupScreen> {
                         value: skip.contains(b),
                         title: Text(gEn ? kEnNames[b] : kArNames[b]),
                         onChanged: (v) => setState(
-                            () => v == true ? skip.add(b) : skip.remove(b)),
+                          () => v == true ? skip.add(b) : skip.remove(b),
+                        ),
                       ),
                   ],
               ],
@@ -327,15 +405,19 @@ class _SetupScreenState extends State<SetupScreen> {
               color: kGold.withValues(alpha: 0.12),
               child: Padding(
                 padding: const EdgeInsets.all(14),
-                child: Column(children: [
-                  Text(
-                      '${nf(p.total)} ${tr('chapters')} • ${nf(p.nDays)} ${tr('day')}',
-                      style: const TextStyle(fontWeight: FontWeight.bold)),
-                  if (p.nDays > 0)
+                child: Column(
+                  children: [
                     Text(
-                        '≈ ${(p.total / p.nDays).toStringAsFixed(1)} ${tr('chapters')} ${tr('perDay')}'),
-                  Text('${tr('buffer')}: ${nf(p.buf)}'),
-                ]),
+                      '${nf(p.total)} ${tr('chapters')} • ${nf(p.nDays)} ${tr('day')}',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    if (p.nDays > 0)
+                      Text(
+                        '≈ ${(p.total / p.nDays).toStringAsFixed(1)} ${tr('chapters')} ${tr('perDay')}',
+                      ),
+                    Text('${tr('buffer')}: ${nf(p.buf)}'),
+                  ],
+                ),
               ),
             ),
           const SizedBox(height: 16),
@@ -354,42 +436,47 @@ class _SetupScreenState extends State<SetupScreen> {
   }
 
   Widget _pointer(bool ot) {
-    final order =
-        (ot ? kPlanOrderOt : kPlanOrderNt).where((b) => b != kPsalms).toList();
+    final order = (ot ? kPlanOrderOt : kPlanOrderNt)
+        .where((b) => b != kPsalms)
+        .toList();
     final b = ot ? otB : ntB;
     final c = ot ? otC : ntC;
-    return Row(children: [
-      Expanded(
-        child: DropdownButton<int>(
-          isExpanded: true,
-          value: b,
-          items: [
-            DropdownMenuItem(value: -1, child: Text(tr('fromStart'))),
-            for (final x in order)
-              DropdownMenuItem(
-                  value: x, child: Text(gEn ? kEnNames[x] : kArNames[x])),
-          ],
-          onChanged: (v) => setState(() {
-            if (ot) {
-              otB = v ?? -1;
-              otC = 0;
-            } else {
-              ntB = v ?? -1;
-              ntC = 0;
-            }
-          }),
+    return Row(
+      children: [
+        Expanded(
+          child: DropdownButton<int>(
+            isExpanded: true,
+            value: b,
+            items: [
+              DropdownMenuItem(value: -1, child: Text(tr('fromStart'))),
+              for (final x in order)
+                DropdownMenuItem(
+                  value: x,
+                  child: Text(gEn ? kEnNames[x] : kArNames[x]),
+                ),
+            ],
+            onChanged: (v) => setState(() {
+              if (ot) {
+                otB = v ?? -1;
+                otC = 0;
+              } else {
+                ntB = v ?? -1;
+                ntC = 0;
+              }
+            }),
+          ),
         ),
-      ),
-      const SizedBox(width: 12),
-      if (b >= 0)
-        DropdownButton<int>(
-          value: c,
-          items: [
-            for (var i = 0; i <= kChapters[b]; i++)
-              DropdownMenuItem(value: i, child: Text(nf(i)))
-          ],
-          onChanged: (v) => setState(() => ot ? otC = v ?? 0 : ntC = v ?? 0),
-        ),
-    ]);
+        const SizedBox(width: 12),
+        if (b >= 0)
+          DropdownButton<int>(
+            value: c,
+            items: [
+              for (var i = 0; i <= kChapters[b]; i++)
+                DropdownMenuItem(value: i, child: Text(nf(i))),
+            ],
+            onChanged: (v) => setState(() => ot ? otC = v ?? 0 : ntC = v ?? 0),
+          ),
+      ],
+    );
   }
 }

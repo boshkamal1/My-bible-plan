@@ -7,7 +7,7 @@ const List<Color> kHlColors = [
   Color(0xFFFFE680),
   Color(0xFFA8E6A1),
   Color(0xFFA6D4FF),
-  Color(0xFFFFB3C1)
+  Color(0xFFFFB3C1),
 ];
 
 ThemeData buildTheme(Brightness b) {
@@ -37,5 +37,6 @@ void toast(BuildContext c, String m) {
   ScaffoldMessenger.of(c)
     ..hideCurrentSnackBar()
     ..showSnackBar(
-        SnackBar(content: Text(m), behavior: SnackBarBehavior.floating));
+      SnackBar(content: Text(m), behavior: SnackBarBehavior.floating),
+    );
 }

@@ -35,30 +35,36 @@ class HomeScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(children: [
-                    Expanded(
-                      child: Text('${nf((s.percent * 100).round())}%',
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineMedium
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '${nf((s.percent * 100).round())}%',
+                          style: Theme.of(context).textTheme.headlineMedium
                               ?.copyWith(
-                                  fontWeight: FontWeight.bold, color: kGold)),
-                    ),
-                    Text('${nf(s.daysLeft)} ${tr('daysLeft')}'),
-                  ]),
+                                fontWeight: FontWeight.bold,
+                                color: kGold,
+                              ),
+                        ),
+                      ),
+                      Text('${nf(s.daysLeft)} ${tr('daysLeft')}'),
+                    ],
+                  ),
                   const SizedBox(height: 8),
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: LinearProgressIndicator(
-                        value: s.percent,
-                        minHeight: 10,
-                        color: kGold,
-                        backgroundColor: scheme.surfaceContainerHighest),
+                      value: s.percent,
+                      minHeight: 10,
+                      color: kGold,
+                      backgroundColor: scheme.surfaceContainerHighest,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                      '${nf(s.totalDone)} / ${nf(s.plan!.total)} ${tr('chapters')}',
-                      style: TextStyle(color: scheme.onSurfaceVariant)),
+                    '${nf(s.totalDone)} / ${nf(s.plan!.total)} ${tr('chapters')}',
+                    style: TextStyle(color: scheme.onSurfaceVariant),
+                  ),
                 ],
               ),
             ),
@@ -67,18 +73,24 @@ class HomeScreen extends StatelessWidget {
             color: st.atRisk ? Colors.orange.withValues(alpha: 0.15) : null,
             child: ListTile(
               leading: const Text('🔥', style: TextStyle(fontSize: 30)),
-              title: Text('${nf(st.cur)} ${tr('streak')}',
-                  style: const TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Text(st.atRisk
-                  ? tr('streakRisk')
-                  : '${tr('bestStreak')}: ${nf(st.best)}'),
+              title: Text(
+                '${nf(st.cur)} ${tr('streak')}',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: Text(
+                st.atRisk
+                    ? tr('streakRisk')
+                    : '${tr('bestStreak')}: ${nf(st.best)}',
+              ),
             ),
           ),
           if (s.percent >= 1)
             Card(
-                child: ListTile(
-                    title: Text(tr('planDone')),
-                    leading: const Text('🎉', style: TextStyle(fontSize: 28)))),
+              child: ListTile(
+                title: Text(tr('planDone')),
+                leading: const Text('🎉', style: TextStyle(fontSize: 28)),
+              ),
+            ),
           DayView(k: s.dayIndex),
         ],
       ),

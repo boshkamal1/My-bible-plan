@@ -23,7 +23,7 @@ String dateLabel(int n) {
     'سبتمبر',
     'أكتوبر',
     'نوفمبر',
-    'ديسمبر'
+    'ديسمبر',
   ];
   const en = [
     '',
@@ -38,7 +38,7 @@ String dateLabel(int n) {
     'Sep',
     'Oct',
     'Nov',
-    'Dec'
+    'Dec',
   ];
   const wAr = [
     'الإثنين',
@@ -47,7 +47,7 @@ String dateLabel(int n) {
     'الخميس',
     'الجمعة',
     'السبت',
-    'الأحد'
+    'الأحد',
   ];
   const wEn = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   final w = gEn ? wEn[d.weekday - 1] : wAr[d.weekday - 1];
@@ -82,21 +82,26 @@ class DayView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(children: [
-                  Expanded(
-                    child: Text(
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
                         '${tr('day')} ${nf(k + 1)} ${tr('of')} ${nf(p.nDays)}',
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold)),
-                  ),
-                  Text(dateLabel(date),
-                      style: TextStyle(color: scheme.onSurfaceVariant)),
-                ]),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    Text(
+                      dateLabel(date),
+                      style: TextStyle(color: scheme.onSurfaceVariant),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 4),
-                Text('≈ ${nf(s.minutesForDay(k))} ${tr('minutes')}',
-                    style: TextStyle(color: scheme.onSurfaceVariant)),
+                Text(
+                  '≈ ${nf(s.minutesForDay(k))} ${tr('minutes')}',
+                  style: TextStyle(color: scheme.onSurfaceVariant),
+                ),
                 if (isDelay || isPb) ...[
                   const SizedBox(height: 8),
                   Chip(
@@ -119,37 +124,50 @@ class DayView extends StatelessWidget {
                       icon: const Icon(Icons.chrome_reader_mode_outlined),
                       onPressed: () => Navigator.of(context).push(
                         MaterialPageRoute(
-                            builder: (_) =>
-                                ReaderScreen(b: c.b, c: c.c, queue: list)),
+                          builder: (_) =>
+                              ReaderScreen(b: c.b, c: c.c, queue: list),
+                        ),
                       ),
                     ),
                   ),
                 const SizedBox(height: 8),
-                Row(children: [
-                  Expanded(
-                    child: FilledButton.icon(
-                      icon: const Icon(Icons.menu_book),
-                      label: Text(tr('readNow')),
+                Row(
+                  children: [
+                    Expanded(
+                      child: FilledButton.icon(
+                        icon: const Icon(Icons.menu_book),
+                        label: Text(tr('readNow')),
+                        onPressed: list.isEmpty
+                            ? null
+                            : () {
+                                final first = list.firstWhere(
+                                  (c) => !s.isDone(c.key),
+                                  orElse: () => list.first,
+                                );
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => ReaderScreen(
+                                      b: first.b,
+                                      c: first.c,
+                                      queue: list,
+                                    ),
+                                  ),
+                                );
+                              },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    OutlinedButton.icon(
+                      icon: Icon(incomplete ? Icons.done_all : Icons.undo),
+                      label: Text(
+                        incomplete ? tr('markDone') : tr('markUndone'),
+                      ),
                       onPressed: list.isEmpty
                           ? null
-                          : () {
-                              final first = list.firstWhere(
-                                  (c) => !s.isDone(c.key),
-                                  orElse: () => list.first);
-                              Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (_) => ReaderScreen(
-                                      b: first.b, c: first.c, queue: list)));
-                            },
+                          : () => s.markDay(k, incomplete),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  OutlinedButton.icon(
-                    icon: Icon(incomplete ? Icons.done_all : Icons.undo),
-                    label: Text(incomplete ? tr('markDone') : tr('markUndone')),
-                    onPressed:
-                        list.isEmpty ? null : () => s.markDay(k, incomplete),
-                  ),
-                ]),
+                  ],
+                ),
               ],
             ),
           ),
@@ -169,8 +187,9 @@ class DayView extends StatelessWidget {
                       icon: const Icon(Icons.shield_outlined),
                       label: Text('${tr('useBuffer')} (${nf(s.bufLeft)})'),
                       onPressed: () {
-                        final ok =
-                            isToday ? s.useBuffer() : s.usePastBuffer(ds, k);
+                        final ok = isToday
+                            ? s.useBuffer()
+                            : s.usePastBuffer(ds, k);
                         if (ok) toast(context, tr('bufferUsed'));
                       },
                     ),

@@ -30,7 +30,7 @@ bash android_snippets/setup_android.sh
 
 - فان دايك: `assets/bible/svd` (٦٦ سفر).
 - KJV: `assets/bible/kjv` (كل الـ٧٦ سفر بما فيها القانونية الثانية).
-- القانونية الثانية بدون نص عربي حاليًا فتظهر بالإنجليزية مع تنبيه. لإضافة نص عربي: ضع `assets/bible/ar_extra/<رقم السفر>.json` (قائمة أصحاحات، كل أصحاح قائمة آيات) وأضف الرقم في `_arExtra` داخل `lib/core/bible_repo.dart`.
+- القانونية الثانية: شغّل على جهازك `pip install requests beautifulsoup4` ثم `python flutter_app/tools/fetch_takla_deut.py`. السكربت بينزّل النصوص من موقع الأنبا تكلا ويحفظها في `assets/bible/ar_extra/<رقم السفر>.json`، والتطبيق بيستخدمها تلقائيًا. لو ظهرت تحذيرات (آيات ناقصة أو عدد أصحاحات مختلف) ابعتهالي. صلاة منسى والمزمور ١٥١ مش مشمولين.
 
 ## الويدجت
 

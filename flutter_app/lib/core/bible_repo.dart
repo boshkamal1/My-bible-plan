@@ -55,7 +55,8 @@ class BibleRepo {
       final j = jsonDecode(raw) as List;
       out = j
           .map<List<String>>(
-              (c) => (c as List).map((e) => e.toString()).toList())
+            (c) => (c as List).map((e) => e.toString()).toList(),
+          )
           .toList();
     } catch (_) {
       out = null;
@@ -64,16 +65,10 @@ class BibleRepo {
     return out;
   }
 
-  bool hasArabic(int b) => !kDeut.contains(b) || _arExtra.contains(b);
-
-  // Books for which an Arabic file was added under assets/bible/ar_extra/<b>.json
-  // (fill this set when you bundle a Deuterocanon Arabic translation).
-  static const Set<int> _arExtra = {};
-
   Future<ChapterText?> chapter(int b, int c, String tr) async {
     if (tr == 'svd') {
       var bk = await _book('svd', b);
-      if (bk == null && _arExtra.contains(b)) bk = await _book('ar_extra', b);
+      bk ??= await _book('ar_extra', b);
       if (bk != null && c >= 1 && c <= bk.length)
         return ChapterText(bk[c - 1], 'svd', false);
       final k = await _book('kjv', b);

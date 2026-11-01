@@ -54,7 +54,7 @@ const List<int> kPlanOrderOt = [
   40,
   41,
   42,
-  43
+  43,
 ];
 const List<int> kPlanOrderNt = [
   49,
@@ -83,11 +83,11 @@ const List<int> kPlanOrderNt = [
   72,
   73,
   74,
-  75
+  75,
 ];
 const List<List<int>> kUnits = [
   [44],
-  [45]
+  [45],
 ];
 const Map<int, double> kPsalmWeights = {
   18: 1.5,
@@ -97,7 +97,7 @@ const Map<int, double> kPsalmWeights = {
   106: 1.5,
   107: 1.5,
   119: 5,
-  136: 1.5
+  136: 1.5,
 };
 
 final Map<int, int> kPos = () {
@@ -122,21 +122,21 @@ List<int> _range(int a, int b) => [for (var i = a; i <= b; i++) i];
 final List<BookGroup> kOtGroups = [
   BookGroup('moses', kPlanOrderOt.where((b) => b <= 4).toList()),
   BookGroup(
-      'history',
-      kPlanOrderOt
-          .where((b) => b >= 5 && b <= 18 && !kDeut.contains(b))
-          .toList()),
+    'history',
+    kPlanOrderOt.where((b) => b >= 5 && b <= 18 && !kDeut.contains(b)).toList(),
+  ),
   BookGroup(
-      'wisdom',
-      kPlanOrderOt
-          .where(
-              (b) => b >= 19 && b <= 25 && !kDeut.contains(b) && b != kPsalms)
-          .toList()),
+    'wisdom',
+    kPlanOrderOt
+        .where((b) => b >= 19 && b <= 25 && !kDeut.contains(b) && b != kPsalms)
+        .toList(),
+  ),
   BookGroup(
-      'prophets',
-      kPlanOrderOt
-          .where((b) => b >= 26 && b <= 43 && !kDeut.contains(b))
-          .toList()),
+    'prophets',
+    kPlanOrderOt
+        .where((b) => b >= 26 && b <= 43 && !kDeut.contains(b))
+        .toList(),
+  ),
   BookGroup('deut', kPlanOrderOt.where(kDeut.contains).toList()),
 ];
 final List<BookGroup> kNtGroups = [
@@ -166,7 +166,8 @@ class Chap {
         b < 0 ||
         b >= kBookCount ||
         c < 1 ||
-        c > kChapters[b]) return null;
+        c > kChapters[b])
+      return null;
     return Chap(b, c);
   }
 
