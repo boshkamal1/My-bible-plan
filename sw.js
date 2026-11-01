@@ -1,4 +1,4 @@
-const CACHE = 'ot-journey-v25';
+const CACHE = 'ot-journey-v26';
 const CORE = ['./', 'index.html', 'extras.js', 'firebase-config.js', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-512.png', 'icons/apple-touch-icon.png', 'icons/logo.svg'];
 
 self.addEventListener('install', e => {
@@ -25,6 +25,15 @@ self.addEventListener('fetch', e => {
         caches.open(CACHE).then(c => c.put('index.html', copy));
         return r;
       }).catch(() => caches.match('index.html'))
+    );
+    return;
+  }
+  if (sameOrigin && /\.(js|html)$/.test(url.pathname)) {
+    e.respondWith(
+      fetch(req).then(r => {
+        if (r && r.ok) { const copy = r.clone(); caches.open(CACHE).then(c => c.put(req, copy)); }
+        return r;
+      }).catch(() => caches.match(req))
     );
     return;
   }
