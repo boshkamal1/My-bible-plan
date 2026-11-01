@@ -27,7 +27,8 @@ jobs:
         run: |
           mkdir _site
           cp index.html sw.js manifest.webmanifest _site/
-          cp -r icons _site/
+          cp extras.js firebase-config.js _site/
+          cp -r icons bible _site/
           touch _site/.nojekyll
       - uses: actions/upload-pages-artifact@v3
         with:
