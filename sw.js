@@ -1,4 +1,4 @@
-const CACHE = 'ot-journey-v26';
+const CACHE = 'ot-journey-v27';
 const CORE = ['./', 'index.html', 'extras.js', 'firebase-config.js', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-512.png', 'icons/apple-touch-icon.png', 'icons/logo.svg'];
 
 self.addEventListener('install', e => {
@@ -20,7 +20,7 @@ self.addEventListener('fetch', e => {
   if (!sameOrigin && !fonts) return;
   if (req.mode === 'navigate') {
     e.respondWith(
-      fetch(req).then(r => {
+      fetch(req, { cache: 'no-cache' }).then(r => {
         const copy = r.clone();
         caches.open(CACHE).then(c => c.put('index.html', copy));
         return r;
@@ -30,7 +30,7 @@ self.addEventListener('fetch', e => {
   }
   if (sameOrigin && /\.(js|html)$/.test(url.pathname)) {
     e.respondWith(
-      fetch(req).then(r => {
+      fetch(req, { cache: 'no-cache' }).then(r => {
         if (r && r.ok) { const copy = r.clone(); caches.open(CACHE).then(c => c.put(req, copy)); }
         return r;
       }).catch(() => caches.match(req))
