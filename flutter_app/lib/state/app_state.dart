@@ -1,0 +1,606 @@
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../core/bible_repo.dart';
+import '../core/books.dart';
+import '../core/day_util.dart';
+import '../core/i18n.dart';
+import '../core/planner.dart';
+
+const String _kKey = 'jb-v1';
+
+class BadgeDef {
+  final String id;
+  final String ar;
+  final String en;
+  final String icon;
+  final bool earned;
+  const BadgeDef(this.id, this.ar, this.en, this.icon, this.earned);
+  String get title => gEn ? en : ar;
+}
+
+class AppState extends ChangeNotifier {
+  AppState(this.prefs);
+  final SharedPreferences prefs;
+  final BibleRepo repo = BibleRepo();
+
+  // ---- persisted data
+  Map<String, String> done = {};
+  Set<String> hist = {};
+  List<String> delays = [];
+  List<String> pb = [];
+  List<List<String>>? planOverride;
+  Setup? setup;
+  int t = 0;
+  Map<String, String> notes = {};
+  Map<String, int> hl = {};
+  Set<String> fav = {};
+  Map<String, int> secs = {};
+  List<String> groupCodes = [];
+
+  // ---- settings (not synced except where noted)
+  String lang = 'ar';
+  String translation = 'svd';
+  double fontSize = 20;
+  int themeMode = 0; // 0 system 1 light 2 dark
+  bool remindOn = true;
+  bool riskOn = true;
+  int remindH = 8;
+  int remindM = 0;
+  bool seenWelcome = false;
+  String displayName = '';
+
+  // ---- derived
+  PlanData? plan;
+  List<int> dates = [];
+  List<List<Chap>> days = [];
+  int today = todayNum();
+
+  // ---- hooks
+  void Function(AppState s)? afterChange;
+  Timer? _deb;
+  Timer? _saveDeb;
+
+  bool get hasPlan => setup != null && plan != null && plan!.nDays > 0;
+  bool get en => lang == 'en';
+
+  void load() {
+    final raw = prefs.getString(_kKey);
+    if (raw != null) {
+      try {
+        _fromMap(jsonDecode(raw) as Map<String, dynamic>, withSettings: true);
+      } catch (_) {}
+    }
+    gEn = en;
+    _recompute();
+  }
+
+  void _fromMap(Map<String, dynamic> j, {required bool withSettings}) {
+    done = ((j['done'] as Map?) ?? {})
+        .map((k, v) => MapEntry(k as String, v as String));
+    hist = ((j['hist'] as List?) ?? []).map((e) => e as String).toSet();
+    delays = ((j['delays'] as List?) ?? []).map((e) => e as String).toList();
+    pb = ((j['pb'] as List?) ?? []).map((e) => e as String).toList();
+    final p = j['plan'];
+    if (p is List) {
+      planOverride = p.map<List<String>>((e) {
+        if (e is String) return e.isEmpty ? <String>[] : e.split(',');
+        return (e as List).map((x) => x.toString()).toList();
+      }).toList();
+    } else {
+      planOverride = null;
+    }
+    final s = j['setup'];
+    setup = s is Map ? Setup.fromJson(Map<String, dynamic>.from(s)) : null;
+    t = (j['t'] as num?)?.toInt() ?? 0;
+    notes = ((j['notes'] as Map?) ?? {})
+        .map((k, v) => MapEntry(k as String, v as String));
+    hl = ((j['hl'] as Map?) ?? {})
+        .map((k, v) => MapEntry(k as String, (v as num).toInt()));
+    fav = ((j['fav'] as List?) ?? []).map((e) => e as String).toSet();
+    secs = ((j['secs'] as Map?) ?? {})
+        .map((k, v) => MapEntry(k as String, (v as num).toInt()));
+    if (withSettings) {
+      groupCodes =
+          ((j['groups'] as List?) ?? []).map((e) => e as String).toList();
+      final st = (j['settings'] as Map?) ?? {};
+      lang = (st['lang'] as String?) ?? 'ar';
+      translation = (st['tr'] as String?) ?? 'svd';
+      fontSize = (st['fs'] as num?)?.toDouble() ?? 20;
+      themeMode = (st['theme'] as num?)?.toInt() ?? 0;
+      remindOn = (st['rem'] as bool?) ?? true;
+      riskOn = (st['risk'] as bool?) ?? true;
+      remindH = (st['rh'] as num?)?.toInt() ?? 8;
+      remindM = (st['rm'] as num?)?.toInt() ?? 0;
+      seenWelcome = (st['welcome'] as bool?) ?? false;
+      displayName = (st['name'] as String?) ?? '';
+    }
+  }
+
+  Map<String, dynamic> toMap({bool cloud = false}) => {
+        'done': done,
+        'hist': hist.toList(),
+        'delays': delays,
+        'pb': pb,
+        // Firestore does not allow nested arrays; store each day as a comma string.
+        'plan': planOverride?.map((d) => d.join(',')).toList(),
+        'setup': setup?.toJson(),
+        't': t,
+        'notes': notes,
+        'hl': hl,
+        'fav': fav.toList(),
+        'secs': secs,
+        if (!cloud) ...{
+          'groups': groupCodes,
+          'settings': {
+            'lang': lang,
+            'tr': translation,
+            'fs': fontSize,
+            'theme': themeMode,
+            'rem': remindOn,
+            'risk': riskOn,
+            'rh': remindH,
+            'rm': remindM,
+            'welcome': seenWelcome,
+            'name': displayName,
+          },
+        },
+      };
+
+  /// Applies a cloud snapshot if it is newer. Returns true when applied.
+  bool applyRemote(Map<String, dynamic> j) {
+    final rt = (j['t'] as num?)?.toInt() ?? 0;
+    if (rt <= t) return false;
+    final groups = groupCodes;
+    final keep = {
+      'lang': lang,
+      'tr': translation,
+      'fs': fontSize,
+      'theme': themeMode,
+      'rem': remindOn,
+      'risk': riskOn,
+      'rh': remindH,
+      'rm': remindM,
+      'welcome': seenWelcome,
+      'name': displayName,
+    };
+    _fromMap(j, withSettings: false);
+    groupCodes = groups;
+    lang = keep['lang'] as String;
+    translation = keep['tr'] as String;
+    fontSize = keep['fs'] as double;
+    themeMode = keep['theme'] as int;
+    remindOn = keep['rem'] as bool;
+    riskOn = keep['risk'] as bool;
+    remindH = keep['rh'] as int;
+    remindM = keep['rm'] as int;
+    seenWelcome = keep['welcome'] as bool;
+    displayName = keep['name'] as String;
+    _recompute();
+    _persist();
+    notifyListeners();
+    _scheduleAfter();
+    return true;
+  }
+
+  void _persist() {
+    _saveDeb?.cancel();
+    _saveDeb = Timer(const Duration(milliseconds: 250), () {
+      prefs.setString(_kKey, jsonEncode(toMap()));
+    });
+  }
+
+  void _scheduleAfter() {
+    _deb?.cancel();
+    _deb =
+        Timer(const Duration(milliseconds: 900), () => afterChange?.call(this));
+  }
+
+  /// Mark a data change (bumps the sync timestamp).
+  void touch({bool data = true, bool recompute = false}) {
+    if (data) t = DateTime.now().millisecondsSinceEpoch;
+    if (recompute) _recompute();
+    _persist();
+    notifyListeners();
+    _scheduleAfter();
+  }
+
+  void refreshToday() {
+    final n = todayNum();
+    if (n != today) {
+      today = n;
+      _recompute();
+      notifyListeners();
+      _scheduleAfter();
+    }
+  }
+
+  void _recompute() {
+    today = todayNum();
+    final s = setup;
+    if (s == null) {
+      plan = null;
+      dates = [];
+      days = [];
+      return;
+    }
+    final p = buildPlan(s);
+    plan = p;
+    final dl = delays.map(parseDay).toSet();
+    dates = makeDates(p, dl);
+    days = layoutDays(p, dates, today, planOverride);
+  }
+
+  // ---- settings setters
+  void setLang(String l) {
+    lang = l;
+    gEn = l == 'en';
+    if (l == 'en' && translation == 'svd') translation = 'kjv';
+    touch(data: false);
+  }
+
+  void setTranslation(String x) {
+    translation = x;
+    touch(data: false);
+  }
+
+  void setFont(double d) {
+    fontSize = d;
+    touch(data: false);
+  }
+
+  void setTheme(int m) {
+    themeMode = m;
+    touch(data: false);
+  }
+
+  void setReminders({bool? on, bool? risk, int? h, int? m}) {
+    remindOn = on ?? remindOn;
+    riskOn = risk ?? riskOn;
+    remindH = h ?? remindH;
+    remindM = m ?? remindM;
+    touch(data: false);
+  }
+
+  void setWelcomeSeen() {
+    seenWelcome = true;
+    touch(data: false);
+  }
+
+  void setName(String n) {
+    displayName = n;
+    touch(data: false);
+  }
+
+  void addGroup(String code) {
+    if (!groupCodes.contains(code)) groupCodes.add(code);
+    touch(data: false);
+  }
+
+  void removeGroup(String code) {
+    groupCodes.remove(code);
+    touch(data: false);
+  }
+
+  // ---- plan queries
+  bool isDone(String key) => done.containsKey(key);
+
+  int get dayIndex {
+    if (!hasPlan) return 0;
+    final k = firstIndexOnOrAfter(dates, today);
+    return k >= plan!.nDays ? plan!.nDays - 1 : k;
+  }
+
+  /// Index of the day whose date is `today`, or -1 if today is a skipped/buffer day or outside plan.
+  int get todayIndexExact {
+    if (!hasPlan) return -1;
+    return dates.indexOf(today);
+  }
+
+  List<Chap> chaptersOfDay(int k) =>
+      (k >= 0 && k < days.length) ? days[k] : const [];
+
+  int doneInDay(int k) => chaptersOfDay(k).where((c) => isDone(c.key)).length;
+
+  bool dayComplete(int k) {
+    final l = chaptersOfDay(k);
+    return l.isNotEmpty && l.every((c) => isDone(c.key));
+  }
+
+  int get bufLeft => plan == null ? 0 : plan!.buf - delays.length - pb.length;
+
+  Set<String> get frozenDates => {...delays, ...pb};
+
+  int get totalDone =>
+      plan == null ? 0 : plan!.inPlan.where(done.containsKey).length;
+
+  double get percent {
+    final p = plan;
+    if (p == null || p.total == 0) return 0;
+    return totalDone / p.total;
+  }
+
+  int get daysLeft {
+    if (!hasPlan) return 0;
+    final last = dates.isEmpty ? 0 : dates.last;
+    return (last - today + 1).clamp(0, 100000);
+  }
+
+  Set<String> get readDates => {...done.values, ...hist};
+
+  StreakInfo get streak => streakOf(
+        readDates: readDates,
+        frozen: frozenDates,
+        today: today,
+        first: setup == null ? today : parseDay(setup!.first),
+      );
+
+  // ---- mutations
+  void toggleChapter(String key) {
+    if (done.containsKey(key)) {
+      done.remove(key);
+    } else {
+      done[key] = dayStr(today);
+    }
+    touch();
+  }
+
+  void markChapter(String key, bool v) {
+    if (v) {
+      done.putIfAbsent(key, () => dayStr(today));
+    } else {
+      done.remove(key);
+    }
+    touch();
+  }
+
+  void markDay(int k, bool v) {
+    for (final c in chaptersOfDay(k)) {
+      if (v) {
+        done.putIfAbsent(c.key, () => dayStr(today));
+      } else {
+        done.remove(c.key);
+      }
+    }
+    touch();
+  }
+
+  /// Buffer day for *today*: shifts the whole plan by one day.
+  bool useBuffer() {
+    final p = plan;
+    if (p == null) return false;
+    final s = dayStr(today);
+    if (delays.contains(s) || pb.contains(s) || bufLeft <= 0) return false;
+    if (today < p.start || today >= p.xmas - 1) return false;
+    delays.add(s);
+    touch(recompute: true);
+    return true;
+  }
+
+  void removeDelay(String s) {
+    delays.remove(s);
+    touch(recompute: true);
+  }
+
+  /// Buffer for a *past* day k (viewed): freezes it and moves its unread chapters forward.
+  bool usePastBuffer(String dateS, int k) {
+    final p = plan;
+    if (p == null) return false;
+    if (delays.contains(dateS) || pb.contains(dateS) || bufLeft <= 0)
+      return false;
+    pb.add(dateS);
+    if (p.nDays - 1 - k > 0) {
+      _rebalance(k, [k]);
+    }
+    touch(recompute: true);
+    return true;
+  }
+
+  void removePastBuffer(String s) {
+    pb.remove(s);
+    touch(recompute: true);
+  }
+
+  /// Redistribute unread chapters (from days <= k, or only the viewed day if [onlyThis]) over days after k.
+  void redistribute(int k, {bool onlyThis = false}) {
+    if (plan == null) return;
+    _rebalance(k, onlyThis ? [k] : null);
+    touch(recompute: true);
+  }
+
+  void _rebalance(int k, List<int>? only) {
+    final p = plan!;
+    final out = rebalanceDays(
+        p: p, days: days, lastFrozen: k, isDone: isDone, only: only);
+    planOverride = out;
+  }
+
+  void newJourney(Setup s) {
+    hist.addAll(done.values);
+    done = {};
+    delays = [];
+    pb = [];
+    planOverride = null;
+    setup = s;
+    touch(recompute: true);
+  }
+
+  void clearPlan() {
+    hist.addAll(done.values);
+    done = {};
+    delays = [];
+    pb = [];
+    planOverride = null;
+    setup = null;
+    touch(recompute: true);
+  }
+
+  Future<void> wipeLocal() async {
+    done = {};
+    hist = {};
+    delays = [];
+    pb = [];
+    planOverride = null;
+    setup = null;
+    notes = {};
+    hl = {};
+    fav = {};
+    secs = {};
+    groupCodes = [];
+    t = DateTime.now().millisecondsSinceEpoch;
+    _recompute();
+    await prefs.remove(_kKey);
+    notifyListeners();
+    _scheduleAfter();
+  }
+
+  // ---- notes / highlights / favorites (key 'b:c:v')
+  void setNote(String vk, String text) {
+    if (text.trim().isEmpty) {
+      notes.remove(vk);
+    } else {
+      notes[vk] = text.trim();
+    }
+    touch();
+  }
+
+  void setHighlight(String vk, int? color) {
+    if (color == null) {
+      hl.remove(vk);
+    } else {
+      hl[vk] = color;
+    }
+    touch();
+  }
+
+  void toggleFav(String vk) {
+    if (!fav.remove(vk)) fav.add(vk);
+    touch();
+  }
+
+  void addSeconds(int s) {
+    if (s <= 0) return;
+    final k = dayStr(todayNum());
+    secs[k] = (secs[k] ?? 0) + s;
+    _persist();
+    t = DateTime.now().millisecondsSinceEpoch;
+    _scheduleAfter();
+  }
+
+  // ---- naming helpers
+  String bookName(int b) => en ? kEnNames[b] : kArNames[b];
+
+  String chapLabel(Chap c) =>
+      c.isPsalm ? '${tr('psalm')} ${nf(c.c)}' : '${bookName(c.b)} ${nf(c.c)}';
+
+  /// Compact label for a list of chapters: "تكوين ١-٣، خروج ١"
+  String rangeLabel(List<Chap> l) {
+    if (l.isEmpty) return '—';
+    final parts = <String>[];
+    final ps = l.where((c) => c.isPsalm).map((c) => c.c).toList();
+    if (ps.isNotEmpty) parts.add('${tr('psalm')} ${_rng(ps)}');
+    for (final s in segsOf(l.where((c) => !c.isPsalm).toList())) {
+      parts.add('${bookName(s.b)} ${_rng(s.cs)}');
+    }
+    return parts.join(gEn ? ', ' : '، ');
+  }
+
+  String _rng(List<int> cs) {
+    final out = <String>[];
+    var i = 0;
+    while (i < cs.length) {
+      var j = i;
+      while (j + 1 < cs.length && cs[j + 1] == cs[j] + 1) {
+        j++;
+      }
+      out.add(j > i ? '${nf(cs[i])}-${nf(cs[j])}' : nf(cs[i]));
+      i = j + 1;
+    }
+    return out.join(gEn ? ', ' : '،');
+  }
+
+  int minutesForChap(Chap c) {
+    final v = kVerses[c.b] / kChapters[c.b];
+    return ((c.isPsalm ? 0.8 * (kPsalmVerses(c.c)) : v) * 0.12)
+        .ceil()
+        .clamp(1, 60);
+  }
+
+  int minutesForDay(int k) =>
+      chaptersOfDay(k).fold<int>(0, (a, c) => a + minutesForChap(c));
+
+  int kPsalmVerses(int c) => (kVerses[kPsalms] / kChapters[kPsalms]).round();
+
+  bool bookFinished(int b) {
+    for (var c = 1; c <= kChapters[b]; c++) {
+      if (!done.containsKey('$b:$c') &&
+          !(plan != null &&
+              !plan!.inPlan.contains('$b:$c') &&
+              _preDone(b, c))) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool _preDone(int b, int c) => plan != null && c <= (plan!.pre[b] ?? 0);
+
+  int get booksFinished {
+    var n = 0;
+    for (var b = 0; b < kBookCount; b++) {
+      if (plan != null && plan!.skip.contains(b)) continue;
+      if (bookFinished(b)) n++;
+    }
+    return n;
+  }
+
+  Map<String, int> chaptersPerDay(int lastN) {
+    final m = <String, int>{};
+    for (final d in done.values) {
+      m[d] = (m[d] ?? 0) + 1;
+    }
+    final out = <String, int>{};
+    for (var i = lastN - 1; i >= 0; i--) {
+      final s = dayStr(today - i);
+      out[s] = m[s] ?? 0;
+    }
+    return out;
+  }
+
+  int get totalMinutesTracked => secs.values.fold(0, (a, b) => a + b) ~/ 60;
+
+  List<BadgeDef> get badges {
+    final st = streak;
+    final best = st.best;
+    final n = done.length; // chapters currently done
+    final bk = booksFinished;
+    return [
+      BadgeDef('first', 'أول أصحاح', 'First chapter', '🌱', n >= 1),
+      BadgeDef('s3', '٣ أيام متتالية', '3-day streak', '🔥', best >= 3),
+      BadgeDef('s7', 'أسبوع كامل', '7-day streak', '🔥', best >= 7),
+      BadgeDef('s30', 'شهر كامل', '30-day streak', '🏅', best >= 30),
+      BadgeDef('s100', '١٠٠ يوم', '100-day streak', '🏆', best >= 100),
+      BadgeDef('c50', '٥٠ أصحاح', '50 chapters', '📖', n >= 50),
+      BadgeDef('c250', '٢٥٠ أصحاح', '250 chapters', '📚', n >= 250),
+      BadgeDef('c1000', '١٠٠٠ أصحاح', '1000 chapters', '👑', n >= 1000),
+      BadgeDef('b1', 'أول سفر كامل', 'First full book', '✅', bk >= 1),
+      BadgeDef('b10', '١٠ أسفار', '10 books', '🎖️', bk >= 10),
+      BadgeDef('plan', 'خلصت الخطة', 'Plan completed', '🎉',
+          plan != null && plan!.total > 0 && totalDone >= plan!.total),
+    ];
+  }
+
+  // ---- widget/notification helpers
+  String todaySummary() {
+    if (!hasPlan) return tr('widgetNone');
+    final k = dayIndex;
+    return rangeLabel(chaptersOfDay(k));
+  }
+
+  ThemeMode get flutterThemeMode => themeMode == 1
+      ? ThemeMode.light
+      : (themeMode == 2 ? ThemeMode.dark : ThemeMode.system);
+}
