@@ -1,4 +1,4 @@
-const CACHE = 'ot-journey-v27';
+const CACHE = 'ot-journey-v28';
 const CORE = ['./', 'index.html', 'extras.js', 'firebase-config.js', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-512.png', 'icons/apple-touch-icon.png', 'icons/logo.svg'];
 
 self.addEventListener('install', e => {
