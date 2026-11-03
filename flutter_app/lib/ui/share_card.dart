@@ -1,9 +1,7 @@
-import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -27,10 +25,13 @@ class _ShareProgressScreenState extends State<ShareProgressScreen> {
       final b = _k.currentContext!.findRenderObject() as RenderRepaintBoundary;
       final img = await b.toImage(pixelRatio: 3);
       final data = await img.toByteData(format: ui.ImageByteFormat.png);
-      final dir = await getTemporaryDirectory();
-      final f = File('${dir.path}/progress.png');
-      await f.writeAsBytes(data!.buffer.asUint8List());
-      await Share.shareXFiles([XFile(f.path)], text: tr('shareText'));
+      await Share.shareXFiles([
+        XFile.fromData(
+          data!.buffer.asUint8List(),
+          mimeType: 'image/png',
+          name: 'progress.png',
+        ),
+      ], text: tr('shareText'));
     } catch (_) {
       if (mounted) toast(context, tr('error'));
     }

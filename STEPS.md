@@ -36,3 +36,10 @@
 3. املأ بيانات المتجر ونموذج Data safety ورابط الخصوصية.
 4. ابدأ باختبار مغلق. الحسابات الشخصية الجديدة بتحتاج عدد مختبرين لفترة قبل الإنتاج (راجع الشروط الحالية في Console).
 5. بعد الموافقة اطلب النشر للإنتاج.
+
+## ٦. نشر نسخة الويب على mybibleplan.web.app
+1. من داخل `flutter_app` (مرة واحدة): `flutter create . --platforms=web`
+2. `flutter pub get`
+3. `flutter build web --release`
+4. من جذر المشروع: `firebase deploy --only hosting`
+5. افتح `mybibleplan.web.app` وحدّث بـ Ctrl+Shift+R.

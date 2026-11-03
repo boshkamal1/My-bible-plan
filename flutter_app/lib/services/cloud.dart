@@ -43,9 +43,18 @@ class Cloud extends ChangeNotifier {
 
   FirebaseFirestore get _db => FirebaseFirestore.instance;
 
+  static const _webOptions = FirebaseOptions(
+    apiKey: 'AIzaSyANy9P2Kw26eAx74NUSaiW1iWlndJv_ZDk',
+    authDomain: 'bible-plan-boshkamal-20261101.firebaseapp.com',
+    projectId: 'bible-plan-boshkamal-20261101',
+    storageBucket: 'bible-plan-boshkamal-20261101.firebasestorage.app',
+    messagingSenderId: '765669491597',
+    appId: '1:765669491597:web:510559a03bfaf7a4be73c4',
+  );
+
   Future<void> init() async {
     try {
-      await Firebase.initializeApp();
+      await Firebase.initializeApp(options: kIsWeb ? _webOptions : null);
       available = true;
       user = FirebaseAuth.instance.currentUser;
       FirebaseAuth.instance.authStateChanges().listen((u) {
@@ -64,6 +73,10 @@ class Cloud extends ChangeNotifier {
   Future<String?> signInGoogle() async {
     if (!available) return 'unavailable';
     try {
+      if (kIsWeb) {
+        await FirebaseAuth.instance.signInWithPopup(GoogleAuthProvider());
+        return null;
+      }
       final g = await GoogleSignIn().signIn();
       if (g == null) return 'cancelled';
       final a = await g.authentication;
