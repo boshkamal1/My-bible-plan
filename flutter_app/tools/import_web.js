@@ -4,7 +4,6 @@ const fs = require('fs');
 const path = require('path');
 const source = path.join(__dirname, 'web_usfm');
 const output = path.join(__dirname, '..', 'assets', 'bible', 'web');
-fs.mkdirSync(output, {recursive: true});
 const codes = [
   'GEN','EXO','LEV','NUM','DEU','JOS','JDG','RUT','1SA','2SA','1KI','2KI','1CH','2CH','EZR','NEH',
   'TOB','JDT','EST','JOB','PSA','PRO','ECC','SNG','WIS','SIR','ISA','JER','LAM','BAR','EZK','DAN',
@@ -12,17 +11,17 @@ const codes = [
   'MAT','MRK','LUK','JHN','ACT','ROM','1CO','2CO','GAL','EPH','PHP','COL','1TH','2TH','1TI','2TI',
   'TIT','PHM','HEB','JAS','1PE','2PE','1JN','2JN','3JN','JUD','REV',
 ];
-const files = fs.readdirSync(source);
 function clean(s) {
   return s
     .replace(/\\f\s[\s\S]*?\\f\*/g, '')
     .replace(/\\x\s[\s\S]*?\\x\*/g, '')
-    .replace(/\\w\s([^|\\]+?)\|[^\\]*?\\w\*/g, '$1')
+    .replace(/\\\+?w\s+([^|\\]*?)(?:\|[^\\]*?)?\\\+?w\*/g, '$1')
     .replace(/\\\+?\w+\*/g, '')
-    .replace(/\\\w+\s?/g, '')
+    .replace(/\\\+?\w+\s?/g, '')
     .replace(/\s+/g, ' ').trim();
 }
 function parse(code) {
+  const files = fs.readdirSync(source);
   const file = files.find(f => f.endsWith(`${code}eng-web.usfm`));
   if (!file) throw Error(`Missing ${code}`);
   const raw = fs.readFileSync(path.join(source, file), 'utf8');
@@ -45,6 +44,8 @@ function parse(code) {
   }
   return chapters.map(ch => Array.from({length: ch.length}, (_, i) => ch[i] || ''));
 }
+if (require.main === module) {
+fs.mkdirSync(output, {recursive: true});
 const report = [];
 for (let b = 0; b < codes.length; b++) {
   let chapters = parse(codes[b]);
@@ -62,3 +63,6 @@ for (let b = 0; b < codes.length; b++) {
   console.log(b, codes[b], chapters.length, chapters.flat().length);
 }
 fs.writeFileSync(path.join(__dirname, 'web_import_report.json'), JSON.stringify(report, null, 2));
+
+}
+module.exports = { clean };
