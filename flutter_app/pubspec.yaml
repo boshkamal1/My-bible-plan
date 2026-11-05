@@ -18,6 +18,7 @@ dependencies:
   flutter_timezone: ^2.1.0
   share_plus: ^10.0.2
   path_provider: ^2.1.4
+  file_selector: ^1.1.0
   home_widget: ^0.6.0
   firebase_core: ^3.6.0
   firebase_auth: ^5.3.1
@@ -25,6 +26,7 @@ dependencies:
   cloud_firestore: ^5.4.4
 
 dev_dependencies:
+  file_selector_platform_interface: ^2.7.0
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
@@ -37,3 +39,4 @@ flutter:
     - assets/bible/kjv/
     - assets/bible/ar_extra/
     - assets/bible/web/
+    - assets/bible/chapters/

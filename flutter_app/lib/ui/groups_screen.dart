@@ -31,7 +31,12 @@ class _GroupsScreenState extends State<GroupsScreen> {
     final code = Uri.base.queryParameters['group'];
     final cloud = context.watch<Cloud>();
     if (code == null || !cloud.signedIn) return;
+    if (PageStorage.maybeOf(context)
+            ?.readState(context, identifier: 'joined-link-$code') ==
+        true) return;
     _linkHandled = true;
+    PageStorage.maybeOf(context)
+        ?.writeState(context, true, identifier: 'joined-link-$code');
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       final error = await cloud.joinGroup(context.read<AppState>(), code);

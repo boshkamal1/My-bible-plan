@@ -22,6 +22,7 @@ class BooksScreen extends StatelessWidget {
             if (g.books.isNotEmpty)
               Card(
                 child: ExpansionTile(
+                  key: PageStorageKey('book-group-${g.id}'),
                   shape: const Border(),
                   title: Text(
                     tr('bookGroup_${g.id}'),

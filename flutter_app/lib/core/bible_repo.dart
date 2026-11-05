@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/services.dart' show AssetBundle, rootBundle;
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'books.dart';
 
@@ -44,9 +45,13 @@ class SearchHit {
 }
 
 class BibleRepo {
-  BibleRepo({AssetBundle? bundle}) : _bundle = bundle ?? rootBundle;
+  BibleRepo({AssetBundle? bundle, bool preferChapterAssets = kIsWeb})
+      : _bundle = bundle ?? rootBundle,
+        _preferChapterAssets = preferChapterAssets;
 
   final AssetBundle _bundle;
+  final bool _preferChapterAssets;
+  final Map<String, Future<List<String>?>> _chapters = {};
   // Cache the future, including misses, so concurrent readers share decoding.
   final Map<String, Future<List<List<String>>?>> _cache = {};
   final _searchChapters = Expando<_SearchChapter>();
@@ -72,41 +77,57 @@ class BibleRepo {
     return out;
   }
 
+  Future<List<String>?> _verses(String tr, int b, int c) {
+    return _chapters.putIfAbsent('$tr/$b/$c', () async {
+      if (_preferChapterAssets) {
+        try {
+          final raw =
+              await _bundle.loadString('assets/bible/chapters/$tr-$b-$c.json');
+          return (jsonDecode(raw) as List).cast<String>();
+        } catch (_) {
+          // Older offline releases and native builds can use whole-book assets.
+        }
+      }
+      final book = await _book(tr, b);
+      return book != null && c >= 1 && c <= book.length ? book[c - 1] : null;
+    });
+  }
+
   Future<ChapterText?> chapter(int b, int c, String tr) async {
     if (b == kPsalms && c == 151) {
       if (tr == 'svd') {
-        final ar = await _book('ar_extra', 151);
-        if (ar != null && ar.isNotEmpty) {
-          return ChapterText(ar.first, 'svd', false);
+        final ar = await _verses('ar_extra', 151, 1);
+        if (ar != null) {
+          return ChapterText(ar, 'svd', false);
         }
       }
       if (tr == 'web') {
-        final web = await _book('web', b);
-        if (web != null && web.length >= 151) {
-          return ChapterText(web[150], 'web', false);
+        final web = await _verses('web', b, 151);
+        if (web != null) {
+          return ChapterText(web, 'web', false);
         }
       }
-      final extra = await _book('kjv', 151);
-      if (extra != null && extra.isNotEmpty) {
-        return ChapterText(extra.first, 'kjv', tr != 'kjv');
+      final extra = await _verses('kjv', 151, 1);
+      if (extra != null) {
+        return ChapterText(extra, 'kjv', tr != 'kjv');
       }
       return null;
     }
     if (tr == 'svd') {
-      var bk = await _book('svd', b);
-      bk ??= await _book('ar_extra', b);
-      if (bk != null && c >= 1 && c <= bk.length) {
-        return ChapterText(bk[c - 1], 'svd', false);
+      var bk = await _verses(kDeut.contains(b) ? 'ar_extra' : 'svd', b, c);
+      bk ??= await _verses(kDeut.contains(b) ? 'svd' : 'ar_extra', b, c);
+      if (bk != null) {
+        return ChapterText(bk, 'svd', false);
       }
-      final k = await _book('kjv', b);
-      if (k != null && c >= 1 && c <= k.length) {
-        return ChapterText(k[c - 1], 'kjv', true);
+      final k = await _verses('kjv', b, c);
+      if (k != null) {
+        return ChapterText(k, 'kjv', true);
       }
       return null;
     }
-    final requested = await _book(tr, b);
-    if (requested != null && c >= 1 && c <= requested.length) {
-      return ChapterText(requested[c - 1], tr, false);
+    final requested = await _verses(tr, b, c);
+    if (requested != null) {
+      return ChapterText(requested, tr, false);
     }
     return null;
   }

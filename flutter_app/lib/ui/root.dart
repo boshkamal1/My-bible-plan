@@ -32,6 +32,7 @@ class _RootState extends State<Root> {
   final List<int> _history = [];
   Timer? _dayTimer;
   AppState? _state;
+  final PageStorageBucket _tabStorage = PageStorageBucket();
 
   @override
   void didChangeDependencies() {
@@ -99,7 +100,8 @@ class _RootState extends State<Root> {
 
   @override
   Widget build(BuildContext context) {
-    final s = context.watch<AppState>();
+    final hasPlan = context.select<AppState, bool>((s) => s.hasPlan);
+    context.select<AppState, String>((s) => s.lang);
     return PopScope(
         canPop: _history.isEmpty,
         onPopInvokedWithResult: (didPop, _) {
@@ -110,22 +112,24 @@ class _RootState extends State<Root> {
           }
         },
         child: Scaffold(
-          body: IndexedStack(
-            index: _i,
-            children: [
-              TickerMode(
-                  enabled: _i == 0,
-                  child: s.hasPlan
+          // Mount only the visible tab. Hidden stats, groups and plan screens
+          // otherwise all rebuild on each progress/font/reader-time update.
+          body: PageStorage(
+              bucket: _tabStorage,
+              child: KeyedSubtree(
+                key: PageStorageKey('tab-$_i'),
+                child: switch (_i) {
+                  0 => hasPlan
                       ? HomeScreen(onBrowseBooks: () => _select(2))
-                      : WelcomeScreen(onBrowseBooks: () => _select(2))),
-              s.hasPlan ? const PlanScreen() : const _NoPlan(),
-              const BooksScreen(),
-              const StatsScreen(),
-              const NotesScreen(),
-              const GroupsScreen(),
-              const SettingsScreen(),
-            ],
-          ),
+                      : WelcomeScreen(onBrowseBooks: () => _select(2)),
+                  1 => hasPlan ? const PlanScreen() : const _NoPlan(),
+                  2 => const BooksScreen(),
+                  3 => const StatsScreen(),
+                  4 => const NotesScreen(),
+                  5 => const GroupsScreen(),
+                  _ => const SettingsScreen(),
+                },
+              )),
           bottomNavigationBar: Material(
             color: Theme.of(context).colorScheme.surfaceContainer,
             child: SafeArea(

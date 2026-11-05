@@ -9,3 +9,5 @@ flutter_app/tools/deployed-*.js
 flutter_app/tools/kjva-source.json
 flutter_app/tools/tobit.html
 live-index.html
+flutter_app/assets/bible/chapters/*.json
+flutter_app/test_artifacts/

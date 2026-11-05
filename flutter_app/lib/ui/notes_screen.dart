@@ -7,26 +7,55 @@ import '../state/app_state.dart';
 import 'reader_screen.dart';
 import 'theme.dart';
 
-class NotesScreen extends StatelessWidget {
+class NotesScreen extends StatefulWidget {
   const NotesScreen({super.key});
   @override
+  State<NotesScreen> createState() => _NotesScreenState();
+}
+
+class _NotesScreenState extends State<NotesScreen>
+    with SingleTickerProviderStateMixin {
+  TabController? _tabs;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_tabs == null) {
+      final index = PageStorage.maybeOf(context)
+              ?.readState(context, identifier: 'notes-tab') as int? ??
+          0;
+      _tabs = TabController(length: 3, initialIndex: index, vsync: this)
+        ..addListener(_saveTab);
+    }
+  }
+
+  void _saveTab() {
+    PageStorage.maybeOf(context)
+        ?.writeState(context, _tabs!.index, identifier: 'notes-tab');
+  }
+
+  @override
+  void dispose() {
+    _tabs?.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 3,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(tr('notes')),
-          bottom: TabBar(
-            tabs: [
-              Tab(text: tr('notes')),
-              Tab(text: tr('favorites')),
-              Tab(text: tr('highlights')),
-            ],
-          ),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(tr('notes')),
+        bottom: TabBar(
+          controller: _tabs,
+          tabs: [
+            Tab(text: tr('notes')),
+            Tab(text: tr('favorites')),
+            Tab(text: tr('highlights')),
+          ],
         ),
-        body: const TabBarView(
-          children: [_List(kind: 0), _List(kind: 1), _List(kind: 2)],
-        ),
+      ),
+      body: TabBarView(
+        controller: _tabs,
+        children: const [_List(kind: 0), _List(kind: 1), _List(kind: 2)],
       ),
     );
   }
@@ -55,6 +84,7 @@ class _List extends StatelessWidget {
     });
     if (keys.isEmpty) return Center(child: Text(tr('noResults')));
     return ListView.builder(
+      key: PageStorageKey('notes-list-$kind'),
       padding: const EdgeInsets.all(12),
       itemCount: keys.length,
       itemBuilder: (ctx, i) {

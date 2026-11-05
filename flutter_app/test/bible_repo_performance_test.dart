@@ -77,6 +77,32 @@ List<Object> _values(List<SearchHit> hits) =>
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  test('web reading loads one small chapter, not the whole book', () async {
+    final bundle = _Bundle({
+      'assets/bible/chapters/svd-20-119.json': '["First verse","Second verse"]',
+      'assets/bible/chapters/svd-20-120.json': '["Next chapter"]',
+    });
+    final repo = BibleRepo(bundle: bundle, preferChapterAssets: true);
+    final values = await Future.wait(
+        List.generate(12, (_) => repo.chapter(20, 119, 'svd')));
+    expect(values.first!.verses.length, 2);
+    expect(bundle.loads, {'assets/bible/chapters/svd-20-119.json': 1});
+    expect((await repo.chapter(20, 120, 'svd'))!.verses.first, 'Next chapter');
+    expect(bundle.loads.keys.any((key) => key == 'assets/bible/svd/20.json'),
+        false);
+  });
+
+  test('older offline releases still read whole-book fallback assets',
+      () async {
+    final bundle = _Bundle({'assets/bible/kjv/0.json': '[["Genesis"]]'});
+    final repo = BibleRepo(bundle: bundle, preferChapterAssets: true);
+    expect((await repo.chapter(0, 1, 'kjv'))!.verses, ['Genesis']);
+    expect(bundle.loads, {
+      'assets/bible/chapters/kjv-0-1.json': 1,
+      'assets/bible/kjv/0.json': 1,
+    });
+  });
+
   test('startup is lazy and concurrent chapter readers share one load',
       () async {
     final gate = Completer<void>();

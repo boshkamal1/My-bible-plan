@@ -3,7 +3,7 @@
 
 for (const build of _flutter.buildConfig.builds) {
   if (build.mainJsPath === 'main.dart.js') {
-    build.mainJsPath = 'main.dart.js?v=20261105-26';
+    build.mainJsPath = 'main.dart.js?v=20261105-27';
   }
 }
 
@@ -34,9 +34,13 @@ _flutter.loader.load({
 });
 
 if ('serviceWorker' in navigator) {
+  const wasControlledAtLoad = Boolean(navigator.serviceWorker.controller);
   navigator.serviceWorker.addEventListener('controllerchange', function () {
-    if (sessionStorage.getItem('bible-pwa-refreshed-v26') !== 'yes') {
-      sessionStorage.setItem('bible-pwa-refreshed-v26', 'yes');
+    // The first worker already serves this release. Avoid reloading the app
+    // a second time on a first visit; reload only when upgrading an old worker.
+    if (!wasControlledAtLoad) return;
+    if (sessionStorage.getItem('bible-pwa-refreshed-v27') !== 'yes') {
+      sessionStorage.setItem('bible-pwa-refreshed-v27', 'yes');
       location.reload();
     }
   });

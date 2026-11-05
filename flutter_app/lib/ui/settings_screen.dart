@@ -7,6 +7,7 @@ import '../services/cloud.dart';
 import '../services/notifications.dart';
 import '../state/app_state.dart';
 import 'privacy_screen.dart';
+import 'backup_screen.dart';
 import 'theme.dart';
 
 const bool _webPushReady = bool.fromEnvironment('WEB_PUSH_READY');
@@ -195,6 +196,17 @@ class SettingsScreen extends StatelessWidget {
               ],
             ),
           ],
+          const Divider(height: 32),
+          ListTile(
+            leading: const Icon(Icons.backup_outlined),
+            title: Text(gEn ? 'Backup & restore' : 'تصدير واسترجاع البيانات'),
+            subtitle: Text(gEn
+                ? 'Your plan, progress and notes in a file'
+                : 'خطتك وتقدمك وملاحظاتك في ملف'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context)
+                .push(MaterialPageRoute(builder: (_) => const BackupScreen())),
+          ),
           const Divider(height: 32),
           ListTile(
             leading: const Icon(Icons.privacy_tip_outlined),

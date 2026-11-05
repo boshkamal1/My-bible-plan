@@ -104,7 +104,8 @@ class _AppState extends State<App> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    final s = context.watch<AppState>();
+    context.select<AppState, (String, int)>((s) => (s.lang, s.themeMode));
+    final s = context.read<AppState>();
     gEn = s.en;
     return MaterialApp(
       navigatorKey: _navigatorKey,

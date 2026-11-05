@@ -10,6 +10,7 @@ import '../core/i18n.dart';
 import '../state/app_state.dart';
 import 'theme.dart';
 import 'route_observer.dart';
+import 'comparison_screen.dart';
 
 class ReaderScreen extends StatefulWidget {
   final int b;
@@ -33,6 +34,7 @@ class _ReaderScreenState extends State<ReaderScreen>
   late int c = widget.c;
   ChapterText? text;
   bool loading = true;
+  int _loadRevision = 0;
   final Stopwatch _sw = Stopwatch();
   Timer? _timeTick;
   ModalRoute<dynamic>? _route;
@@ -114,9 +116,12 @@ class _ReaderScreenState extends State<ReaderScreen>
 
   Future<void> _load() async {
     final st = context.read<AppState>();
+    final revision = ++_loadRevision;
+    final book = b, chapter = c;
+    final translation = st.translation;
     setState(() => loading = true);
-    final r = await st.repo.chapter(b, c, st.translation);
-    if (!mounted) return;
+    final r = await st.repo.chapter(book, chapter, translation);
+    if (!mounted || revision != _loadRevision) return;
     setState(() {
       text = r;
       loading = false;
@@ -341,6 +346,13 @@ class _ReaderScreenState extends State<ReaderScreen>
       appBar: AppBar(
         title: Text(title),
         actions: [
+          IconButton(
+            tooltip:
+                gEn ? 'Compare Arabic and English' : 'مقارنة العربي والإنجليزي',
+            icon: const Icon(Icons.view_column_outlined),
+            onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => ComparisonScreen(b: b, c: c))),
+          ),
           PopupMenuButton<String>(
             tooltip: tr('translation'),
             icon: const Icon(Icons.translate),
@@ -399,24 +411,7 @@ class _ReaderScreenState extends State<ReaderScreen>
                           style: const TextStyle(fontSize: 13),
                         ),
                       ),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        controller: _sc,
-                        padding: const EdgeInsets.fromLTRB(18, 12, 18, 24),
-                        child: Directionality(
-                          textDirection:
-                              rtl ? TextDirection.rtl : TextDirection.ltr,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              for (var i = 0; i < t.verses.length; i++)
-                                if (t.verses[i].isNotEmpty)
-                                  _verse(st, i + 1, t.verses[i], scheme),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
+                    Expanded(child: _readingBody(st, t, scheme, rtl)),
                     SafeArea(
                       top: false,
                       child: Padding(
@@ -452,6 +447,35 @@ class _ReaderScreenState extends State<ReaderScreen>
                     ),
                   ],
                 ),
+    );
+  }
+
+  Widget _readingBody(
+      AppState st, ChapterText text, ColorScheme scheme, bool rtl) {
+    // Targeted links keep eager layout so ensureVisible can reach an exact verse.
+    // Ordinary reading builds only visible verses, even in Psalm 119.
+    final targeted =
+        widget.scrollToVerse != null && b == widget.b && c == widget.c;
+    return Directionality(
+      textDirection: rtl ? TextDirection.rtl : TextDirection.ltr,
+      child: targeted
+          ? SingleChildScrollView(
+              controller: _sc,
+              padding: const EdgeInsets.fromLTRB(18, 12, 18, 24),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (var i = 0; i < text.verses.length; i++)
+                      if (text.verses[i].isNotEmpty)
+                        _verse(st, i + 1, text.verses[i], scheme),
+                  ]))
+          : ListView.builder(
+              controller: _sc,
+              padding: const EdgeInsets.fromLTRB(18, 12, 18, 24),
+              itemCount: text.verses.length,
+              itemBuilder: (context, i) => text.verses[i].isEmpty
+                  ? const SizedBox.shrink()
+                  : _verse(st, i + 1, text.verses[i], scheme)),
     );
   }
 

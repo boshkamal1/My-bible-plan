@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/bible_repo.dart';
+import '../core/data_backup.dart';
 import '../core/books.dart';
 import '../core/day_util.dart';
 import '../core/i18n.dart';
@@ -175,6 +176,43 @@ class AppState extends ChangeNotifier {
           },
         },
       };
+
+  String exportBackup() {
+    final snapshot = Map<String, dynamic>.from(toMap());
+    // Freeze the actual daily assignments, including changes made by the user.
+    snapshot['plan'] = setup == null
+        ? null
+        : days.map((day) => day.map((c) => c.key).join(',')).toList();
+    return DataBackup.encode(snapshot);
+  }
+
+  Future<void> restoreBackup(DataBackup backup) async {
+    // Revalidate a copy: callers cannot mutate a preview and bypass validation.
+    final checked = DataBackup.decode(DataBackup.encode(backup.data));
+    final candidate = AppState(prefs);
+    try {
+      candidate._fromMap(checked.data, withSettings: true);
+      candidate._recompute();
+      final now = DateTime.now().millisecondsSinceEpoch;
+      candidate.t =
+          [now, t + 1, candidate.t + 1].reduce((a, b) => a > b ? a : b);
+      final snapshot = candidate.toMap();
+      // Persist first. A failed file or failed write leaves the current state intact.
+      _saveDeb?.cancel();
+      final saved = await prefs.setString(_kKey, jsonEncode(snapshot));
+      if (!saved) {
+        _persist();
+        throw StateError('Could not save backup');
+      }
+      _fromMap(snapshot, withSettings: true);
+      _recompute();
+      gEn = en;
+      notifyListeners();
+      _scheduleAfter();
+    } finally {
+      candidate.dispose();
+    }
+  }
 
   /// Applies a cloud snapshot if it is newer. Returns true when applied.
   bool applyRemote(Map<String, dynamic> j) {
