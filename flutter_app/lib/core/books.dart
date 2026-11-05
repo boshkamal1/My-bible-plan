@@ -1,9 +1,18 @@
 import 'book_data.dart';
+import 'chapter_lengths.dart';
 
 export 'book_data.dart';
 
 const int kBookCount = 76;
 const int kPsalms = 20;
+int bookChapterCount(int b, String translation) =>
+    b == 48 ? (translation == 'web' ? 10 : 7) : kChapters[b];
+
+int displayChapterNumber(int b, int chapter, String translation) => b == 47
+    ? const [3, 13, 14][chapter - 1]
+    : b == 48 && translation != 'web'
+        ? chapter + 9
+        : chapter;
 const Set<int> kDeut = {16, 17, 24, 25, 29, 44, 45, 46, 47, 48};
 const List<int> kPlanOrderOt = [
   0,
@@ -85,21 +94,6 @@ const List<int> kPlanOrderNt = [
   74,
   75,
 ];
-const List<List<int>> kUnits = [
-  [44],
-  [45],
-];
-const Map<int, double> kPsalmWeights = {
-  18: 1.5,
-  78: 2.5,
-  89: 2,
-  105: 1.5,
-  106: 1.5,
-  107: 1.5,
-  119: 5,
-  136: 1.5,
-};
-
 final Map<int, int> kPos = () {
   final m = <int, int>{};
   for (var i = 0; i < kPlanOrderOt.length; i++) {
@@ -128,13 +122,17 @@ final List<BookGroup> kOtGroups = [
   BookGroup(
     'wisdom',
     kPlanOrderOt
-        .where((b) => b >= 19 && b <= 25 && !kDeut.contains(b) && b != kPsalms)
+        .where((b) => b >= 19 && b <= 25 && !kDeut.contains(b))
         .toList(),
   ),
   BookGroup(
-    'prophets',
+    'majorProphets',
+    kPlanOrderOt.where((b) => {26, 27, 28, 30, 31}.contains(b)).toList(),
+  ),
+  BookGroup(
+    'minorProphets',
     kPlanOrderOt
-        .where((b) => b >= 26 && b <= 43 && !kDeut.contains(b))
+        .where((b) => b >= 32 && b <= 43 && !kDeut.contains(b))
         .toList(),
   ),
   BookGroup('deut', kPlanOrderOt.where(kDeut.contains).toList()),
@@ -153,9 +151,7 @@ class Chap {
   const Chap(this.b, this.c);
   String get key => '$b:$c';
   bool get isPsalm => b == kPsalms;
-  double get weight => isPsalm
-      ? (kPsalmWeights[c] ?? 1.0)
-      : 0.3 * 28.4 + 0.7 * kVerses[b] / kChapters[b];
+  double get weight => kChapterMinutes[b][c - 1];
   static Chap? parse(String k) {
     final p = k.split(':');
     if (p.length != 2) return null;
@@ -166,8 +162,7 @@ class Chap {
         b < 0 ||
         b >= kBookCount ||
         c < 1 ||
-        c > kChapters[b])
-      return null;
+        c > kChapters[b]) return null;
     return Chap(b, c);
   }
 

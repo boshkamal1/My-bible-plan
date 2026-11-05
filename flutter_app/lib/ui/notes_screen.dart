@@ -39,13 +39,12 @@ class _List extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.watch<AppState>();
-    final keys =
-        (kind == 0
-                ? s.notes.keys
-                : kind == 1
+    final keys = (kind == 0
+            ? s.notes.keys
+            : kind == 1
                 ? s.fav
                 : s.hl.keys)
-            .toList();
+        .toList();
     keys.sort((a, b) {
       final x = a.split(':').map(int.parse).toList();
       final y = b.split(':').map(int.parse).toList();
@@ -68,7 +67,7 @@ class _List extends StatelessWidget {
                 ? CircleAvatar(radius: 10, backgroundColor: kHlColors[s.hl[k]!])
                 : null,
             title: Text(
-              '$name ${nf(p[1])}:${nf(p[2])}',
+              bibleReference(name, p[1], p[2]),
               style: const TextStyle(color: kGold, fontWeight: FontWeight.bold),
             ),
             subtitle: kind == 0 ? Text(s.notes[k]!) : null,

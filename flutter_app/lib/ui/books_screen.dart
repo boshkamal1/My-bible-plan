@@ -30,13 +30,15 @@ class BooksScreen extends StatelessWidget {
                   children: [
                     for (final b in g.books)
                       ListTile(
-                        title: Text(s.bookName(b)),
+                        title: Text(b == 48 && s.translation == 'web'
+                            ? (gEn ? 'Esther (Greek)' : 'أستير اليوناني')
+                            : s.bookName(b)),
                         subtitle: LinearProgressIndicator(
                           value: _prog(s, b),
                           color: kGold,
                           minHeight: 4,
                         ),
-                        trailing: Text(nf(kChapters[b])),
+                        trailing: Text(nf(bookChapterCount(b, s.translation))),
                         onTap: () => Navigator.of(context).push(
                           MaterialPageRoute(builder: (_) => ChapterGrid(b: b)),
                         ),
@@ -52,10 +54,11 @@ class BooksScreen extends StatelessWidget {
   double _prog(AppState s, int b) {
     var n = 0;
     final pre = s.plan?.pre[b] ?? 0;
-    for (var c = 1; c <= kChapters[b]; c++) {
+    final total = bookChapterCount(b, s.translation);
+    for (var c = 1; c <= total; c++) {
       if (s.isDone('$b:$c') || c <= pre) n++;
     }
-    return n / kChapters[b];
+    return n / total;
   }
 }
 
@@ -66,7 +69,10 @@ class ChapterGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = context.watch<AppState>();
     return Scaffold(
-      appBar: AppBar(title: Text(s.bookName(b))),
+      appBar: AppBar(
+          title: Text(b == 48 && s.translation == 'web'
+              ? (gEn ? 'Esther (Greek)' : 'أستير اليوناني')
+              : s.bookName(b))),
       body: GridView.builder(
         padding: const EdgeInsets.all(16),
         gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
@@ -74,7 +80,7 @@ class ChapterGrid extends StatelessWidget {
           mainAxisSpacing: 10,
           crossAxisSpacing: 10,
         ),
-        itemCount: kChapters[b],
+        itemCount: bookChapterCount(b, s.translation),
         itemBuilder: (ctx, i) {
           final c = i + 1;
           final d = s.isDone('$b:$c');
@@ -95,7 +101,7 @@ class ChapterGrid extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
-                nf(c),
+                nf(displayChapterNumber(b, c, s.translation)),
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),

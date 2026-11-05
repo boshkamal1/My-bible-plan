@@ -36,3 +36,4 @@ flutter:
     - assets/bible/svd/
     - assets/bible/kjv/
     - assets/bible/ar_extra/
+    - assets/bible/web/

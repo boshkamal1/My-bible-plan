@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -8,6 +9,7 @@ import '../core/books.dart';
 import '../core/i18n.dart';
 import '../state/app_state.dart';
 import 'theme.dart';
+import 'route_observer.dart';
 
 class ReaderScreen extends StatefulWidget {
   final int b;
@@ -25,12 +27,17 @@ class ReaderScreen extends StatefulWidget {
   State<ReaderScreen> createState() => _ReaderScreenState();
 }
 
-class _ReaderScreenState extends State<ReaderScreen> {
+class _ReaderScreenState extends State<ReaderScreen>
+    with WidgetsBindingObserver, RouteAware {
   late int b = widget.b;
   late int c = widget.c;
   ChapterText? text;
   bool loading = true;
-  final Stopwatch _sw = Stopwatch()..start();
+  final Stopwatch _sw = Stopwatch();
+  Timer? _timeTick;
+  ModalRoute<dynamic>? _route;
+  bool _routeVisible = true;
+  bool _appActive = true;
   final ScrollController _sc = ScrollController();
   late AppState _st;
   final Map<int, GlobalKey> _keys = {};
@@ -38,6 +45,12 @@ class _ReaderScreenState extends State<ReaderScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _appActive = WidgetsBinding.instance.lifecycleState == null ||
+        WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
+    if (_appActive) _sw.start();
+    _timeTick =
+        Timer.periodic(const Duration(seconds: 30), (_) => _recordTime());
     _load();
   }
 
@@ -45,12 +58,56 @@ class _ReaderScreenState extends State<ReaderScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _st = context.read<AppState>();
+    final route = ModalRoute.of(context);
+    if (route != null && route != _route) {
+      if (_route != null) readerRouteObserver.unsubscribe(this);
+      _route = route;
+      readerRouteObserver.subscribe(this, route);
+    }
+  }
+
+  void _recordTime() {
+    final seconds = _sw.elapsed.inSeconds;
+    if (seconds > 0) {
+      _sw.reset();
+      _st.addSeconds(seconds);
+    }
+  }
+
+  void _updateTimer() {
+    if (_routeVisible && _appActive) {
+      _sw.start();
+    } else {
+      _sw.stop();
+      _recordTime();
+    }
+  }
+
+  @override
+  void didPushNext() {
+    _routeVisible = false;
+    _updateTimer();
+  }
+
+  @override
+  void didPopNext() {
+    _routeVisible = true;
+    _updateTimer();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _appActive = state == AppLifecycleState.resumed;
+    _updateTimer();
   }
 
   @override
   void dispose() {
-    final secs = _sw.elapsed.inSeconds.clamp(0, 1800);
-    _st.addSeconds(secs);
+    _timeTick?.cancel();
+    _sw.stop();
+    _recordTime();
+    readerRouteObserver.unsubscribe(this);
+    WidgetsBinding.instance.removeObserver(this);
     _sc.dispose();
     super.dispose();
   }
@@ -85,7 +142,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
   bool get _hasNext {
     final q = widget.queue;
     if (q != null && _qi >= 0) return _qi < q.length - 1;
-    return !(b == kBookCount - 1 && c == kChapters[b]);
+    return !(b == kBookCount - 1 && c == bookChapterCount(b, _st.translation));
   }
 
   bool get _hasPrev {
@@ -101,7 +158,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
       b = n.b;
       c = n.c;
     } else if (dir > 0) {
-      if (c < kChapters[b]) {
+      if (c < bookChapterCount(b, _st.translation)) {
         c++;
       } else {
         b++;
@@ -112,7 +169,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
         c--;
       } else {
         b--;
-        c = kChapters[b];
+        c = bookChapterCount(b, _st.translation);
       }
     }
     _load();
@@ -120,7 +177,11 @@ class _ReaderScreenState extends State<ReaderScreen> {
 
   String _ref(int v) {
     final st = context.read<AppState>();
-    final name = b == kPsalms ? '${tr('psalm')} $c' : '${st.bookName(b)} $c';
+    final shown = displayChapterNumber(b, c, st.translation);
+    final book = b == 48 && st.translation == 'web'
+        ? (gEn ? 'Esther (Greek)' : 'أستير اليوناني')
+        : st.bookName(b);
+    final name = b == kPsalms ? '${tr('psalm')} $c' : '$book $shown';
     return b == kPsalms ? '$name:$v' : '$name:$v';
   }
 
@@ -163,9 +224,8 @@ class _ReaderScreenState extends State<ReaderScreen> {
                               shape: BoxShape.circle,
                               border: Border.all(
                                 width: cur == i ? 3 : 1,
-                                color: cur == i
-                                    ? Colors.black54
-                                    : Colors.black12,
+                                color:
+                                    cur == i ? Colors.black54 : Colors.black12,
                               ),
                             ),
                           ),
@@ -269,21 +329,32 @@ class _ReaderScreenState extends State<ReaderScreen> {
     final key = '$b:$c';
     final done = st.isDone(key);
     final t = text;
-    final title = b == kPsalms
-        ? '${tr('psalm')} ${nf(c)}'
-        : '${st.bookName(b)} ${nf(c)}';
+    final shownChapter =
+        displayChapterNumber(b, c, t?.translation ?? st.translation);
+    final title = b == 48 && (t?.translation ?? st.translation) == 'web'
+        ? '${gEn ? 'Esther (Greek)' : 'أستير اليوناني'} ${nf(shownChapter)}'
+        : b == kPsalms
+            ? '${tr('psalm')} ${nf(c)}'
+            : '${st.bookName(b)} ${nf(shownChapter)}';
     final rtl = t == null ? !st.en : t.translation == 'svd';
     return Scaffold(
       appBar: AppBar(
         title: Text(title),
         actions: [
-          IconButton(
+          PopupMenuButton<String>(
             tooltip: tr('translation'),
             icon: const Icon(Icons.translate),
-            onPressed: () {
-              st.setTranslation(st.translation == 'svd' ? 'kjv' : 'svd');
+            onSelected: (value) {
+              st.setTranslation(value);
+              if (c > bookChapterCount(b, value)) {
+                c = bookChapterCount(b, value);
+              }
               _load();
             },
+            itemBuilder: (_) => [
+              for (final id in ['svd', 'kjv', 'web'])
+                PopupMenuItem(value: id, child: Text(tr(id))),
+            ],
           ),
           PopupMenuButton<double>(
             icon: const Icon(Icons.text_fields),
@@ -301,73 +372,86 @@ class _ReaderScreenState extends State<ReaderScreen> {
       body: loading
           ? const Center(child: CircularProgressIndicator())
           : t == null
-          ? Center(child: Text(tr('error')))
-          : Column(
-              children: [
-                if (t.fallback)
-                  Container(
-                    width: double.infinity,
-                    color: kGold.withValues(alpha: 0.15),
-                    padding: const EdgeInsets.all(10),
-                    child: Text(
-                      tr('deutNoteAr'),
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 13),
-                    ),
-                  ),
-                Expanded(
-                  child: SingleChildScrollView(
-                    controller: _sc,
-                    padding: const EdgeInsets.fromLTRB(18, 12, 18, 24),
-                    child: Directionality(
-                      textDirection: rtl
-                          ? TextDirection.rtl
-                          : TextDirection.ltr,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          for (var i = 0; i < t.verses.length; i++)
-                            _verse(st, i + 1, t.verses[i], scheme),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                SafeArea(
-                  top: false,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
-                    child: Row(
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.chevron_left),
-                          onPressed: _hasPrev ? () => _go(-1) : null,
+              ? Center(child: Text(tr('error')))
+              : Column(
+                  children: [
+                    if (b == 48 && t.translation == 'web')
+                      Container(
+                        width: double.infinity,
+                        color: kGold.withValues(alpha: 0.15),
+                        padding: const EdgeInsets.all(10),
+                        child: Text(
+                          gEn
+                              ? 'WEB presents Greek Esther as a complete book with its additions; its chapter numbering differs from the Arabic edition.'
+                              : 'تقدم ترجمة WEB أستير اليوناني كاملًا مع التتمات، ويختلف ترقيمه عن الترجمة العربية.',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontSize: 13),
                         ),
-                        Expanded(
-                          child: FilledButton.icon(
-                            icon: Icon(
-                              done
-                                  ? Icons.check_circle
-                                  : Icons.check_circle_outline,
-                            ),
-                            label: Text(done ? tr('done') : tr('markDone')),
-                            onPressed: () {
-                              st.toggleChapter(key);
-                              if (!done && _hasNext && widget.queue != null)
-                                _go(1);
-                            },
+                      ),
+                    if (t.fallback)
+                      Container(
+                        width: double.infinity,
+                        color: kGold.withValues(alpha: 0.15),
+                        padding: const EdgeInsets.all(10),
+                        child: Text(
+                          tr('deutNoteAr'),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontSize: 13),
+                        ),
+                      ),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        controller: _sc,
+                        padding: const EdgeInsets.fromLTRB(18, 12, 18, 24),
+                        child: Directionality(
+                          textDirection:
+                              rtl ? TextDirection.rtl : TextDirection.ltr,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              for (var i = 0; i < t.verses.length; i++)
+                                if (t.verses[i].isNotEmpty)
+                                  _verse(st, i + 1, t.verses[i], scheme),
+                            ],
                           ),
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.chevron_right),
-                          onPressed: _hasNext ? () => _go(1) : null,
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
+                    SafeArea(
+                      top: false,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
+                        child: Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.chevron_left),
+                              onPressed: _hasPrev ? () => _go(-1) : null,
+                            ),
+                            Expanded(
+                              child: FilledButton.icon(
+                                icon: Icon(
+                                  done
+                                      ? Icons.check_circle
+                                      : Icons.check_circle_outline,
+                                ),
+                                label: Text(done ? tr('done') : tr('markDone')),
+                                onPressed: () {
+                                  st.toggleChapter(key);
+                                  if (!done && _hasNext && widget.queue != null)
+                                    _go(1);
+                                },
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.chevron_right),
+                              onPressed: _hasNext ? () => _go(1) : null,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
     );
   }
 

@@ -19,15 +19,23 @@ class _SearchScreenState extends State<SearchScreen> {
   List<SearchHit> hits = [];
   bool busy = false;
   bool searched = false;
+  int _searchVersion = 0;
+
+  @override
+  void dispose() {
+    _ctl.dispose();
+    super.dispose();
+  }
 
   Future<void> _go() async {
+    final version = ++_searchVersion;
     final st = context.read<AppState>();
     setState(() {
       busy = true;
       searched = true;
     });
     final r = await st.repo.search(_ctl.text, st.translation);
-    if (!mounted) return;
+    if (!mounted || version != _searchVersion) return;
     setState(() {
       hits = r;
       busy = false;
@@ -50,12 +58,17 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: () {
-              st.setTranslation(st.translation == 'svd' ? 'kjv' : 'svd');
+          PopupMenuButton<String>(
+            tooltip: tr('translation'),
+            icon: Text(tr(st.translation)),
+            onSelected: (value) {
+              st.setTranslation(value);
               if (_ctl.text.isNotEmpty) _go();
             },
-            child: Text(st.translation == 'svd' ? 'SVD' : 'KJV'),
+            itemBuilder: (_) => [
+              for (final id in ['svd', 'kjv', 'web'])
+                PopupMenuItem(value: id, child: Text(tr(id))),
+            ],
           ),
           IconButton(icon: const Icon(Icons.search), onPressed: _go),
         ],
@@ -63,35 +76,39 @@ class _SearchScreenState extends State<SearchScreen> {
       body: busy
           ? const Center(child: CircularProgressIndicator())
           : hits.isEmpty
-          ? Center(child: Text(searched ? tr('noResults') : ''))
-          : ListView.separated(
-              itemCount: hits.length,
-              separatorBuilder: (_, __) => const Divider(height: 1),
-              itemBuilder: (ctx, i) {
-                final h = hits[i];
-                final name = h.b == kPsalms ? tr('psalm') : st.bookName(h.b);
-                return ListTile(
-                  title: Text(
-                    '$name ${nf(h.c)}:${nf(h.v)}',
-                    style: const TextStyle(
-                      color: kGold,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  subtitle: Text(
-                    h.text,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          ReaderScreen(b: h.b, c: h.c, scrollToVerse: h.v),
-                    ),
-                  ),
-                );
-              },
-            ),
+              ? Center(child: Text(searched ? tr('noResults') : ''))
+              : ListView.separated(
+                  itemCount: hits.length,
+                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  itemBuilder: (ctx, i) {
+                    final h = hits[i];
+                    final name =
+                        h.b == kPsalms ? tr('psalm') : st.bookName(h.b);
+                    return ListTile(
+                      title: Text(
+                        bibleReference(
+                            name,
+                            displayChapterNumber(h.b, h.c, st.translation),
+                            h.v),
+                        style: const TextStyle(
+                          color: kGold,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      subtitle: Text(
+                        h.text,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              ReaderScreen(b: h.b, c: h.c, scrollToVerse: h.v),
+                        ),
+                      ),
+                    );
+                  },
+                ),
     );
   }
 }

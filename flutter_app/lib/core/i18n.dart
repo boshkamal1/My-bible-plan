@@ -28,8 +28,9 @@ const Map<String, List<String>> _m = {
   'arabic': ['العربية', 'Arabic'],
   'english': ['English', 'English'],
   'translation': ['الترجمة', 'Translation'],
-  'svd': ['فان دايك (عربي)', 'Van Dyck (Arabic)'],
-  'kjv': ['الملك جيمس (إنجليزي)', 'King James (English)'],
+  'svd': ['العربية', 'Arabic'],
+  'kjv': ['KJV', 'KJV'],
+  'web': ['WEB', 'WEB'],
   'fontSize': ['حجم الخط', 'Font size'],
   'theme': ['المظهر', 'Theme'],
   'themeLight': ['فاتح', 'Light'],
@@ -94,7 +95,7 @@ const Map<String, List<String>> _m = {
   'badges': ['الأوسمة', 'Badges'],
   'readingTime': ['وقت القراءة', 'Reading time'],
   'minutes': ['دقيقة', 'min'],
-  'last30': ['آخر ٣٠ يوم', 'Last 30 days'],
+  'last30': ['آخر 30 يوم', 'Last 30 days'],
   'chaptersRead': ['أصحاحات مقروءة', 'Chapters read'],
   'daysLeft': ['يوم متبقي', 'days left'],
   'buffer': ['أيام احتياطية', 'Buffer days'],
@@ -129,17 +130,19 @@ const Map<String, List<String>> _m = {
   'bookGroup_moses': ['أسفار موسى', 'Books of Moses'],
   'bookGroup_history': ['الأسفار التاريخية', 'Historical books'],
   'bookGroup_wisdom': ['أسفار الحكمة', 'Wisdom books'],
-  'bookGroup_prophets': ['الأنبياء', 'Prophets'],
+  'bookGroup_psalms': ['المزامير', 'Psalms'],
+  'bookGroup_majorProphets': ['الأنبياء الكبار', 'Major Prophets'],
+  'bookGroup_minorProphets': ['الأنبياء الصغار', 'Minor Prophets'],
   'bookGroup_deut': ['القانونية الثانية', 'Deuterocanon'],
   'bookGroup_gospels': ['الأناجيل وأعمال الرسل', 'Gospels & Acts'],
   'bookGroup_paul': ['رسائل بولس', 'Paul’s letters'],
   'bookGroup_general': [
-    'الرسائل العامة والرؤيا',
+    'الرسائل الجامعة والرؤيا',
     'General letters & Revelation',
   ],
   'deutNoteAr': [
-    'النص العربي لهذا السفر غير متاح بعد، بيظهر بالإنجليزية (KJV).',
-    'Arabic text for this book is not bundled yet; showing KJV.',
+    'النص المطلوب غير متاح لهذا الأصحاح؛ معروض نص بترجمة أخرى.',
+    'The requested text is unavailable for this chapter; another translation is shown.',
   ],
   'prev': ['السابق', 'Previous'],
   'next': ['التالي', 'Next'],
@@ -186,11 +189,9 @@ String tr(String k) {
   return gEn ? v[1] : v[0];
 }
 
-const String _arDigits = '٠١٢٣٤٥٦٧٨٩';
-String nf(int n) {
-  if (gEn) return '$n';
-  return '$n'.split('').map((c) {
-    final d = int.tryParse(c);
-    return d == null ? c : _arDigits[d];
-  }).join();
-}
+String nf(int n) => '$n';
+
+// Isolate reference digits so Arabic reads book, chapter, verse from the right.
+String bibleReference(String book, int chapter, int verse) => gEn
+    ? '$book ${nf(chapter)}:${nf(verse)}'
+    : '$book \u2066${nf(verse)}:${nf(chapter)}\u2069';

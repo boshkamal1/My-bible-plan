@@ -8,6 +8,7 @@ import 'search_screen.dart';
 import 'settings_screen.dart';
 import 'setup_screen.dart';
 import 'share_card.dart';
+import 'stats_screen.dart';
 
 class MoreScreen extends StatelessWidget {
   const MoreScreen({super.key});
@@ -16,13 +17,13 @@ class MoreScreen extends StatelessWidget {
     void go(Widget w) =>
         Navigator.of(context).push(MaterialPageRoute(builder: (_) => w));
     Widget tile(IconData i, String t, VoidCallback f) => Card(
-      child: ListTile(
-        leading: Icon(i),
-        title: Text(t),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: f,
-      ),
-    );
+          child: ListTile(
+            leading: Icon(i),
+            title: Text(t),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: f,
+          ),
+        );
     return Scaffold(
       appBar: AppBar(title: Text(tr('more'))),
       body: ListView(
@@ -35,6 +36,8 @@ class MoreScreen extends StatelessWidget {
             () => go(const NotesScreen()),
           ),
           tile(Icons.groups, tr('groups'), () => go(const GroupsScreen())),
+          tile(Icons.insights_outlined, tr('stats'),
+              () => go(const StatsScreen())),
           tile(
             Icons.ios_share,
             tr('shareProgress'),

@@ -1,12 +1,12 @@
 import 'dart:convert';
 
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/services.dart' show AssetBundle, rootBundle;
 
 import 'books.dart';
 
 class ChapterText {
   final List<String> verses;
-  final String translation; // 'svd' or 'kjv' (what is actually shown)
+  final String translation; // translation actually shown
   final bool fallback; // true when the requested translation was not available
   const ChapterText(this.verses, this.translation, this.fallback);
 }
@@ -44,14 +44,22 @@ class SearchHit {
 }
 
 class BibleRepo {
-  final Map<String, List<List<String>>?> _cache = {};
+  BibleRepo({AssetBundle? bundle}) : _bundle = bundle ?? rootBundle;
 
-  Future<List<List<String>>?> _book(String tr, int b) async {
+  final AssetBundle _bundle;
+  // Cache the future, including misses, so concurrent readers share decoding.
+  final Map<String, Future<List<List<String>>?>> _cache = {};
+  final _searchChapters = Expando<_SearchChapter>();
+
+  Future<List<List<String>>?> _book(String tr, int b) {
     final k = '$tr/$b';
-    if (_cache.containsKey(k)) return _cache[k];
+    return _cache.putIfAbsent(k, () => _loadBook(tr, b));
+  }
+
+  Future<List<List<String>>?> _loadBook(String tr, int b) async {
     List<List<String>>? out;
     try {
-      final raw = await rootBundle.loadString('assets/bible/$tr/$b.json');
+      final raw = await _bundle.loadString('assets/bible/$tr/$b.json');
       final j = jsonDecode(raw) as List;
       out = j
           .map<List<String>>(
@@ -61,24 +69,45 @@ class BibleRepo {
     } catch (_) {
       out = null;
     }
-    _cache[k] = out;
     return out;
   }
 
   Future<ChapterText?> chapter(int b, int c, String tr) async {
+    if (b == kPsalms && c == 151) {
+      if (tr == 'svd') {
+        final ar = await _book('ar_extra', 151);
+        if (ar != null && ar.isNotEmpty) {
+          return ChapterText(ar.first, 'svd', false);
+        }
+      }
+      if (tr == 'web') {
+        final web = await _book('web', b);
+        if (web != null && web.length >= 151) {
+          return ChapterText(web[150], 'web', false);
+        }
+      }
+      final extra = await _book('kjv', 151);
+      if (extra != null && extra.isNotEmpty) {
+        return ChapterText(extra.first, 'kjv', tr != 'kjv');
+      }
+      return null;
+    }
     if (tr == 'svd') {
       var bk = await _book('svd', b);
       bk ??= await _book('ar_extra', b);
-      if (bk != null && c >= 1 && c <= bk.length)
+      if (bk != null && c >= 1 && c <= bk.length) {
         return ChapterText(bk[c - 1], 'svd', false);
+      }
       final k = await _book('kjv', b);
-      if (k != null && c >= 1 && c <= k.length)
+      if (k != null && c >= 1 && c <= k.length) {
         return ChapterText(k[c - 1], 'kjv', true);
+      }
       return null;
     }
-    final k = await _book('kjv', b);
-    if (k != null && c >= 1 && c <= k.length)
-      return ChapterText(k[c - 1], 'kjv', false);
+    final requested = await _book(tr, b);
+    if (requested != null && c >= 1 && c <= requested.length) {
+      return ChapterText(requested[c - 1], tr, false);
+    }
     return null;
   }
 
@@ -91,20 +120,37 @@ class BibleRepo {
     final out = <SearchHit>[];
     final query = tr == 'svd' ? normalizeAr(q.trim()) : q.trim().toLowerCase();
     if (query.length < 2) return out;
+    final skipFallback = tr == 'svd' && RegExp(r'[؀-ۿ]').hasMatch(q);
+    final slice = Stopwatch()..start();
+    var scanned = 0;
     for (var b = 0; b < kBookCount; b++) {
       var t = tr;
-      var bk = await _book(t, b);
+      var bk = await _book(t == 'svd' && kDeut.contains(b) ? 'ar_extra' : t, b);
       if (bk == null) {
         t = 'kjv';
         bk = await _book(t, b);
         if (bk == null) continue;
         // only search the fallback with the query if it's latin
-        if (tr == 'svd' && RegExp(r'[؀-ۿ]').hasMatch(q)) continue;
+        if (skipFallback) continue;
       }
       for (var c = 0; c < bk.length; c++) {
         final vs = bk[c];
+        var index = _searchChapters[vs];
+        if (index == null ||
+            index.arabic != (t == 'svd') ||
+            index.source.length != vs.length) {
+          index = _SearchChapter(vs.length, t == 'svd');
+          _searchChapters[vs] = index;
+        }
         for (var v = 0; v < vs.length; v++) {
-          final txt = t == 'svd' ? normalizeAr(vs[v]) : vs[v].toLowerCase();
+          // Completed asset futures only yield to microtasks. Give the event
+          // loop a turn during long scans so frames and input can progress.
+          if (++scanned % 256 == 0 && slice.elapsedMilliseconds >= 4) {
+            await Future<void>.delayed(Duration.zero);
+            slice.reset();
+          }
+          final txt = index.text(vs[v], v);
+          if (txt.isEmpty) continue;
           if (txt.contains(query)) {
             out.add(SearchHit(b, c + 1, v + 1, vs[v]));
             if (out.length >= limit) return out;
@@ -113,5 +159,25 @@ class BibleRepo {
       }
     }
     return out;
+  }
+}
+
+// Built only for chapters actually searched; limited searches normalize only
+// the verses they visit. Keep source values to respect the mutable verses API.
+class _SearchChapter {
+  _SearchChapter(int length, this.arabic)
+      : source = List<String?>.filled(length, null),
+        normalized = List<String?>.filled(length, null);
+
+  final bool arabic;
+  final List<String?> source;
+  final List<String?> normalized;
+
+  String text(String verse, int index) {
+    if (source[index] != verse) {
+      source[index] = verse;
+      normalized[index] = arabic ? normalizeAr(verse) : verse.toLowerCase();
+    }
+    return normalized[index]!;
   }
 }

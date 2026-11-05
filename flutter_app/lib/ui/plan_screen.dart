@@ -6,6 +6,7 @@ import '../core/i18n.dart';
 import '../state/app_state.dart';
 import 'day_view.dart';
 import 'theme.dart';
+import 'setup_screen.dart';
 
 class PlanScreen extends StatefulWidget {
   const PlanScreen({super.key});
@@ -29,12 +30,39 @@ class _PlanScreenState extends State<PlanScreen> {
     final p = s.plan!;
     final cur = s.dayIndex;
     return Scaffold(
-      appBar: AppBar(title: Text(tr('plan'))),
+      appBar: AppBar(title: Text(tr('plan')), actions: [
+        PopupMenuButton<String>(
+          onSelected: (value) async {
+            final ok = await showDialog<bool>(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                      content: Text(tr('restartConfirm')),
+                      actions: [
+                        TextButton(
+                            onPressed: () => Navigator.pop(ctx, false),
+                            child: Text(tr('cancel'))),
+                        FilledButton(
+                            onPressed: () => Navigator.pop(ctx, true),
+                            child: Text(tr('yes')))
+                      ],
+                    ));
+            if (ok == true && context.mounted) {
+              Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => value == 'ready'
+                      ? const ReadyPlansScreen()
+                      : const SetupScreen()));
+            }
+          },
+          itemBuilder: (_) => [
+            PopupMenuItem(value: 'new', child: Text(tr('newJourney'))),
+            PopupMenuItem(value: 'ready', child: Text(tr('readyPlans'))),
+          ],
+        ),
+      ]),
       body: ListView.builder(
         controller: _sc ??= ScrollController(
-          initialScrollOffset: (cur * 76.0 - 120)
-              .clamp(0, double.infinity)
-              .toDouble(),
+          initialScrollOffset:
+              (cur * 76.0 - 120).clamp(0, double.infinity).toDouble(),
         ),
         padding: const EdgeInsets.all(12),
         itemCount: p.nDays + 1,
@@ -87,15 +115,14 @@ class _PlanScreenState extends State<PlanScreen> {
           return Card(
             color: isCur ? kGold.withValues(alpha: 0.14) : null,
             child: ListTile(
-              onTap: () =>
-                  Navigator.of(context)
-                      .push(MaterialPageRoute(builder: (_) => DayScreen(k: k))),
+              onTap: () => Navigator.of(context)
+                  .push(MaterialPageRoute(builder: (_) => DayScreen(k: k))),
               leading: CircleAvatar(
                 backgroundColor: complete
                     ? Colors.green
                     : (date < s.today
-                          ? Colors.orange.withValues(alpha: 0.4)
-                          : null),
+                        ? Colors.orange.withValues(alpha: 0.4)
+                        : null),
                 child: complete
                     ? const Icon(Icons.check, color: Colors.white)
                     : Text(nf(k + 1)),

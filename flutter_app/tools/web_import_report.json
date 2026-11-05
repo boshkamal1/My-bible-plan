@@ -1,0 +1,458 @@
+[
+  {
+    "b": 0,
+    "code": "GEN",
+    "chapters": 50,
+    "verses": 1533
+  },
+  {
+    "b": 1,
+    "code": "EXO",
+    "chapters": 40,
+    "verses": 1213
+  },
+  {
+    "b": 2,
+    "code": "LEV",
+    "chapters": 27,
+    "verses": 859
+  },
+  {
+    "b": 3,
+    "code": "NUM",
+    "chapters": 36,
+    "verses": 1288
+  },
+  {
+    "b": 4,
+    "code": "DEU",
+    "chapters": 34,
+    "verses": 959
+  },
+  {
+    "b": 5,
+    "code": "JOS",
+    "chapters": 24,
+    "verses": 658
+  },
+  {
+    "b": 6,
+    "code": "JDG",
+    "chapters": 21,
+    "verses": 618
+  },
+  {
+    "b": 7,
+    "code": "RUT",
+    "chapters": 4,
+    "verses": 85
+  },
+  {
+    "b": 8,
+    "code": "1SA",
+    "chapters": 31,
+    "verses": 810
+  },
+  {
+    "b": 9,
+    "code": "2SA",
+    "chapters": 24,
+    "verses": 695
+  },
+  {
+    "b": 10,
+    "code": "1KI",
+    "chapters": 22,
+    "verses": 816
+  },
+  {
+    "b": 11,
+    "code": "2KI",
+    "chapters": 25,
+    "verses": 719
+  },
+  {
+    "b": 12,
+    "code": "1CH",
+    "chapters": 29,
+    "verses": 942
+  },
+  {
+    "b": 13,
+    "code": "2CH",
+    "chapters": 36,
+    "verses": 822
+  },
+  {
+    "b": 14,
+    "code": "EZR",
+    "chapters": 10,
+    "verses": 280
+  },
+  {
+    "b": 15,
+    "code": "NEH",
+    "chapters": 13,
+    "verses": 406
+  },
+  {
+    "b": 16,
+    "code": "TOB",
+    "chapters": 14,
+    "verses": 244
+  },
+  {
+    "b": 17,
+    "code": "JDT",
+    "chapters": 16,
+    "verses": 339
+  },
+  {
+    "b": 18,
+    "code": "EST",
+    "chapters": 10,
+    "verses": 167
+  },
+  {
+    "b": 19,
+    "code": "JOB",
+    "chapters": 42,
+    "verses": 1070
+  },
+  {
+    "b": 20,
+    "code": "PSA",
+    "chapters": 151,
+    "verses": 2468
+  },
+  {
+    "b": 21,
+    "code": "PRO",
+    "chapters": 31,
+    "verses": 915
+  },
+  {
+    "b": 22,
+    "code": "ECC",
+    "chapters": 12,
+    "verses": 222
+  },
+  {
+    "b": 23,
+    "code": "SNG",
+    "chapters": 8,
+    "verses": 117
+  },
+  {
+    "b": 24,
+    "code": "WIS",
+    "chapters": 19,
+    "verses": 436
+  },
+  {
+    "b": 25,
+    "code": "SIR",
+    "chapters": 51,
+    "verses": 1393
+  },
+  {
+    "b": 26,
+    "code": "ISA",
+    "chapters": 66,
+    "verses": 1292
+  },
+  {
+    "b": 27,
+    "code": "JER",
+    "chapters": 52,
+    "verses": 1364
+  },
+  {
+    "b": 28,
+    "code": "LAM",
+    "chapters": 5,
+    "verses": 154
+  },
+  {
+    "b": 29,
+    "code": "BAR",
+    "chapters": 6,
+    "verses": 213
+  },
+  {
+    "b": 30,
+    "code": "EZK",
+    "chapters": 48,
+    "verses": 1273
+  },
+  {
+    "b": 31,
+    "code": "DAN",
+    "chapters": 12,
+    "verses": 357
+  },
+  {
+    "b": 32,
+    "code": "HOS",
+    "chapters": 14,
+    "verses": 197
+  },
+  {
+    "b": 33,
+    "code": "JOL",
+    "chapters": 3,
+    "verses": 73
+  },
+  {
+    "b": 34,
+    "code": "AMO",
+    "chapters": 9,
+    "verses": 146
+  },
+  {
+    "b": 35,
+    "code": "OBA",
+    "chapters": 1,
+    "verses": 21
+  },
+  {
+    "b": 36,
+    "code": "JON",
+    "chapters": 4,
+    "verses": 48
+  },
+  {
+    "b": 37,
+    "code": "MIC",
+    "chapters": 7,
+    "verses": 105
+  },
+  {
+    "b": 38,
+    "code": "NAM",
+    "chapters": 3,
+    "verses": 47
+  },
+  {
+    "b": 39,
+    "code": "HAB",
+    "chapters": 3,
+    "verses": 56
+  },
+  {
+    "b": 40,
+    "code": "ZEP",
+    "chapters": 3,
+    "verses": 53
+  },
+  {
+    "b": 41,
+    "code": "HAG",
+    "chapters": 2,
+    "verses": 38
+  },
+  {
+    "b": 42,
+    "code": "ZEC",
+    "chapters": 14,
+    "verses": 211
+  },
+  {
+    "b": 43,
+    "code": "MAL",
+    "chapters": 4,
+    "verses": 55
+  },
+  {
+    "b": 44,
+    "code": "1MA",
+    "chapters": 16,
+    "verses": 924
+  },
+  {
+    "b": 45,
+    "code": "2MA",
+    "chapters": 15,
+    "verses": 555
+  },
+  {
+    "b": 46,
+    "code": "MAN",
+    "chapters": 1,
+    "verses": 15
+  },
+  {
+    "b": 47,
+    "code": "DAG",
+    "chapters": 3,
+    "verses": 203
+  },
+  {
+    "b": 48,
+    "code": "ESG",
+    "chapters": 10,
+    "verses": 208
+  },
+  {
+    "b": 49,
+    "code": "MAT",
+    "chapters": 28,
+    "verses": 1071
+  },
+  {
+    "b": 50,
+    "code": "MRK",
+    "chapters": 16,
+    "verses": 678
+  },
+  {
+    "b": 51,
+    "code": "LUK",
+    "chapters": 24,
+    "verses": 1151
+  },
+  {
+    "b": 52,
+    "code": "JHN",
+    "chapters": 21,
+    "verses": 879
+  },
+  {
+    "b": 53,
+    "code": "ACT",
+    "chapters": 28,
+    "verses": 1007
+  },
+  {
+    "b": 54,
+    "code": "ROM",
+    "chapters": 16,
+    "verses": 433
+  },
+  {
+    "b": 55,
+    "code": "1CO",
+    "chapters": 16,
+    "verses": 437
+  },
+  {
+    "b": 56,
+    "code": "2CO",
+    "chapters": 13,
+    "verses": 257
+  },
+  {
+    "b": 57,
+    "code": "GAL",
+    "chapters": 6,
+    "verses": 149
+  },
+  {
+    "b": 58,
+    "code": "EPH",
+    "chapters": 6,
+    "verses": 155
+  },
+  {
+    "b": 59,
+    "code": "PHP",
+    "chapters": 4,
+    "verses": 104
+  },
+  {
+    "b": 60,
+    "code": "COL",
+    "chapters": 4,
+    "verses": 95
+  },
+  {
+    "b": 61,
+    "code": "1TH",
+    "chapters": 5,
+    "verses": 89
+  },
+  {
+    "b": 62,
+    "code": "2TH",
+    "chapters": 3,
+    "verses": 47
+  },
+  {
+    "b": 63,
+    "code": "1TI",
+    "chapters": 6,
+    "verses": 113
+  },
+  {
+    "b": 64,
+    "code": "2TI",
+    "chapters": 4,
+    "verses": 83
+  },
+  {
+    "b": 65,
+    "code": "TIT",
+    "chapters": 3,
+    "verses": 46
+  },
+  {
+    "b": 66,
+    "code": "PHM",
+    "chapters": 1,
+    "verses": 25
+  },
+  {
+    "b": 67,
+    "code": "HEB",
+    "chapters": 13,
+    "verses": 303
+  },
+  {
+    "b": 68,
+    "code": "JAS",
+    "chapters": 5,
+    "verses": 108
+  },
+  {
+    "b": 69,
+    "code": "1PE",
+    "chapters": 5,
+    "verses": 105
+  },
+  {
+    "b": 70,
+    "code": "2PE",
+    "chapters": 3,
+    "verses": 61
+  },
+  {
+    "b": 71,
+    "code": "1JN",
+    "chapters": 5,
+    "verses": 105
+  },
+  {
+    "b": 72,
+    "code": "2JN",
+    "chapters": 1,
+    "verses": 13
+  },
+  {
+    "b": 73,
+    "code": "3JN",
+    "chapters": 1,
+    "verses": 14
+  },
+  {
+    "b": 74,
+    "code": "JUD",
+    "chapters": 1,
+    "verses": 25
+  },
+  {
+    "b": 75,
+    "code": "REV",
+    "chapters": 22,
+    "verses": 404
+  }
+]

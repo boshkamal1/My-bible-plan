@@ -39,6 +39,8 @@ class AppState extends ChangeNotifier {
   Map<String, int> hl = {};
   Set<String> fav = {};
   Map<String, int> secs = {};
+  Map<String, String> badgeDates = {};
+  void Function(BadgeDef)? onBadgeEarned;
   List<String> groupCodes = [];
 
   // ---- settings (not synced except where noted)
@@ -63,6 +65,15 @@ class AppState extends ChangeNotifier {
   void Function(AppState s)? afterChange;
   Timer? _deb;
   Timer? _saveDeb;
+  bool _disposed = false;
+
+  @override
+  void dispose() {
+    _disposed = true;
+    _deb?.cancel();
+    _saveDeb?.cancel();
+    super.dispose();
+  }
 
   bool get hasPlan => setup != null && plan != null && plan!.nDays > 0;
   bool get en => lang == 'en';
@@ -96,6 +107,12 @@ class AppState extends ChangeNotifier {
     }
     final s = j['setup'];
     setup = s is Map ? Setup.fromJson(Map<String, dynamic>.from(s)) : null;
+    if (setup != null && planOverride == null && j['plannerVersion'] == null) {
+      final previous = buildPlan(setup!, legacyEsther: true);
+      planOverride = previous.base
+          .map((day) => day.map((chapter) => chapter.key).toList())
+          .toList();
+    }
     t = (j['t'] as num?)?.toInt() ?? 0;
     notes = ((j['notes'] as Map?) ?? {}).map(
       (k, v) => MapEntry(k as String, v as String),
@@ -107,10 +124,12 @@ class AppState extends ChangeNotifier {
     secs = ((j['secs'] as Map?) ?? {}).map(
       (k, v) => MapEntry(k as String, (v as num).toInt()),
     );
+    badgeDates = ((j['badgeDates'] as Map?) ?? {}).map(
+      (k, v) => MapEntry(k.toString(), v.toString()),
+    );
     if (withSettings) {
-      groupCodes = ((j['groups'] as List?) ?? [])
-          .map((e) => e as String)
-          .toList();
+      groupCodes =
+          ((j['groups'] as List?) ?? []).map((e) => e as String).toList();
       final st = (j['settings'] as Map?) ?? {};
       lang = (st['lang'] as String?) ?? 'ar';
       translation = (st['tr'] as String?) ?? 'svd';
@@ -126,34 +145,36 @@ class AppState extends ChangeNotifier {
   }
 
   Map<String, dynamic> toMap({bool cloud = false}) => {
-    'done': done,
-    'hist': hist.toList(),
-    'delays': delays,
-    'pb': pb,
-    // Firestore does not allow nested arrays; store each day as a comma string.
-    'plan': planOverride?.map((d) => d.join(',')).toList(),
-    'setup': setup?.toJson(),
-    't': t,
-    'notes': notes,
-    'hl': hl,
-    'fav': fav.toList(),
-    'secs': secs,
-    if (!cloud) ...{
-      'groups': groupCodes,
-      'settings': {
-        'lang': lang,
-        'tr': translation,
-        'fs': fontSize,
-        'theme': themeMode,
-        'rem': remindOn,
-        'risk': riskOn,
-        'rh': remindH,
-        'rm': remindM,
-        'welcome': seenWelcome,
-        'name': displayName,
-      },
-    },
-  };
+        'done': done,
+        'hist': hist.toList(),
+        'delays': delays,
+        'pb': pb,
+        // Firestore does not allow nested arrays; store each day as a comma string.
+        'plan': planOverride?.map((d) => d.join(',')).toList(),
+        'plannerVersion': 14,
+        'setup': setup?.toJson(),
+        't': t,
+        'notes': notes,
+        'hl': hl,
+        'fav': fav.toList(),
+        'secs': secs,
+        'badgeDates': badgeDates,
+        if (!cloud) ...{
+          'groups': groupCodes,
+          'settings': {
+            'lang': lang,
+            'tr': translation,
+            'fs': fontSize,
+            'theme': themeMode,
+            'rem': remindOn,
+            'risk': riskOn,
+            'rh': remindH,
+            'rm': remindM,
+            'welcome': seenWelcome,
+            'name': displayName,
+          },
+        },
+      };
 
   /// Applies a cloud snapshot if it is newer. Returns true when applied.
   bool applyRemote(Map<String, dynamic> j) {
@@ -172,7 +193,9 @@ class AppState extends ChangeNotifier {
       'welcome': seenWelcome,
       'name': displayName,
     };
+    final localBadges = Map<String, String>.from(badgeDates);
     _fromMap(j, withSettings: false);
+    badgeDates = {...localBadges, ...badgeDates};
     groupCodes = groups;
     lang = keep['lang'] as String;
     translation = keep['tr'] as String;
@@ -321,13 +344,14 @@ class AppState extends ChangeNotifier {
 
   Set<String> get frozenDates => {...delays, ...pb};
 
-  int get totalDone =>
+  int get planDone =>
       plan == null ? 0 : plan!.inPlan.where(done.containsKey).length;
+  int get totalDone => done.length;
 
   double get percent {
     final p = plan;
     if (p == null || p.total == 0) return 0;
-    return totalDone / p.total;
+    return planDone / p.total;
   }
 
   int get daysLeft {
@@ -339,32 +363,45 @@ class AppState extends ChangeNotifier {
   Set<String> get readDates => {...done.values, ...hist};
 
   StreakInfo get streak => streakOf(
-    readDates: readDates,
-    frozen: frozenDates,
-    today: today,
-    first: setup == null ? today : parseDay(setup!.first),
-  );
+        readDates: readDates,
+        frozen: const {},
+        today: today,
+        first: readDates.isEmpty
+            ? today
+            : readDates.map(parseDay).reduce((a, b) => a < b ? a : b),
+      );
 
   // ---- mutations
   void toggleChapter(String key) {
+    refreshToday();
+    final previous =
+        badges.where((badge) => badge.earned).map((badge) => badge.id).toSet();
     if (done.containsKey(key)) {
       done.remove(key);
     } else {
       done[key] = dayStr(today);
     }
+    _recordNewBadges(previous);
     touch();
   }
 
   void markChapter(String key, bool v) {
+    refreshToday();
+    final previous =
+        badges.where((badge) => badge.earned).map((badge) => badge.id).toSet();
     if (v) {
       done.putIfAbsent(key, () => dayStr(today));
     } else {
       done.remove(key);
     }
+    _recordNewBadges(previous);
     touch();
   }
 
   void markDay(int k, bool v) {
+    refreshToday();
+    final previous =
+        badges.where((badge) => badge.earned).map((badge) => badge.id).toSet();
     for (final c in chaptersOfDay(k)) {
       if (v) {
         done.putIfAbsent(c.key, () => dayStr(today));
@@ -372,7 +409,19 @@ class AppState extends ChangeNotifier {
         done.remove(c.key);
       }
     }
+    _recordNewBadges(previous);
     touch();
+  }
+
+  void _recordNewBadges(Set<String> previous) {
+    for (final badge in badges) {
+      if (badge.earned &&
+          !previous.contains(badge.id) &&
+          !badgeDates.containsKey(badge.id)) {
+        badgeDates.putIfAbsent(badge.id, () => dayStr(today));
+        onBadgeEarned?.call(badge);
+      }
+    }
   }
 
   /// Buffer day for *today*: shifts the whole plan by one day.
@@ -431,6 +480,9 @@ class AppState extends ChangeNotifier {
   }
 
   void newJourney(Setup s) {
+    for (final badge in badges.where((badge) => badge.earned)) {
+      badgeDates.putIfAbsent(badge.id, () => '');
+    }
     hist.addAll(done.values);
     done = {};
     delays = [];
@@ -441,6 +493,9 @@ class AppState extends ChangeNotifier {
   }
 
   void clearPlan() {
+    for (final badge in badges.where((badge) => badge.earned)) {
+      badgeDates.putIfAbsent(badge.id, () => '');
+    }
     hist.addAll(done.values);
     done = {};
     delays = [];
@@ -461,6 +516,7 @@ class AppState extends ChangeNotifier {
     hl = {};
     fav = {};
     secs = {};
+    badgeDates = {};
     groupCodes = [];
     t = DateTime.now().millisecondsSinceEpoch;
     _recompute();
@@ -499,23 +555,32 @@ class AppState extends ChangeNotifier {
     secs[k] = (secs[k] ?? 0) + s;
     _persist();
     t = DateTime.now().millisecondsSinceEpoch;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_disposed) notifyListeners();
+    });
     _scheduleAfter();
   }
 
   // ---- naming helpers
-  String bookName(int b) => en ? kEnNames[b] : kArNames[b];
+  String bookName(int b) => b == 48 && translation == 'web'
+      ? (en ? 'Esther (Greek)' : 'أستير اليوناني')
+      : en
+          ? kEnNames[b]
+          : kArNames[b];
 
-  String chapLabel(Chap c) =>
-      c.isPsalm ? '${tr('psalm')} ${nf(c.c)}' : '${bookName(c.b)} ${nf(c.c)}';
+  String chapLabel(Chap c) => c.isPsalm
+      ? '${tr('psalm')} ${nf(c.c)}'
+      : '${bookName(c.b)} ${nf(displayChapterNumber(c.b, c.c, translation))}';
 
-  /// Compact label for a list of chapters: "تكوين ١-٣، خروج ١"
+  /// Compact label for a list of chapters: "تكوين 1-3، خروج 1"
   String rangeLabel(List<Chap> l) {
     if (l.isEmpty) return '—';
     final parts = <String>[];
     final ps = l.where((c) => c.isPsalm).map((c) => c.c).toList();
     if (ps.isNotEmpty) parts.add('${tr('psalm')} ${_rng(ps)}');
     for (final s in segsOf(l.where((c) => !c.isPsalm).toList())) {
-      parts.add('${bookName(s.b)} ${_rng(s.cs)}');
+      parts.add(
+          '${bookName(s.b)} ${_rng(s.cs.map((c) => displayChapterNumber(s.b, c, translation)).toList())}');
     }
     return parts.join(gEn ? ', ' : '، ');
   }
@@ -535,17 +600,11 @@ class AppState extends ChangeNotifier {
   }
 
   int minutesForChap(Chap c) {
-    final v = kVerses[c.b] / kChapters[c.b];
-    return ((c.isPsalm ? 0.8 * (kPsalmVerses(c.c)) : v) * 0.12).ceil().clamp(
-      1,
-      60,
-    );
+    return c.weight.ceil().clamp(1, 120);
   }
 
   int minutesForDay(int k) =>
-      chaptersOfDay(k).fold<int>(0, (a, c) => a + minutesForChap(c));
-
-  int kPsalmVerses(int c) => (kVerses[kPsalms] / kChapters[kPsalms]).round();
+      chaptersOfDay(k).fold<double>(0, (a, c) => a + c.weight).ceil();
 
   bool bookFinished(int b) {
     for (var c = 1; c <= kChapters[b]; c++) {
@@ -564,7 +623,6 @@ class AppState extends ChangeNotifier {
   int get booksFinished {
     var n = 0;
     for (var b = 0; b < kBookCount; b++) {
-      if (plan != null && plan!.skip.contains(b)) continue;
       if (bookFinished(b)) n++;
     }
     return n;
@@ -590,23 +648,34 @@ class AppState extends ChangeNotifier {
     final best = st.best;
     final n = done.length; // chapters currently done
     final bk = booksFinished;
+    bool earned(String id, bool condition) =>
+        badgeDates.containsKey(id) || condition;
     return [
-      BadgeDef('first', 'أول أصحاح', 'First chapter', '🌱', n >= 1),
-      BadgeDef('s3', '٣ أيام متتالية', '3-day streak', '🔥', best >= 3),
-      BadgeDef('s7', 'أسبوع كامل', '7-day streak', '🔥', best >= 7),
-      BadgeDef('s30', 'شهر كامل', '30-day streak', '🏅', best >= 30),
-      BadgeDef('s100', '١٠٠ يوم', '100-day streak', '🏆', best >= 100),
-      BadgeDef('c50', '٥٠ أصحاح', '50 chapters', '📖', n >= 50),
-      BadgeDef('c250', '٢٥٠ أصحاح', '250 chapters', '📚', n >= 250),
-      BadgeDef('c1000', '١٠٠٠ أصحاح', '1000 chapters', '👑', n >= 1000),
-      BadgeDef('b1', 'أول سفر كامل', 'First full book', '✅', bk >= 1),
-      BadgeDef('b10', '١٠ أسفار', '10 books', '🎖️', bk >= 10),
+      BadgeDef(
+          'first', 'أول أصحاح', 'First chapter', '🌱', earned('first', n >= 1)),
+      BadgeDef('s3', '3 أيام متتالية', '3-day streak', '🔥',
+          earned('s3', best >= 3)),
+      BadgeDef(
+          's7', 'أسبوع كامل', '7-day streak', '🔥', earned('s7', best >= 7)),
+      BadgeDef(
+          's30', 'شهر كامل', '30-day streak', '🏅', earned('s30', best >= 30)),
+      BadgeDef('s100', '100 يوم', '100-day streak', '🏆',
+          earned('s100', best >= 100)),
+      BadgeDef('c50', '50 أصحاح', '50 chapters', '📖', earned('c50', n >= 50)),
+      BadgeDef(
+          'c250', '250 أصحاح', '250 chapters', '📚', earned('c250', n >= 250)),
+      BadgeDef('c1000', '1000 أصحاح', '1000 chapters', '👑',
+          earned('c1000', n >= 1000)),
+      BadgeDef(
+          'b1', 'أول سفر كامل', 'First full book', '✅', earned('b1', bk >= 1)),
+      BadgeDef('b10', '10 أسفار', '10 books', '🎖️', earned('b10', bk >= 10)),
       BadgeDef(
         'plan',
         'خلصت الخطة',
         'Plan completed',
         '🎉',
-        plan != null && plan!.total > 0 && totalDone >= plan!.total,
+        earned(
+            'plan', plan != null && plan!.total > 0 && planDone >= plan!.total),
       ),
     ];
   }

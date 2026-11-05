@@ -38,7 +38,7 @@ final List<ReadyPlan> kReady = [
   const ReadyPlan(
     'الكتاب المقدس في سنة',
     'Whole Bible in a year',
-    'العهد القديم ثم الجديد، ٣٦٥ يوم',
+    'العهد القديم ثم الجديد، 365 يوم',
     'Old then New Testament, 365 days',
     'all',
     'seq',
@@ -56,7 +56,7 @@ final List<ReadyPlan> kReady = [
     [],
   ),
   const ReadyPlan(
-    'الكتاب المقدس في ٩٠ يوم',
+    'الكتاب المقدس في 90 يوم',
     'Whole Bible in 90 days',
     'للمتحمسين، قراءة كثيرة يوميًا',
     'An intensive pace',
@@ -66,7 +66,7 @@ final List<ReadyPlan> kReady = [
     [],
   ),
   const ReadyPlan(
-    'العهد الجديد في ٣٠ يوم',
+    'العهد الجديد في 30 يوم',
     'New Testament in 30 days',
     'شهر واحد مع العهد الجديد',
     'One month in the New Testament',
@@ -76,7 +76,7 @@ final List<ReadyPlan> kReady = [
     [],
   ),
   const ReadyPlan(
-    'العهد الجديد في ٩٠ يوم',
+    'العهد الجديد في 90 يوم',
     'New Testament in 90 days',
     'وتيرة هادئة',
     'A calm pace',
@@ -98,7 +98,7 @@ final List<ReadyPlan> kReady = [
   ReadyPlan(
     'الأناجيل وأعمال الرسل',
     'Gospels & Acts',
-    '٣٠ يوم',
+    '30 يوم',
     '30 days',
     'nt',
     'seq',
@@ -108,7 +108,7 @@ final List<ReadyPlan> kReady = [
   ReadyPlan(
     'المزامير والأمثال',
     'Psalms & Proverbs',
-    '٦٠ يوم',
+    '60 يوم',
     '60 days',
     'ot',
     'seq',
@@ -118,7 +118,7 @@ final List<ReadyPlan> kReady = [
   ReadyPlan(
     'أسفار موسى الخمسة',
     'The Pentateuch',
-    '٦٠ يوم',
+    '60 يوم',
     '60 days',
     'ot',
     'seq',
@@ -190,7 +190,32 @@ class _SetupScreenState extends State<SetupScreen> {
   int ntB = -1;
   int ntC = 0;
   Set<int> skip = {};
+  Set<int> selectedBooks = {...kPlanOrderOt, ...kPlanOrderNt};
+  List<int> bookOrder = [];
   final _daysCtl = TextEditingController(text: '100');
+  bool _daysValid = true;
+
+  String _westernDigits(String value) => value.replaceAllMapped(
+        RegExp(r'[٠-٩۰-۹]'),
+        (m) {
+          final code = m[0]!.codeUnitAt(0);
+          return '${code >= 0x06f0 ? code - 0x06f0 : code - 0x0660}';
+        },
+      );
+
+  void _chooseDays(int value) {
+    setState(() {
+      days = value;
+      _daysValid = true;
+      _daysCtl.text = '$value';
+    });
+  }
+
+  @override
+  void dispose() {
+    _daysCtl.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -200,7 +225,11 @@ class _SetupScreenState extends State<SetupScreen> {
       scope = i.scope;
       mode = i.mode;
       days = i.days;
+      _daysValid = days >= 30 && days <= 730;
       skip = i.skip.toSet();
+      selectedBooks =
+          i.selectedBooks?.toSet() ?? {...kPlanOrderOt, ...kPlanOrderNt};
+      bookOrder = List.of(i.bookOrder);
       _daysCtl.text = '$days';
     }
     if (widget.showReady) {
@@ -215,6 +244,9 @@ class _SetupScreenState extends State<SetupScreen> {
     final t = dayStr(todayNum());
     return Setup(
       scope: scope,
+      selectedBooks: selectedBooks.toList(),
+      bookOrder: bookOrder,
+      reserveWithinDuration: true,
       otB: otB,
       otC: otC,
       otP: otP,
@@ -237,16 +269,21 @@ class _SetupScreenState extends State<SetupScreen> {
     try {
       p = buildPlan(su);
     } catch (_) {}
-    final okEnd =
-        !useDate || (endDate != null && dayFromDate(endDate!) >= todayNum());
-    final canStart = p != null && p.total > 0 && p.nDays > 0 && okEnd;
+    final selectedDays =
+        endDate == null ? 0 : dayFromDate(endDate!) - todayNum() + 1;
+    final okEnd = !useDate || (selectedDays >= 30 && selectedDays <= 730);
+    final canStart = p != null &&
+        p.total > 0 &&
+        p.nDays > 0 &&
+        okEnd &&
+        (useDate || _daysValid);
     return Scaffold(
       appBar: AppBar(title: Text(tr('setup'))),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           Text(
-            tr('scope'),
+            gEn ? 'Reading scope' : 'نطاق القراءة',
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
@@ -272,12 +309,15 @@ class _SetupScreenState extends State<SetupScreen> {
                 ButtonSegment(value: 'mix', label: Text(tr('mix'))),
               ],
               selected: {mode},
-              onSelectionChanged: (v) => setState(() => mode = v.first),
+              onSelectionChanged: (v) => setState(() {
+                mode = v.first;
+                bookOrder = [];
+              }),
             ),
           ],
           const SizedBox(height: 20),
           Text(
-            tr('finishIn'),
+            gEn ? 'Plan duration' : 'مدة الخطة',
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
@@ -291,114 +331,147 @@ class _SetupScreenState extends State<SetupScreen> {
           ),
           const SizedBox(height: 8),
           if (!useDate) ...[
-            Wrap(
-              spacing: 8,
-              children: [
-                for (final d in [30, 60, 90, 100, 180, 365])
-                  ChoiceChip(
-                    label: Text(nf(d)),
-                    selected: days == d,
-                    onSelected: (_) => setState(() {
-                      days = d;
-                      _daysCtl.text = '$d';
-                    }),
+            LayoutBuilder(builder: (context, constraints) {
+              final input = SizedBox(
+                width: constraints.maxWidth < 440 ? constraints.maxWidth : 150,
+                child: TextField(
+                  controller: _daysCtl,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: tr('daysCount'),
+                    border: const OutlineInputBorder(),
+                    errorText: _daysValid
+                        ? null
+                        : (gEn
+                            ? 'Choose 30 to 730 days'
+                            : 'اختار مدة من 30 إلى 730 يوم'),
                   ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _daysCtl,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: tr('daysCount'),
-                border: const OutlineInputBorder(),
-              ),
-              onChanged: (v) =>
-                  setState(() => days = (int.tryParse(v) ?? 1).clamp(1, 3000)),
-            ),
+                  onChanged: (v) => setState(() {
+                    final parsed = int.tryParse(_westernDigits(v));
+                    _daysValid =
+                        parsed != null && parsed >= 30 && parsed <= 730;
+                    if (_daysValid) days = parsed!;
+                  }),
+                ),
+              );
+              final slider = Column(children: [
+                Slider(
+                  value: days.clamp(30, 730).toDouble(),
+                  min: 30,
+                  max: 730,
+                  divisions: 700,
+                  activeColor: kGold,
+                  label: '$days',
+                  onChanged: (v) => _chooseDays(v.round()),
+                ),
+                LayoutBuilder(builder: (context, bounds) {
+                  const choices = [30, 90, 180, 365, 730];
+                  return SizedBox(
+                      height: 48,
+                      child: Stack(children: [
+                        for (final d in choices)
+                          PositionedDirectional(
+                            start: (((bounds.maxWidth - 48) * (d - 30) / 700))
+                                .clamp(0, bounds.maxWidth - 48),
+                            top: d == 90 || d == 365 ? 21 : 0,
+                            width: 48,
+                            child: InkWell(
+                                onTap: () => _chooseDays(d),
+                                child: Text(
+                                  d == 730
+                                      ? (gEn ? '2 yrs' : 'سنتين')
+                                      : '$d ${gEn ? 'd' : 'يوم'}',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                      fontSize: 11,
+                                      color: days == d
+                                          ? kGold
+                                          : Theme.of(context)
+                                              .colorScheme
+                                              .onSurfaceVariant),
+                                )),
+                          ),
+                      ]));
+                }),
+              ]);
+              return constraints.maxWidth < 440
+                  ? Column(children: [input, const SizedBox(height: 8), slider])
+                  : Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                          Expanded(child: slider),
+                          const SizedBox(width: 12),
+                          input
+                        ]);
+            }),
+            if (p != null && p.nDays > 0)
+              Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    gEn
+                        ? 'About ${(p.total / p.nDays).toStringAsFixed(1)} chapters daily'
+                        : 'حوالي ${(p.total / p.nDays).toStringAsFixed(1)} أصحاح يوميًا',
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, color: kGold),
+                  )),
+            if (p != null && p.nDays > p.total)
+              Text(gEn
+                  ? 'Some days will be for rest or review.'
+                  : 'بعض الأيام هتكون للراحة أو المراجعة.'),
           ] else
-            OutlinedButton.icon(
-              icon: const Icon(Icons.event),
-              label: Text(
-                endDate == null ? tr('endDate') : dayStr(dayFromDate(endDate!)),
+            Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              OutlinedButton.icon(
+                icon: const Icon(Icons.event),
+                label: Text(
+                  endDate == null
+                      ? tr('endDate')
+                      : dayStr(dayFromDate(endDate!)),
+                ),
+                onPressed: () async {
+                  final now = DateTime.now();
+                  final d = await showDatePicker(
+                    context: context,
+                    initialDate: (endDate != null &&
+                            selectedDays >= 30 &&
+                            selectedDays <= 730)
+                        ? endDate!
+                        : now.add(const Duration(days: 99)),
+                    firstDate: now.add(const Duration(days: 29)),
+                    lastDate: now.add(const Duration(days: 729)),
+                  );
+                  if (d != null) setState(() => endDate = d);
+                },
               ),
-              onPressed: () async {
-                final now = DateTime.now();
-                final d = await showDatePicker(
-                  context: context,
-                  initialDate: endDate ?? now.add(const Duration(days: 100)),
-                  firstDate: now,
-                  lastDate: now.add(const Duration(days: 3000)),
-                );
-                if (d != null) setState(() => endDate = d);
-              },
-            ),
-          if (scope != 'nt') ...[
-            const SizedBox(height: 20),
-            Text(
-              '${tr('startFrom')} (${tr('ot')})',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            _pointer(true),
-            Row(
-              children: [
-                Expanded(child: Text('${tr('psalm')}: ${tr('done')}')),
-                DropdownButton<int>(
+              if (endDate != null && !okEnd)
+                Text(
+                    gEn
+                        ? 'Choose 30 to 730 days'
+                        : 'اختار مدة من 30 إلى 730 يوم',
+                    style:
+                        TextStyle(color: Theme.of(context).colorScheme.error)),
+            ]),
+          const SizedBox(height: 20),
+          _bookPicker(false),
+          if (scope != 'nt')
+            Row(children: [
+              Expanded(child: Text('${tr('psalm')}: ${tr('done')}')),
+              DropdownButton<int>(
                   value: otP,
                   items: [
                     for (var i = 0; i <= 150; i++)
-                      DropdownMenuItem(value: i, child: Text(nf(i))),
+                      DropdownMenuItem(value: i, child: Text(nf(i)))
                   ],
-                  onChanged: (v) => setState(() => otP = v ?? 0),
-                ),
-              ],
-            ),
-          ],
-          if (scope != 'ot') ...[
-            const SizedBox(height: 12),
-            Text(
-              '${tr('startFrom')} (${tr('nt')})',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            _pointer(false),
-          ],
+                  onChanged: (v) => setState(() => otP = v ?? 0)),
+            ]),
           const SizedBox(height: 12),
-          Card(
-            child: ExpansionTile(
-              shape: const Border(),
-              title: Text(tr('skipBooks')),
-              children: [
-                for (final g in [
-                  if (scope != 'nt') ...kOtGroups,
-                  if (scope != 'ot') ...kNtGroups,
-                ])
-                  if (g.books.where((b) => b != kPsalms).isNotEmpty) ...[
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                      child: Align(
-                        alignment: AlignmentDirectional.centerStart,
-                        child: Text(
-                          tr('bookGroup_${g.id}'),
-                          style: const TextStyle(
-                            color: kGold,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                    for (final b in g.books.where((b) => b != kPsalms))
-                      CheckboxListTile(
-                        dense: true,
-                        value: skip.contains(b),
-                        title: Text(gEn ? kEnNames[b] : kArNames[b]),
-                        onChanged: (v) => setState(
-                          () => v == true ? skip.add(b) : skip.remove(b),
-                        ),
-                      ),
-                  ],
-              ],
-            ),
-          ),
+          _bookPicker(true),
+          Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: TextButton.icon(
+                  icon: const Icon(Icons.reorder),
+                  label: Text(
+                      gEn ? 'Advanced: book order' : 'Advanced: ترتيب الأسفار'),
+                  onPressed: _editOrder)),
           const SizedBox(height: 12),
           if (p != null)
             Card(
@@ -415,7 +488,9 @@ class _SetupScreenState extends State<SetupScreen> {
                       Text(
                         '≈ ${(p.total / p.nDays).toStringAsFixed(1)} ${tr('chapters')} ${tr('perDay')}',
                       ),
-                    Text('${tr('buffer')}: ${nf(p.buf)}'),
+                    Text(gEn
+                        ? '${nf(p.buf)} reserve days deducted from duration'
+                        : 'تم خصم ${nf(p.buf)} أيام احتياطي من المدة المختارة'),
                   ],
                 ),
               ),
@@ -435,48 +510,111 @@ class _SetupScreenState extends State<SetupScreen> {
     );
   }
 
-  Widget _pointer(bool ot) {
-    final order = (ot ? kPlanOrderOt : kPlanOrderNt)
-        .where((b) => b != kPsalms)
-        .toList();
-    final b = ot ? otB : ntB;
-    final c = ot ? otC : ntC;
-    return Row(
+  List<BookGroup> get _groups => [
+        if (scope != 'nt') ...kOtGroups,
+        if (scope != 'ot') ...kNtGroups,
+      ];
+  Widget _bookPicker(bool excluding) {
+    final values = excluding ? skip : selectedBooks;
+    return Card(
+        child: ExpansionTile(
+      title: Text(excluding
+          ? tr('skipBooks')
+          : (gEn ? 'What will you read?' : 'هتقرا إيه؟')),
       children: [
-        Expanded(
-          child: DropdownButton<int>(
-            isExpanded: true,
-            value: b,
-            items: [
-              DropdownMenuItem(value: -1, child: Text(tr('fromStart'))),
-              for (final x in order)
-                DropdownMenuItem(
-                  value: x,
-                  child: Text(gEn ? kEnNames[x] : kArNames[x]),
-                ),
-            ],
-            onChanged: (v) => setState(() {
-              if (ot) {
-                otB = v ?? -1;
-                otC = 0;
-              } else {
-                ntB = v ?? -1;
-                ntC = 0;
-              }
-            }),
-          ),
-        ),
-        const SizedBox(width: 12),
-        if (b >= 0)
-          DropdownButton<int>(
-            value: c,
-            items: [
-              for (var i = 0; i <= kChapters[b]; i++)
-                DropdownMenuItem(value: i, child: Text(nf(i))),
-            ],
-            onChanged: (v) => setState(() => ot ? otC = v ?? 0 : ntC = v ?? 0),
-          ),
+        for (final g in _groups) ...[
+          CheckboxListTile(
+              tristate: true,
+              value: g.books.every(values.contains)
+                  ? true
+                  : g.books.any(values.contains)
+                      ? null
+                      : false,
+              title: Text(
+                  g.id == 'psalms' ? tr('psalm') : tr('bookGroup_${g.id}'),
+                  style: const TextStyle(
+                      color: kGold, fontWeight: FontWeight.bold)),
+              subtitle:
+                  Text(gEn ? 'Select / clear group' : 'تحديد / إلغاء المجموعة'),
+              onChanged: (_) => setState(() {
+                    if (g.books.every(values.contains)) {
+                      values.removeAll(g.books);
+                    } else {
+                      values.addAll(g.books);
+                    }
+                  })),
+          for (final b in g.books)
+            CheckboxListTile(
+                dense: true,
+                value: values.contains(b),
+                title: Text(gEn ? kEnNames[b] : kArNames[b]),
+                onChanged: (v) => setState(() {
+                      if (v == true) {
+                        values.add(b);
+                      } else {
+                        values.remove(b);
+                      }
+                    })),
+        ]
       ],
+    ));
+  }
+
+  Future<void> _editOrder() async {
+    final available = scopeBooks(scope)
+        .where((b) => selectedBooks.contains(b) && !skip.contains(b))
+        .toSet();
+    final order = [
+      ...bookOrder.where(available.contains),
+      ...scopeBooks(scope).where(available.contains)
+    ].toSet().toList();
+    final result = await showDialog<List<int>>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+          builder: (context, update) => AlertDialog(
+                title: Text(gEn
+                    ? 'Drag books to reorder'
+                    : 'اسحب الأسفار لترتيب القراءة'),
+                content: SizedBox(
+                    width: 420,
+                    height: 420,
+                    child: ReorderableListView.builder(
+                        itemCount: order.length,
+                        onReorder: (oldIndex, newIndex) => update(() {
+                              if (newIndex > oldIndex) newIndex--;
+                              order.insert(newIndex, order.removeAt(oldIndex));
+                            }),
+                        itemBuilder: (context, index) => ListTile(
+                            key: ValueKey(order[index]),
+                            title: Text(gEn
+                                ? kEnNames[order[index]]
+                                : kArNames[order[index]]),
+                            leading: Text('${index + 1}'),
+                            trailing: ReorderableDragStartListener(
+                                index: index,
+                                child: const Padding(
+                                    padding: EdgeInsets.all(8),
+                                    child: Icon(Icons.drag_handle)))),
+                        buildDefaultDragHandles: false)),
+                actions: [
+                  TextButton(
+                      onPressed: () => Navigator.pop(context, <int>[]),
+                      child: Text(gEn ? 'Default order' : 'الترتيب الافتراضي')),
+                  TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(gEn ? 'Cancel' : 'إلغاء')),
+                  FilledButton(
+                      onPressed: order.isEmpty
+                          ? null
+                          : () => Navigator.pop(context, order),
+                      child: Text(gEn ? 'Save' : 'حفظ')),
+                ],
+              )),
     );
+    if (result != null && mounted)
+      setState(() {
+        bookOrder = result;
+        if (result.isNotEmpty) mode = 'seq';
+      });
   }
 }

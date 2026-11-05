@@ -23,7 +23,7 @@ for k,n in ((16,'Tobit'),(17,'Judith'),(24,'Wisdom'),(25,'Sirach'),(29,'Baruch')
     save(k,ch_texts(ap[n]))
 save(47,[verses_of(ap['Prayer of Azariah'],1),verses_of(ap['Susanna'],1),verses_of(ap['Bel and the Dragon'],1)])
 E=ap['Additions to Esther']
-save(48,[verses_of(E,11,2)+verses_of(E,12),verses_of(E,13,1,7),verses_of(E,13,8)+verses_of(E,14),verses_of(E,15),verses_of(E,16),verses_of(E,10,4,13)+verses_of(E,11,1,1)])
+save(48,[[('' if v['text'].strip() == '…' else v['text'].strip()) for v in c['verses']] for c in E['chapters'] if 10 <= c['chapter'] <= 16])
 counts=[]
 for k in range(76):
     chs=json.load(open(f'{out}/kjv/{k}.json',encoding='utf-8'))

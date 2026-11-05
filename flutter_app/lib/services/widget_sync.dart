@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:home_widget/home_widget.dart';
 
 import '../core/i18n.dart';
@@ -6,7 +5,6 @@ import '../state/app_state.dart';
 
 class WidgetSync {
   static Future<void> update(AppState s) async {
-    if (kIsWeb) return;
     try {
       final st = s.streak;
       await HomeWidget.saveWidgetData<String>(

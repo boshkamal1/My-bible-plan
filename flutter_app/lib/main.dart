@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'ui/route_observer.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,6 +12,7 @@ import 'services/notifications.dart';
 import 'services/widget_sync.dart';
 import 'state/app_state.dart';
 import 'ui/root.dart';
+import 'ui/tab_navigation.dart';
 import 'ui/theme.dart';
 
 Future<void> main() async {
@@ -16,10 +20,12 @@ Future<void> main() async {
   final prefs = await SharedPreferences.getInstance();
   final state = AppState(prefs)..load();
   final cloud = Cloud();
-  await Notifier.init();
+  if (!kIsWeb) await Notifier.init();
   state.afterChange = (s) {
-    Notifier.reschedule(s);
-    WidgetSync.update(s);
+    if (!kIsWeb) {
+      Notifier.reschedule(s);
+      WidgetSync.update(s);
+    }
     if (cloud.signedIn) cloud.sync(s);
   };
   runApp(
@@ -33,8 +39,10 @@ Future<void> main() async {
   );
   await cloud.init();
   if (cloud.signedIn) cloud.sync(state);
-  Notifier.reschedule(state);
-  WidgetSync.update(state);
+  if (!kIsWeb) {
+    Notifier.reschedule(state);
+    WidgetSync.update(state);
+  }
 }
 
 class App extends StatefulWidget {
@@ -44,10 +52,16 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> with WidgetsBindingObserver {
+  final _navigatorKey = GlobalKey<NavigatorState>();
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    if (kIsWeb) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) SystemNavigator.selectMultiEntryHistory();
+      });
+    }
   }
 
   @override
@@ -67,10 +81,34 @@ class _AppState extends State<App> with WidgetsBindingObserver {
   }
 
   @override
+  Future<bool> didPushRouteInformation(RouteInformation information) async {
+    final uri = information.uri;
+    if (kIsWeb && uri.path == '/') {
+      if (browserRouteHistory.consumeHistoryEvent()) {
+        return true;
+      }
+      final navigator = _navigatorKey.currentState;
+      if (navigator?.canPop() ?? false) {
+        browserRouteHistory.handlingBrowserBack = true;
+        try {
+          await navigator!.maybePop();
+        } finally {
+          browserRouteHistory.handlingBrowserBack = false;
+        }
+      }
+      currentTab.value = tabFromUri(uri);
+      return true;
+    }
+    return false;
+  }
+
+  @override
   Widget build(BuildContext context) {
     final s = context.watch<AppState>();
     gEn = s.en;
     return MaterialApp(
+      navigatorKey: _navigatorKey,
+      navigatorObservers: [readerRouteObserver, browserRouteHistory],
       title: tr('appName'),
       debugShowCheckedModeBanner: false,
       locale: Locale(s.lang),

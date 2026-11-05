@@ -7,7 +7,11 @@ import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../core/day_util.dart';
+import '../core/planner.dart';
+import '../firebase_options.dart';
 import '../state/app_state.dart';
+import 'web_push_stub.dart' if (dart.library.html) 'web_push_web.dart'
+    as web_push;
 
 class GroupMember {
   final String uid;
@@ -16,14 +20,10 @@ class GroupMember {
   final int streak;
   final bool readToday;
   final int pct;
-  const GroupMember(
-    this.uid,
-    this.name,
-    this.done,
-    this.streak,
-    this.readToday,
-    this.pct,
-  );
+  final String status;
+  final String role;
+  const GroupMember(this.uid, this.name, this.done, this.streak, this.readToday,
+      this.pct, this.status, this.role);
 }
 
 class GroupInfo {
@@ -43,18 +43,11 @@ class Cloud extends ChangeNotifier {
 
   FirebaseFirestore get _db => FirebaseFirestore.instance;
 
-  static const _webOptions = FirebaseOptions(
-    apiKey: 'AIzaSyANy9P2Kw26eAx74NUSaiW1iWlndJv_ZDk',
-    authDomain: 'bible-plan-boshkamal-20261101.firebaseapp.com',
-    projectId: 'bible-plan-boshkamal-20261101',
-    storageBucket: 'bible-plan-boshkamal-20261101.firebasestorage.app',
-    messagingSenderId: '765669491597',
-    appId: '1:765669491597:web:510559a03bfaf7a4be73c4',
-  );
-
   Future<void> init() async {
     try {
-      await Firebase.initializeApp(options: kIsWeb ? _webOptions : null);
+      await Firebase.initializeApp(
+        options: kIsWeb ? DefaultFirebaseOptions.web : null,
+      );
       available = true;
       user = FirebaseAuth.instance.currentUser;
       FirebaseAuth.instance.authStateChanges().listen((u) {
@@ -70,11 +63,56 @@ class Cloud extends ChangeNotifier {
 
   bool get signedIn => available && user != null;
 
+  String get webNotificationPermission => web_push.webPushPermission();
+
+  Future<String?> saveWebReminder(AppState state) async {
+    if (!signedIn) return 'signin';
+    try {
+      final subscription = await web_push.subscribeWebPush();
+      final now = DateTime.now();
+      var next =
+          DateTime(now.year, now.month, now.day, state.remindH, state.remindM);
+      if (!next.isAfter(now)) next = next.add(const Duration(days: 1));
+      await _db
+          .collection('pushSubscriptions')
+          .doc(user!.uid)
+          .collection('devices')
+          .doc(subscription['id'] as String)
+          .set({
+        'subscription': subscription['subscription'],
+        'zone': subscription['zone'],
+        'hour': state.remindH,
+        'minute': state.remindM,
+        'enabled': true,
+        'nextAt': Timestamp.fromDate(next.toUtc()),
+      });
+      return null;
+    } catch (e) {
+      return e.toString();
+    }
+  }
+
+  Future<void> disableWebReminder() async {
+    if (!signedIn) return;
+    final id = web_push.webPushDeviceId();
+    if (id != null) {
+      await _db
+          .collection('pushSubscriptions')
+          .doc(user!.uid)
+          .collection('devices')
+          .doc(id)
+          .delete();
+    }
+    await web_push.unsubscribeWebPush();
+  }
+
   Future<String?> signInGoogle() async {
     if (!available) return 'unavailable';
     try {
       if (kIsWeb) {
         await FirebaseAuth.instance.signInWithPopup(GoogleAuthProvider());
+        user = FirebaseAuth.instance.currentUser;
+        notifyListeners();
         return null;
       }
       final g = await GoogleSignIn().signIn();
@@ -85,6 +123,8 @@ class Cloud extends ChangeNotifier {
         idToken: a.idToken,
       );
       await FirebaseAuth.instance.signInWithCredential(cred);
+      user = FirebaseAuth.instance.currentUser;
+      notifyListeners();
       return null;
     } catch (e) {
       return e.toString();
@@ -109,6 +149,8 @@ class Cloud extends ChangeNotifier {
           password: pass,
         );
       }
+      user = FirebaseAuth.instance.currentUser;
+      notifyListeners();
       return null;
     } on FirebaseAuthException catch (e) {
       return e.message ?? e.code;
@@ -190,13 +232,13 @@ class Cloud extends ChangeNotifier {
             .collection('members')
             .doc(user!.uid)
             .set({
-              'name': name,
-              'done': s.totalDone,
-              'pct': (s.percent * 100).round(),
-              'streak': st.cur,
-              'readDay': st.readToday ? dayStr(s.today) : '',
-              'updated': FieldValue.serverTimestamp(),
-            });
+          'name': name,
+          'done': s.totalDone,
+          'pct': (s.percent * 100).round(),
+          'streak': st.cur,
+          'readDay': st.readToday ? dayStr(s.today) : '',
+          'updated': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
       } catch (_) {}
     }
   }
@@ -207,17 +249,31 @@ class Cloud extends ChangeNotifier {
     return List.generate(6, (_) => a[r.nextInt(a.length)]).join();
   }
 
-  Future<String?> createGroup(AppState s, String name) async {
+  Future<String?> createGroup(AppState s, String name, Setup groupSetup) async {
     if (!signedIn) return 'signin';
     try {
       final code = _newCode();
       await _db.collection('groups').doc(code).set({
         'name': name.trim(),
         'owner': user!.uid,
-        'setup': s.setup?.toJson(),
+        'setup': groupSetup.toJson(),
         'created': FieldValue.serverTimestamp(),
       });
       s.addGroup(code);
+      await _db
+          .collection('groups')
+          .doc(code)
+          .collection('members')
+          .doc(user!.uid)
+          .set({
+        'name': user!.displayName ?? user!.email ?? '—',
+        'status': 'approved',
+        'role': 'admin',
+        'done': 0,
+        'streak': 0,
+        'pct': 0,
+        'readDay': '',
+      });
       await pushMemberStats(s);
       return null;
     } catch (e) {
@@ -231,8 +287,21 @@ class Cloud extends ChangeNotifier {
       final c = code.trim().toUpperCase();
       final d = await _db.collection('groups').doc(c).get();
       if (!d.exists) return 'notfound';
+      final ref =
+          _db.collection('groups').doc(c).collection('members').doc(user!.uid);
+      final existing = await ref.get();
+      if (!existing.exists) {
+        await ref.set({
+          'name': user!.displayName ?? user!.email ?? '—',
+          'status': 'pending',
+          'role': 'member',
+          'done': 0,
+          'streak': 0,
+          'pct': 0,
+          'readDay': '',
+        });
+      }
       s.addGroup(c);
-      await pushMemberStats(s);
       return null;
     } catch (e) {
       return e.toString();
@@ -271,11 +340,8 @@ class Cloud extends ChangeNotifier {
 
   Future<List<GroupMember>> members(String code) async {
     try {
-      final q = await _db
-          .collection('groups')
-          .doc(code)
-          .collection('members')
-          .get();
+      final q =
+          await _db.collection('groups').doc(code).collection('members').get();
       final l = q.docs.map((d) {
         final m = d.data();
         return GroupMember(
@@ -285,12 +351,60 @@ class Cloud extends ChangeNotifier {
           (m['streak'] as num?)?.toInt() ?? 0,
           (m['readDay'] as String?) == dayStr(todayNum()),
           (m['pct'] as num?)?.toInt() ?? 0,
+          (m['status'] as String?) ?? 'approved',
+          (m['role'] as String?) ?? 'member',
         );
       }).toList();
       l.sort((a, b) => b.done.compareTo(a.done));
       return l;
     } catch (_) {
       return [];
+    }
+  }
+
+  Future<String?> myGroupStatus(String code) async {
+    if (!signedIn) return null;
+    try {
+      final doc = await _db
+          .collection('groups')
+          .doc(code)
+          .collection('members')
+          .doc(user!.uid)
+          .get();
+      return doc.data()?['status'] as String? ??
+          (doc.exists ? 'approved' : null);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<String?> reviewMember(String code, String uid, String status) async {
+    if (!signedIn) return 'signin';
+    try {
+      await _db
+          .collection('groups')
+          .doc(code)
+          .collection('members')
+          .doc(uid)
+          .update({'status': status});
+      return null;
+    } catch (e) {
+      return e.toString();
+    }
+  }
+
+  Future<String?> setAdmin(String code, String uid, bool admin) async {
+    if (!signedIn) return 'signin';
+    try {
+      await _db
+          .collection('groups')
+          .doc(code)
+          .collection('members')
+          .doc(uid)
+          .update({'role': admin ? 'admin' : 'member'});
+      return null;
+    } catch (e) {
+      return e.toString();
     }
   }
 }

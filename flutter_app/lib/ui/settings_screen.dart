@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 
 import '../core/i18n.dart';
@@ -8,6 +9,8 @@ import '../state/app_state.dart';
 import 'privacy_screen.dart';
 import 'theme.dart';
 
+const bool _webPushReady = bool.fromEnvironment('WEB_PUSH_READY');
+
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
@@ -16,7 +19,17 @@ class SettingsScreen extends StatelessWidget {
       context: context,
       initialTime: TimeOfDay(hour: s.remindH, minute: s.remindM),
     );
-    if (t != null) s.setReminders(h: t.hour, m: t.minute);
+    if (t != null) {
+      s.setReminders(h: t.hour, m: t.minute);
+      final cloud = context.read<Cloud>();
+      if (kIsWeb &&
+          _webPushReady &&
+          s.remindOn &&
+          cloud.webNotificationPermission == 'granted') {
+        final error = await cloud.saveWebReminder(s);
+        if (error != null && context.mounted) toast(context, error);
+      }
+    }
   }
 
   @override
@@ -39,13 +52,18 @@ class SettingsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           _h(tr('translation')),
-          SegmentedButton<String>(
-            segments: [
-              ButtonSegment(value: 'svd', label: Text(tr('svd'))),
-              ButtonSegment(value: 'kjv', label: Text(tr('kjv'))),
+          DropdownButton<String>(
+            value: s.translation,
+            isExpanded: true,
+            items: [
+              for (final id in ['svd', 'kjv', 'web'])
+                DropdownMenuItem(
+                    value: id,
+                    child: Text(tr(id), overflow: TextOverflow.ellipsis)),
             ],
-            selected: {s.translation},
-            onSelectionChanged: (v) => s.setTranslation(v.first),
+            onChanged: (v) {
+              if (v != null) s.setTranslation(v);
+            },
           ),
           const SizedBox(height: 16),
           _h(tr('fontSize')),
@@ -69,31 +87,73 @@ class SettingsScreen extends StatelessWidget {
           ),
           const Divider(height: 32),
           _h(tr('reminders')),
+          if (kIsWeb && !_webPushReady)
+            Text(gEn
+                ? 'Browser reminders will be available after setup is complete.'
+                : 'إشعارات المتصفح هتكون متاحة بعد اكتمال إعدادها.'),
           SwitchListTile(
             title: Text(tr('dailyReminder')),
             value: s.remindOn,
-            onChanged: (v) async {
-              if (v) await Notifier.requestPermission();
-              s.setReminders(on: v);
-            },
+            onChanged: kIsWeb && !_webPushReady
+                ? null
+                : (v) async {
+                    if (kIsWeb) {
+                      if (v) {
+                        if (!cl.signedIn) {
+                          toast(context, tr('needSignIn'));
+                          return;
+                        }
+                        final error = await cl.saveWebReminder(s);
+                        if (error != null) {
+                          if (context.mounted) toast(context, error);
+                          return;
+                        }
+                      } else {
+                        await cl.disableWebReminder();
+                      }
+                    } else if (v) {
+                      await Notifier.requestPermission();
+                    }
+                    s.setReminders(on: v);
+                  },
           ),
+          if (kIsWeb && _webPushReady && cl.signedIn && s.remindOn)
+            OutlinedButton.icon(
+              icon: const Icon(Icons.notifications_active_outlined),
+              label: Text(gEn
+                  ? 'Enable browser notifications'
+                  : 'فعّل إشعارات المتصفح على هذا الجهاز'),
+              onPressed: () async {
+                final error = await cl.saveWebReminder(s);
+                if (context.mounted)
+                  toast(
+                      context,
+                      error ??
+                          (gEn
+                              ? 'Notifications enabled'
+                              : 'تم تفعيل الإشعارات'));
+              },
+            ),
           ListTile(
-            enabled: s.remindOn,
+            enabled: s.remindOn && (!kIsWeb || _webPushReady),
             title: Text(tr('reminderTime')),
             trailing: Text(
               '${s.remindH.toString().padLeft(2, '0')}:${s.remindM.toString().padLeft(2, '0')}',
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
-            onTap: s.remindOn ? () => _pickTime(context, s) : null,
+            onTap: s.remindOn && (!kIsWeb || _webPushReady)
+                ? () => _pickTime(context, s)
+                : null,
           ),
-          SwitchListTile(
-            title: Text(tr('streakReminder')),
-            value: s.riskOn,
-            onChanged: (v) async {
-              if (v) await Notifier.requestPermission();
-              s.setReminders(risk: v);
-            },
-          ),
+          if (!kIsWeb)
+            SwitchListTile(
+              title: Text(tr('streakReminder')),
+              value: s.riskOn,
+              onChanged: (v) async {
+                if (v) await Notifier.requestPermission();
+                s.setReminders(risk: v);
+              },
+            ),
           const Divider(height: 32),
           _h(tr('account')),
           if (!cl.available)
@@ -189,12 +249,12 @@ class SettingsScreen extends StatelessWidget {
 }
 
 Widget _h(String t) => Padding(
-  padding: const EdgeInsets.only(bottom: 8),
-  child: Text(
-    t,
-    style: const TextStyle(fontWeight: FontWeight.bold, color: kGold),
-  ),
-);
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Text(
+        t,
+        style: const TextStyle(fontWeight: FontWeight.bold, color: kGold),
+      ),
+    );
 
 Future<bool> _confirm(BuildContext context, String msg) async {
   final r = await showDialog<bool>(
@@ -292,8 +352,8 @@ class _SignInState extends State<_SignIn> {
                 onPressed: busy
                     ? null
                     : () => _run(
-                        () => cl.signInEmail(_e.text, _p.text, create: true),
-                      ),
+                          () => cl.signInEmail(_e.text, _p.text, create: true),
+                        ),
                 child: Text(tr('register')),
               ),
             ),

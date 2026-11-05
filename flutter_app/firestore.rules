@@ -1,16 +1,165 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Assumed client model:
+    // users/{uid}: private done map, nullable setup map, integer t; optional
+    // reading maps/lists and plannerVersion. Legacy optional fields stay optional.
+    // groups/{code}: bounded name/owner strings, validated Setup, immutable
+    // created timestamp and owner. Direct signed-in get supports join-by-code.
+    // members/{uid}: name, explicit status/role, bounded integer done/streak/pct,
+    // date-only readDay (or empty), optional updated timestamp. Totals are self-reported.
+    // pushSubscriptions/{uid}/devices/{device}: bounded browser subscription,
+    // zone string, hour/minute integers, enabled bool, nextAt timestamp.
+    function signedIn() { return request.auth != null; }
+    function groupExists(code) {
+      return exists(/databases/$(database)/documents/groups/$(code));
+    }
+    function owner(code) {
+      return signedIn() && groupExists(code) &&
+        get(/databases/$(database)/documents/groups/$(code)).data.owner == request.auth.uid;
+    }
+    function admin(code) {
+      return owner(code) || (signedIn() && groupExists(code) &&
+        exists(/databases/$(database)/documents/groups/$(code)/members/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/groups/$(code)/members/$(request.auth.uid)).data.get('status', 'pending') == 'approved' &&
+        get(/databases/$(database)/documents/groups/$(code)/members/$(request.auth.uid)).data.get('role', 'member') == 'admin');
+    }
+    function approved(code) {
+      return admin(code) || (signedIn() && groupExists(code) &&
+        exists(/databases/$(database)/documents/groups/$(code)/members/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/groups/$(code)/members/$(request.auth.uid)).data.get('status', 'pending') == 'approved');
+    }
+    function validUser() {
+      let d = request.resource.data;
+      // Preserve optional legacy reading fields and nullable setup/plan.
+      // Rules cannot iterate arbitrary private maps/lists to validate every value.
+      return d.keys().hasAll(['done', 'setup', 't']) &&
+        d.keys().hasOnly(['done', 'setup', 't', 'hist', 'delays', 'pb', 'plan',
+          'plannerVersion', 'notes', 'hl', 'fav', 'secs', 'badgeDates']) &&
+        d.done is map && d.done.size() <= 40000 &&
+        (d.setup == null || (d.setup is map && d.setup.size() <= 12)) &&
+        d.t is int && d.t >= 0 && d.t <= 8640000000000000 &&
+        optionalMap(d, 'notes') && optionalMap(d, 'hl') &&
+        optionalMap(d, 'secs') && optionalMap(d, 'badgeDates') &&
+        optionalList(d, 'hist') && optionalList(d, 'delays') &&
+        optionalList(d, 'pb') && optionalList(d, 'fav') &&
+        (!('plan' in d) || d.plan == null || (d.plan is list && d.plan.size() <= 40000)) &&
+        (!('plannerVersion' in d) || (d.plannerVersion is int && d.plannerVersion >= 0));
+    }
+    function optionalMap(d, k) {
+      return !(k in d) || (d[k] is map && d[k].size() <= 40000);
+    }
+    function optionalList(d, k) {
+      return !(k in d) || (d[k] is list && d[k].size() <= 40000);
+    }
+    function dateString(v) {
+      return v is string && v.size() == 10 && v.matches('[0-9]{4}-[0-9]{2}-[0-9]{2}');
+    }
+    function validSetup(d) {
+      return d is map && d.keys().hasOnly(['scope', 'ot', 'nt', 'skip', 'mode', 'days', 'end', 'start', 'first']) &&
+        d.scope in ['ot', 'nt', 'all'] && d.mode in ['seq', 'mix'] &&
+        d.ot is map && d.ot.keys().hasOnly(['b', 'c', 'p']) &&
+        d.ot.b is int && d.ot.b >= -1 && d.ot.b <= 100 &&
+        d.ot.c is int && d.ot.c >= 0 && d.ot.c <= 200 &&
+        d.ot.p is int && d.ot.p >= 0 && d.ot.p <= 200 &&
+        d.nt is map && d.nt.keys().hasOnly(['b', 'c']) &&
+        d.nt.b is int && d.nt.b >= -1 && d.nt.b <= 100 &&
+        d.nt.c is int && d.nt.c >= 0 && d.nt.c <= 200 &&
+        d.skip is list && d.skip.size() <= 7 && d.skip.hasOnly([0, 1, 2, 3, 4, 5, 6]) &&
+        d.days is int && d.days > 0 && d.days <= 40000 &&
+        (d.end == null || dateString(d.end)) && dateString(d.start) && dateString(d.first);
+    }
+    function validGroup() {
+      return request.resource.data.keys().hasOnly(['name', 'owner', 'setup', 'created']) &&
+        request.resource.data.keys().hasAll(['name', 'owner', 'setup', 'created']) &&
+        request.resource.data.name is string && request.resource.data.name.size() > 0 &&
+        request.resource.data.name.size() <= 60 && request.resource.data.owner is string &&
+        request.resource.data.owner.size() > 0 && request.resource.data.owner.size() <= 128 &&
+        validSetup(request.resource.data.setup) && request.resource.data.created is timestamp;
+    }
+    function validMember() {
+      return request.resource.data.keys().hasOnly([
+        'name', 'status', 'role', 'done', 'streak', 'pct', 'readDay', 'updated']) &&
+        request.resource.data.keys().hasAll(['name', 'status', 'role', 'done', 'streak', 'pct', 'readDay']) &&
+        request.resource.data.name is string && request.resource.data.name.size() <= 100 &&
+        request.resource.data.status in ['pending', 'approved', 'rejected'] &&
+        request.resource.data.get('role', 'member') in ['member', 'admin'] &&
+        request.resource.data.done is int && request.resource.data.done >= 0 && request.resource.data.done <= 40000 &&
+        request.resource.data.streak is int && request.resource.data.streak >= 0 && request.resource.data.streak <= 40000 &&
+        request.resource.data.pct is int && request.resource.data.pct >= 0 &&
+        request.resource.data.pct <= 100 &&
+        (request.resource.data.readDay == '' || dateString(request.resource.data.readDay)) &&
+        (!('updated' in request.resource.data) || request.resource.data.updated is timestamp);
+    }
     match /users/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow get: if signedIn() && request.auth.uid == uid;
+      allow create, update: if signedIn() && request.auth.uid == uid && validUser();
+      allow delete: if signedIn() && request.auth.uid == uid;
+    }
+    match /pushSubscriptions/{uid}/devices/{device} {
+      function validSubscription() {
+        return request.resource.data.keys().hasOnly([
+          'subscription', 'zone', 'hour', 'minute', 'enabled', 'nextAt']) &&
+          request.resource.data.keys().hasAll([
+            'subscription', 'zone', 'hour', 'minute', 'enabled', 'nextAt']) &&
+          request.resource.data.subscription is map &&
+          request.resource.data.subscription.keys().hasOnly(['endpoint', 'expirationTime', 'keys']) &&
+          (!('expirationTime' in request.resource.data.subscription) ||
+            request.resource.data.subscription.expirationTime == null ||
+            (request.resource.data.subscription.expirationTime is number && request.resource.data.subscription.expirationTime >= 0)) &&
+          request.resource.data.subscription.endpoint is string &&
+          request.resource.data.subscription.endpoint.matches('https://(fcm[.]googleapis[.]com|updates[.]push[.]services[.]mozilla[.]com|([a-z0-9]([a-z0-9-]*[a-z0-9])?[.])+(notify[.]windows[.]com|push[.]apple[.]com))/[^#]*') &&
+          !request.resource.data.subscription.endpoint.matches('.*[\\s\\\\].*') &&
+          request.resource.data.subscription.endpoint.size() < 2048 &&
+          request.resource.data.subscription['keys'] is map &&
+          request.resource.data.subscription['keys'].keys().hasOnly(['p256dh', 'auth']) &&
+          request.resource.data.subscription['keys'].p256dh is string &&
+          request.resource.data.subscription['keys'].auth is string &&
+          request.resource.data.subscription['keys'].p256dh.size() >= 80 &&
+          request.resource.data.subscription['keys'].p256dh.size() <= 100 &&
+          request.resource.data.subscription['keys'].auth.size() >= 20 &&
+          request.resource.data.subscription['keys'].auth.size() <= 32 &&
+          request.resource.data.subscription['keys'].p256dh.matches('[A-Za-z0-9_-]+={0,2}') &&
+          request.resource.data.subscription['keys'].auth.matches('[A-Za-z0-9_-]+={0,2}') &&
+          request.resource.data.zone is string &&
+          request.resource.data.zone.size() < 100 &&
+          request.resource.data.hour is int &&
+          request.resource.data.hour >= 0 && request.resource.data.hour <= 23 &&
+          request.resource.data.minute is int &&
+          request.resource.data.minute >= 0 && request.resource.data.minute <= 59 &&
+          request.resource.data.enabled is bool &&
+          request.resource.data.nextAt is timestamp;
+      }
+      allow get: if signedIn() && request.auth.uid == uid;
+      allow create, update: if signedIn() && request.auth.uid == uid && validSubscription();
+      allow delete: if signedIn() && request.auth.uid == uid;
     }
     match /groups/{code} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null && request.resource.data.owner == request.auth.uid;
-      allow update, delete: if request.auth != null && resource.data.owner == request.auth.uid;
+      allow get: if signedIn(); // Code is needed to request membership.
+      allow create: if signedIn() && validGroup() &&
+        request.resource.data.owner == request.auth.uid && request.resource.data.created == request.time;
+      allow update: if owner(code) && validGroup() &&
+        request.resource.data.owner == resource.data.owner && request.resource.data.created == resource.data.created;
+      // No client deletion flow exists. Trusted cleanup must remove descendants
+      // before code reuse, otherwise old member ACLs survive parent recreation.
+      allow delete: if false;
       match /members/{uid} {
-        allow read: if request.auth != null;
-        allow write: if request.auth != null && request.auth.uid == uid;
+        allow get: if signedIn() && groupExists(code) && (uid == request.auth.uid || approved(code));
+        allow list: if approved(code);
+        allow create: if signedIn() && groupExists(code) && uid == request.auth.uid && validMember() &&
+          ((owner(code) && request.resource.data.status == 'approved' &&
+            request.resource.data.role == 'admin') ||
+           (request.resource.data.status == 'pending' &&
+            request.resource.data.role == 'member'));
+        allow update: if signedIn() && groupExists(code) && validMember() && (
+          (uid == request.auth.uid &&
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(
+              ['name', 'done', 'streak', 'pct', 'readDay', 'updated'])) ||
+          (admin(code) && uid != request.auth.uid &&
+            uid != get(/databases/$(database)/documents/groups/$(code)).data.owner &&
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'role']))
+        );
+        allow delete: if signedIn() && uid == request.auth.uid;
       }
     }
   }

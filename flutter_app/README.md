@@ -16,9 +16,24 @@ bash android_snippets/setup_android.sh
 
 بعدها ادمج `android_snippets/AndroidManifest_additions.xml` في `android/app/src/main/AndroidManifest.xml` و `build.gradle` (الأذونات، مستقبلات الإشعارات، الويدجت، desugaring).
 
+## الويب وFirebase Hosting
+
+نسخة الويب تُبنى من تطبيق Flutter نفسه، وتظل قابلة للتثبيت كـPWA:
+
+```bash
+cd flutter_app
+flutter create . --platforms=web,android,ios --org com.beshoy --project-name bible_journey
+flutter pub get
+flutter build web --release
+cd ..
+firebase deploy --only hosting
+```
+
+إعداد Firebase Web موجود في `lib/firebase_options.dart`. ملف `firebase.json` في جذر الريبو يوجّه Hosting إلى `flutter_app/build/web`.
+
 ## Firebase (المزامنة والمجموعات)
 
-1. أنشئ مشروع في Firebase Console وفعّل Authentication (Google + Email/Password) و Firestore.
+1. المشروع المستخدم هو `bible-plan-boshkamal-20261101`. فعّل Authentication (Google + Email/Password) وأنشئ قاعدة Firestore.
 2. أضف تطبيق Android بنفس الـ package، نزّل `google-services.json` في `android/app/`.
 3. أضف بصمة SHA-1 لتسجيل الدخول بجوجل.
 4. طبّق plugin الـ google-services في Gradle (أو شغّل `flutterfire configure`).

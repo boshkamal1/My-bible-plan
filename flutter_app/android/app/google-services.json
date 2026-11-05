@@ -1,0 +1,20 @@
+{
+  "project_info": {
+    "project_number": "765669491597",
+    "project_id": "bible-plan-boshkamal-20261101",
+    "storage_bucket": "bible-plan-boshkamal-20261101.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:765669491597:android:405c2a2eb5e7bc00be73c4",
+        "android_client_info": {"package_name": "com.beshoy.bible_journey"}
+      },
+      "api_key": [{"current_key": "AIzaSyDASEEcuGUCrMhcldQBMpAjsbeGr_Wp90M"}],
+      "services": {
+        "appinvite_service": {"other_platform_oauth_client": []}
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

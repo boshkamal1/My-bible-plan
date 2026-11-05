@@ -5,6 +5,9 @@ import 'day_util.dart';
 
 class Setup {
   final String scope;
+  final List<int>? selectedBooks;
+  final List<int> bookOrder;
+  final bool reserveWithinDuration;
   final int otB;
   final int otC;
   final int otP;
@@ -19,6 +22,9 @@ class Setup {
 
   const Setup({
     this.scope = 'ot',
+    this.selectedBooks,
+    this.bookOrder = const [],
+    this.reserveWithinDuration = false,
     this.otB = -1,
     this.otC = 0,
     this.otP = 0,
@@ -33,37 +39,46 @@ class Setup {
   });
 
   Setup copyWith({String? start, String? first}) => Setup(
-    scope: scope,
-    otB: otB,
-    otC: otC,
-    otP: otP,
-    ntB: ntB,
-    ntC: ntC,
-    skip: skip,
-    mode: mode,
-    days: days,
-    end: end,
-    start: start ?? this.start,
-    first: first ?? this.first,
-  );
+        scope: scope,
+        selectedBooks: selectedBooks,
+        bookOrder: bookOrder,
+        reserveWithinDuration: reserveWithinDuration,
+        otB: otB,
+        otC: otC,
+        otP: otP,
+        ntB: ntB,
+        ntC: ntC,
+        skip: skip,
+        mode: mode,
+        days: days,
+        end: end,
+        start: start ?? this.start,
+        first: first ?? this.first,
+      );
 
   Map<String, dynamic> toJson() => {
-    'scope': scope,
-    'ot': {'b': otB, 'c': otC, 'p': otP},
-    'nt': {'b': ntB, 'c': ntC},
-    'skip': skip,
-    'mode': mode,
-    'days': days,
-    'end': end,
-    'start': start,
-    'first': first,
-  };
+        'scope': scope,
+        'selectedBooks': selectedBooks,
+        'bookOrder': bookOrder,
+        'reserveWithinDuration': reserveWithinDuration,
+        'ot': {'b': otB, 'c': otC, 'p': otP},
+        'nt': {'b': ntB, 'c': ntC},
+        'skip': skip,
+        'mode': mode,
+        'days': days,
+        'end': end,
+        'start': start,
+        'first': first,
+      };
 
   static Setup fromJson(Map<String, dynamic> j) {
     final ot = (j['ot'] as Map?) ?? const {};
     final nt = (j['nt'] as Map?) ?? const {};
     return Setup(
       scope: (j['scope'] as String?) ?? 'ot',
+      selectedBooks: (j['selectedBooks'] as List?)?.cast<int>(),
+      bookOrder: (j['bookOrder'] as List?)?.cast<int>() ?? const [],
+      reserveWithinDuration: j['reserveWithinDuration'] == true,
       otB: (ot['b'] as num?)?.toInt() ?? -1,
       otC: (ot['c'] as num?)?.toInt() ?? 0,
       otP: (ot['p'] as num?)?.toInt() ?? 0,
@@ -115,107 +130,21 @@ List<int> cutsFor(List<double> w, int n) {
   return out;
 }
 
-final Set<int> _unitBooks = kUnits.expand((e) => e).toSet();
-
+// Every chapter can be scheduled independently, including long books.
 double itemWeight(List<Chap> it) => it.fold(0.0, (a, x) => a + x.weight);
 
-List<List<Chap>> itemsOf(List<Chap> l) {
-  final out = <List<Chap>>[];
-  final at = <int, int>{};
-  for (final x in l) {
-    if (_unitBooks.contains(x.b)) {
-      final i = at[x.b];
-      if (i == null) {
-        at[x.b] = out.length;
-        out.add([x]);
-      } else {
-        out[i].add(x);
-      }
-    } else {
-      out.add([x]);
-    }
-  }
-  return out;
-}
+List<List<Chap>> itemsOf(List<Chap> chapters) => [
+      for (final chapter in chapters) [chapter],
+    ];
 
-List<List<Chap>> rowsFor(List<Chap> list, int nd) {
-  final unitsP = <_Unit>[];
-  var before = 0;
-  for (final x in list) {
-    if (_unitBooks.contains(x.b)) {
-      _Unit? u;
-      for (final q in unitsP) {
-        if (q.b == x.b) u = q;
-      }
-      if (u == null) {
-        u = _Unit(x.b, before);
-        unitsP.add(u);
-      }
-      u.ks.add(x);
-    } else {
-      before++;
-    }
-  }
-  final nu = nd > unitsP.length + 1 ? unitsP.length : 0;
-  final norm = list.where((x) => !_unitBooks.contains(x.b)).toList();
-  final nb = nd - nu;
-  final cuts = nu > 0 ? unitsP.map((u) => u.p).toList() : <int>[];
-  final segsC = <List<Chap>>[];
-  var st = 0;
-  for (final p in cuts) {
-    segsC.add(norm.sublist(st, p));
-    st = p;
-  }
-  segsC.add(norm.sublist(st));
-  final sw = segsC.map((g) => g.fold(0.0, (a, x) => a + x.weight)).toList();
-  var swT = sw.fold(0.0, (a, b) => a + b);
-  if (swT == 0) swT = 1;
-  final dn = <int>[
-    for (var i = 0; i < segsC.length; i++)
-      segsC[i].isNotEmpty ? math.max(1, (nb * sw[i] / swT).round()) : 0,
+List<List<Chap>> rowsFor(List<Chap> chapters, int days) {
+  if (days <= 0) return [];
+  final cuts =
+      cutsFor(chapters.map((chapter) => chapter.weight).toList(), days);
+  return [
+    for (var day = 0; day < days; day++)
+      chapters.sublist(day == 0 ? 0 : cuts[day - 1], cuts[day]),
   ];
-  var diff = nb - dn.fold(0, (a, b) => a + b);
-  while (diff != 0) {
-    var bi = -1;
-    for (var i = 0; i < dn.length; i++) {
-      if (segsC[i].isEmpty) continue;
-      if (diff > 0) {
-        if (bi < 0 || sw[i] / dn[i] > sw[bi] / dn[bi]) bi = i;
-      } else if (dn[i] > 1) {
-        if (bi < 0 || sw[i] / dn[i] < sw[bi] / dn[bi]) bi = i;
-      }
-    }
-    if (bi < 0) break;
-    if (diff > 0) {
-      dn[bi]++;
-      diff--;
-    } else {
-      dn[bi]--;
-      diff++;
-    }
-  }
-  final rows = <List<Chap>>[];
-  for (var i = 0; i < segsC.length; i++) {
-    final g = segsC[i];
-    if (g.isNotEmpty) {
-      final c = cutsFor(g.map((x) => x.weight).toList(), dn[i]);
-      for (var k = 0; k < c.length; k++) {
-        rows.add(g.sublist(k > 0 ? c[k - 1] : 0, c[k]));
-      }
-    }
-    if (i < unitsP.length && nu > 0) rows.add(unitsP[i].ks);
-  }
-  while (rows.length < nd) {
-    rows.add([]);
-  }
-  return rows;
-}
-
-class _Unit {
-  final int b;
-  final int p;
-  final List<Chap> ks = [];
-  _Unit(this.b, this.p);
 }
 
 Map<int, int> preFor(Setup? su, bool useOt, bool useNt) {
@@ -242,9 +171,9 @@ Map<int, int> preFor(Setup? su, bool useOt, bool useNt) {
 }
 
 List<int> scopeBooks(String scope) => [
-  if (scope != 'nt') ...kPlanOrderOt,
-  if (scope != 'ot') ...kPlanOrderNt,
-];
+      if (scope != 'nt') ...kPlanOrderOt,
+      if (scope != 'ot') ...kPlanOrderNt,
+    ];
 
 ({int ch, int ps}) remainingFor(
   Map<int, int> pre,
@@ -300,7 +229,7 @@ class PlanData {
   int get total => all.length;
 }
 
-PlanData buildPlan(Setup su) {
+PlanData buildPlan(Setup su, {bool legacyEsther = false}) {
   final sc = su.scope;
   final start = parseDay(su.start);
   final first = parseDay(su.first);
@@ -308,12 +237,15 @@ PlanData buildPlan(Setup su) {
   final skip = <int>{...su.skip};
   if (sc == 'nt') skip.addAll(kPlanOrderOt);
   if (sc == 'ot') skip.addAll(kPlanOrderNt);
+  if (su.selectedBooks != null)
+    skip.addAll(scopeBooks(sc).where((b) => !su.selectedBooks!.contains(b)));
   final chOt = <Chap>[];
   final chNt = <Chap>[];
   final ps = <Chap>[];
   for (final i in kPlanOrderOt) {
     if (skip.contains(i)) continue;
-    for (var c = pre[i]! + 1; c <= kChapters[i]; c++) {
+    final chapterCount = legacyEsther && i == 48 ? 6 : kChapters[i];
+    for (var c = pre[i]! + 1; c <= chapterCount; c++) {
       if (i == kPsalms) {
         ps.add(Chap(i, c));
       } else {
@@ -328,6 +260,15 @@ PlanData buildPlan(Setup su) {
     }
   }
   final ch = [...chOt, ...chNt];
+  if (su.bookOrder.isNotEmpty) {
+    ch.addAll(ps);
+    ps.clear();
+    final order = [...su.bookOrder, ...scopeBooks(sc)].toSet().toList();
+    ch.sort((a, b) {
+      final cmp = order.indexOf(a.b).compareTo(order.indexOf(b.b));
+      return cmp == 0 ? a.c.compareTo(b.c) : cmp;
+    });
+  }
   final all = [...ch, ...ps];
   final inPlan = all.map((x) => x.key).toSet();
   var nDays = 0;
@@ -338,11 +279,18 @@ PlanData buildPlan(Setup su) {
       nDays = math.max(1, su.days);
     }
   }
+  final int buf = math.min(7, nDays ~/ 10);
+  if (su.reserveWithinDuration && nDays > 0) nDays = math.max(1, nDays - buf);
   final int end = start + (nDays > 1 ? nDays : 1) - 1;
-  final int buf = nDays ~/ 10 > 7 ? 7 : nDays ~/ 10;
   final int xmas = end + buf + 1;
   List<List<Chap>> rows;
-  if (sc == 'all' && su.mode == 'mix') {
+  if (su.bookOrder.isNotEmpty) {
+    final cuts = cutsFor(ch.map((c) => c.weight).toList(), nDays);
+    rows = [
+      for (var i = 0; i < cuts.length; i++)
+        ch.sublist(i == 0 ? 0 : cuts[i - 1], cuts[i])
+    ];
+  } else if (sc == 'all' && su.mode == 'mix') {
     final a = rowsFor(chOt, nDays);
     final b = rowsFor(chNt, nDays);
     rows = [
@@ -359,6 +307,7 @@ PlanData buildPlan(Setup su) {
       ...(k < rows.length ? rows[k] : <Chap>[]),
     ]);
   }
+  if (su.bookOrder.isEmpty) _balanceDailyRows(base, all.length >= nDays);
   return PlanData(
     setup: su,
     pre: pre,
@@ -375,6 +324,55 @@ PlanData buildPlan(Setup su) {
     xmas: xmas,
     base: base,
   );
+}
+
+void _balanceDailyRows(List<List<Chap>> days, bool avoidEmptyDays,
+    {bool Function(Chap)? movable}) {
+  if (days.length < 2) return;
+  final total =
+      days.expand((day) => day).fold<double>(0, (a, c) => a + c.weight);
+  final target = total / days.length;
+  double cost(double a, double b) =>
+      (a - target) * (a - target) + (b - target) * (b - target);
+  for (var pass = 0; pass < 4; pass++) {
+    var changed = false;
+    for (var i = 0; i < days.length - 1; i++) {
+      final left = days[i];
+      final right = days[i + 1];
+      final lw = left.fold<double>(0, (a, c) => a + c.weight);
+      final rw = right.fold<double>(0, (a, c) => a + c.weight);
+      final old = cost(lw, rw);
+      final leftCandidate = left.isNotEmpty &&
+              !left.last.isPsalm &&
+              (movable == null || movable(left.last)) &&
+              (!avoidEmptyDays || left.length > 1)
+          ? left.last
+          : null;
+      final rightIndex = right.indexWhere((c) => !c.isPsalm);
+      final rightCandidate = rightIndex >= 0 &&
+              (movable == null || movable(right[rightIndex])) &&
+              (!avoidEmptyDays || right.length > 1)
+          ? right[rightIndex]
+          : null;
+      final moveRight = leftCandidate == null
+          ? double.infinity
+          : cost(lw - leftCandidate.weight, rw + leftCandidate.weight);
+      final moveLeft = rightCandidate == null
+          ? double.infinity
+          : cost(lw + rightCandidate.weight, rw - rightCandidate.weight);
+      if (moveRight + 0.001 < old && moveRight <= moveLeft) {
+        left.removeLast();
+        right.insert(
+            rightIndex < 0 ? right.length : rightIndex, leftCandidate!);
+        changed = true;
+      } else if (moveLeft + 0.001 < old) {
+        right.removeAt(rightIndex);
+        left.add(rightCandidate!);
+        changed = true;
+      }
+    }
+    if (!changed) break;
+  }
 }
 
 List<int> makeDates(PlanData p, Set<int> delays) {
@@ -402,11 +400,11 @@ Map<String, int> _orderMap(PlanData p) {
   return m;
 }
 
-void sortChaps(List<Chap> a, Map<String, int> ord) {
+void sortChaps(List<Chap> a, Map<String, int> ord, {bool custom = false}) {
   a.sort((p, q) {
     final pa = p.isPsalm ? 0 : 1;
     final qa = q.isPsalm ? 0 : 1;
-    if (pa != qa) return pa - qa;
+    if (!custom && pa != qa) return pa - qa;
     return (ord[p.key] ?? 0) - (ord[q.key] ?? 0);
   });
 }
@@ -452,7 +450,7 @@ List<List<Chap>> layoutDays(
       }
       final ord = _orderMap(p);
       for (final d in days) {
-        sortChaps(d, ord);
+        sortChaps(d, ord, custom: p.setup.bookOrder.isNotEmpty);
       }
     }
   }
@@ -479,13 +477,13 @@ List<List<String>> rebalanceDays({
       if (isDone(x.key)) {
         out[k].add(x);
       } else if (only == null || only.contains(k) || k > lastFrozen) {
-        (x.isPsalm ? pp : pc).add(x);
+        (x.isPsalm && p.setup.bookOrder.isEmpty ? pp : pc).add(x);
       } else {
         out[k].add(x);
       }
     }
   }
-  sortChaps(pc, ord);
+  sortChaps(pc, ord, custom: p.setup.bookOrder.isNotEmpty);
   sortChaps(pp, ord);
   final ci = itemsOf(pc);
   final c = cutsFor(ci.map(itemWeight).toList(), m);
@@ -495,8 +493,10 @@ List<List<String>> rebalanceDays({
     out[j].addAll(pp.sublist(i > 0 ? pcut[i - 1] : 0, pcut[i]));
     out[j].addAll(ci.sublist(i > 0 ? c[i - 1] : 0, c[i]).expand((e) => e));
   }
+  if (p.setup.bookOrder.isEmpty) _balanceDailyRows(out.sublist(lastFrozen + 1), pc.length + pp.length >= m,
+      movable: (chapter) => !isDone(chapter.key));
   for (final d in out) {
-    sortChaps(d, ord);
+    sortChaps(d, ord, custom: p.setup.bookOrder.isNotEmpty);
   }
   return [for (final d in out) d.map((x) => x.key).toList()];
 }
