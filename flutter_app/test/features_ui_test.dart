@@ -14,6 +14,7 @@ import 'package:bible_journey/core/i18n.dart';
 import 'package:bible_journey/services/cloud.dart';
 import 'package:bible_journey/state/app_state.dart';
 import 'package:bible_journey/ui/comparison_screen.dart';
+import 'package:bible_journey/ui/books_screen.dart';
 import 'package:bible_journey/ui/reader_screen.dart';
 import 'package:bible_journey/ui/root.dart';
 import 'package:bible_journey/ui/stats_screen.dart';
@@ -104,6 +105,7 @@ void main() {
         await state.repo.chapter(0, 1, tr);
       }
       await state.repo.chapter(0, 2, 'kjv');
+      await state.repo.chapter(0, 2, 'svd');
     });
     await tester.pumpWidget(app(const ComparisonScreen(b: 0, c: 1)));
     await settle(tester);
@@ -121,6 +123,8 @@ void main() {
     final beforeRightDrag = tester.getTopLeft(enFirst).dy;
     final bounds =
         tester.getRect(find.byKey(const ValueKey('comparison-scroll')));
+    expect(bounds.top, lessThan(165));
+    expect(find.textContaining('اختار أي ترجمة لكل ناحية'), findsNothing);
     await tester.dragFrom(
         Offset(bounds.right - 40, bounds.center.dy), const Offset(0, -60));
     await settle(tester);
@@ -134,6 +138,11 @@ void main() {
     expect(texts.any((s) => s.contains('In the beginning')), true);
     expect(texts.any((s) => RegExp(r'[\u0600-\u06ff]').hasMatch(s)), true);
     expect(tester.takeException(), isNull);
+    tester
+        .widget<ListView>(find.byKey(const ValueKey('comparison-scroll')))
+        .controller!
+        .jumpTo(0);
+    await settle(tester);
     await tester.runAsync(() async {
       final image = await (captureKey.currentContext!.findRenderObject()
               as RenderRepaintBoundary)
@@ -154,23 +163,40 @@ void main() {
                 find.byKey(const ValueKey('comparison-left-translation')))
             .value,
         'kjv');
-    await tester.tap(find.byKey(const ValueKey('comparison-left-chapter')));
+    expect(find.byType(DropdownButton<int>), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('comparison-chapter')));
     await settle(tester);
-    await tester.tap(find.text('Chapter 2').last);
+    await tester.tap(find.text('أصحاح 2').last);
     await settle(tester);
     expect(
         tester
             .widget<DropdownButton<int>>(
-                find.byKey(const ValueKey('comparison-right-chapter')))
-            .value,
-        1);
-    expect(
-        tester
-            .widget<DropdownButton<int>>(
-                find.byKey(const ValueKey('comparison-left-chapter')))
+                find.byKey(const ValueKey('comparison-chapter')))
             .value,
         2);
+    final rightText = tester.widget<SelectableText>(arFirst).data!;
+    final leftText = tester.widget<SelectableText>(enFirst).data!;
+    expect(leftText, contains('Thus the heavens'));
+    expect(rightText, contains('فَأُكْمِلَتِ'));
+    expect(tester.getTopLeft(arFirst).dy, closeTo(bounds.top, 12));
+    final originalSize =
+        tester.widget<SelectableText>(enFirst).style!.fontSize!;
+    await tester.tap(find.byKey(const ValueKey('comparison-font')));
+    await settle(tester);
+    await tester.tap(find.text('26').last);
+    await settle(tester);
+    expect(state.fontSize, 26);
+    expect(tester.widget<SelectableText>(enFirst).style!.fontSize, 26);
+    expect(tester.widget<SelectableText>(arFirst).style!.fontSize, 26);
+    expect(originalSize, lessThan(26));
+    await tester.pump(const Duration(seconds: 1));
+    final restored = AppState(state.prefs)..load();
+    expect(restored.fontSize, 26);
+    restored.dispose();
     tester.view.physicalSize = const Size(320, 700);
+    await settle(tester);
+    expect(tester.takeException(), isNull);
+    tester.view.physicalSize = const Size(580, 532);
     await settle(tester);
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox());
@@ -201,6 +227,26 @@ void main() {
     await settle(tester);
     expect(find.textContaining('120'), findsWidgets);
     expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('old Jesuit Psalms progress counts only the available Psalm 151',
+      (tester) async {
+    state.translation = 'jesuit';
+    state.done['20:1'] = '2026-11-05';
+    await tester.pumpWidget(app(const BooksScreen()));
+    await tester
+        .tap(find.widgetWithText(ExpansionTile, tr('bookGroup_wisdom')));
+    await settle(tester);
+    final psalms = find.widgetWithText(ListTile, state.bookName(20));
+    LinearProgressIndicator progress() => tester.widget(find.descendant(
+        of: psalms, matching: find.byType(LinearProgressIndicator)));
+    expect(progress().value, 0);
+    state.done['20:151'] = '2026-11-05';
+    state.touch();
+    await settle(tester);
+    expect(progress().value, 1);
+    await tester.pump(const Duration(seconds: 1));
     await tester.pumpWidget(const SizedBox());
   });
 

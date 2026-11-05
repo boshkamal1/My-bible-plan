@@ -12,6 +12,21 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  test('every advertised full edition has all its navigable chapters',
+      () async {
+    final repo = BibleRepo();
+    for (final tr in ['svd', 'gna', 'kjv', 'web']) {
+      for (var b = 0; b < kBookCount; b++) {
+        for (var c = 1; c <= bookChapterCount(b, tr); c++) {
+          final text = await repo.chapter(b, c, tr);
+          expect(text, isNotNull, reason: '$tr $b:$c');
+          expect(text!.verses.any((v) => v.trim().isNotEmpty), isTrue,
+              reason: '$tr $b:$c empty');
+        }
+      }
+    }
+  });
+
   test('Arabic source covers the requested books with vocalized text',
       () async {
     final repo = BibleRepo();

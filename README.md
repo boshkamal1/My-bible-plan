@@ -26,7 +26,7 @@ Generated chapter JSON files are intentionally not committed. The generator reco
 
 - Settings → Backup & restore: download a JSON snapshot of the plan, exact daily assignments, completed chapters, history, notes, highlights, favorites, reading time, badge dates and preferences. Authentication credentials are not exported.
 - Restore accepts this application's versioned backup format, up to 10 MB. It validates the data and shows a summary before replacing local data. Signed-in restored data participates in the existing cloud sync.
-- The reader's column icon opens Arabic / English comparison, with independent translation/chapter selectors on both sides, including Arabic/Arabic and English/English. Both translations share one scrolling page, with paired verse rows. Editions with differing numbering have an explanation.
+- The reader's column icon opens translation comparison, with independent translation selectors on both sides, including Arabic/Arabic and English/English. One compact chapter selector changes both sides; both share one scrolling page with paired verse rows. The toolbar font menu changes both text sizes and saves the setting. Edition numbering can differ; paired rows do not guarantee equivalent passages. See REVIEW-20261105.md for the review findings and remaining limitations.
 - Additional Arabic translation candidates and source/licensing notes: [ARABIC-TRANSLATIONS.md](ARABIC-TRANSLATIONS.md).
 
 ## Checks

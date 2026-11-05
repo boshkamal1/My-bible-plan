@@ -60,6 +60,9 @@ class BooksScreen extends StatelessWidget {
   double _prog(AppState s, int b) {
     var n = 0;
     final pre = s.plan?.pre[b] ?? 0;
+    if (s.translation == 'jesuit' && b == kPsalms) {
+      return s.isDone('$b:151') || pre >= 151 ? 1 : 0;
+    }
     final total = bookChapterCount(b, s.translation);
     for (var c = 1; c <= total; c++) {
       if (s.isDone('$b:$c') || c <= pre) n++;
