@@ -37,3 +37,7 @@ After all 38 Flutter tests and 8 Node tests passed and the primary release was v
 ## Release 28 refresh — 2026-11-05
 
 After the paired-row comparison scroll tests and release web build passed, release `20261105-28` (source `bb05d5a`) was deployed to primary and cloned successfully to the backup. Both sites now use one scrolling page for Arabic/English comparison.
+
+## Release 29 refresh — 2026-11-05
+
+Source commit `05f177e` was pushed to GitHub main and release `20261105-29` deployed successfully. Following the installed `bible-plan-backup` skill and the user's standing authorization, the verified primary live release was cloned automatically to the secondary live site. Both pages returned HTTP 200, contained release 29 and had identical HTML. The backup's GNA Genesis 1 chapter asset returned HTTP 200 with 31 verses. Authentication and Firestore remain shared; this is a Hosting snapshot.
