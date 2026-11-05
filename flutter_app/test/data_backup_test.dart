@@ -91,12 +91,29 @@ void main() {
 
   test('new Arabic translation choices survive backup and restore', () async {
     final target = AppState(await SharedPreferences.getInstance())..load();
-    for (final id in ['gna', 'jesuit']) {
+    for (final id in ['gna', 'svd']) {
       source.setTranslation(id);
       await target.restoreBackup(DataBackup.decode(source.exportBackup()));
       expect(target.translation, id);
       expect(target.days.length, source.days.length);
     }
     target.dispose();
+  });
+  test('removed Jesuit preference migrates on load and old backup restore',
+      () async {
+    final oldData = jsonDecode(source.exportBackup()) as Map<String, dynamic>;
+    oldData['data']['settings']['tr'] = 'jesuit';
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('jb-v1', jsonEncode(oldData['data']));
+    final reopened = AppState(prefs)..load();
+    expect(reopened.translation, 'svd');
+    expect(reopened.notes, source.notes);
+    await reopened.restoreBackup(DataBackup.decode(jsonEncode(oldData)));
+    expect(reopened.translation, 'svd');
+    expect(reopened.done, source.done);
+    expect(reopened.days.length, source.days.length);
+    expect(
+        jsonDecode(reopened.exportBackup())['data']['settings']['tr'], 'svd');
+    reopened.dispose();
   });
 }

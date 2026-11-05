@@ -1,56 +1,33 @@
-# رحلة الكتاب المقدس (Flutter)
+# كود رحلة الكتاب المقدس 📖
 
-تطبيق Flutter: خطة قراءة مرنة، قارئ بنص فان دايك و KJV، ملاحظات وتمييز ومفضلة، بحث، إحصائيات وأوسمة، تذكيرات، ويدجت، مزامنة ومجموعات.
+ده مجلد تطبيق Flutter اللي بيشغّل الموقع. الشرح الكامل والمميزات والترجمات والمشاكل اللي لسه محتاجة إصلاح موجودين في [الـREADME الرئيسي](../README.md).
 
-> الكود مكتوب بدون تشغيل Flutter عندي. شغّل `flutter analyze` وابعتلي أي أخطاء.
-> المطلوب Flutter 3.27 أو أحدث.
+## تشغّله من هنا
 
-## التشغيل لأول مرة
-
-```bash
-cd flutter_app
-flutter create . --platforms=android,ios --org com.beshoy --project-name bible_journey
+```powershell
 flutter pub get
-bash android_snippets/setup_android.sh
+node tools/split_chapters.cjs
+flutter run -d chrome
 ```
 
-بعدها ادمج `android_snippets/AndroidManifest_additions.xml` في `android/app/src/main/AndroidManifest.xml` و `build.gradle` (الأذونات، مستقبلات الإشعارات، الويدجت، desugaring).
+اتجرب على Flutter 3.41.6، وهتحتاج Node.js لتوليد ملفات الأصحاحات. ملفات المنصات موجودة بالفعل، فمتشغّلش `flutter create` فوقها.
 
-## الويب وFirebase Hosting
+## تختبره
 
-نسخة الويب تُبنى من تطبيق Flutter نفسه، وتظل قابلة للتثبيت كـPWA:
-
-```bash
-cd flutter_app
-flutter create . --platforms=web,android,ios --org com.beshoy --project-name bible_journey
-flutter pub get
-flutter build web --release
-cd ..
-firebase deploy --only hosting
+```powershell
+flutter analyze --no-fatal-infos
+flutter test
+node --test tools/bootstrap_test.cjs tools/backup_download_test.cjs tools/split_chapters_test.cjs tools/sw_test.cjs tools/import_web_test.cjs tools/import_gna_test.cjs
 ```
 
-إعداد Firebase Web موجود في `lib/firebase_options.dart`. ملف `firebase.json` في جذر الريبو يوجّه Hosting إلى `flutter_app/build/web`.
+## تبني نسخة الويب
 
-## Firebase (المزامنة والمجموعات)
+```powershell
+pwsh -File tools/build_web.ps1
+```
 
-1. المشروع المستخدم هو `bible-plan-boshkamal-20261101`. فعّل Authentication (Google + Email/Password) وأنشئ قاعدة Firestore.
-2. أضف تطبيق Android بنفس الـ package، نزّل `google-services.json` في `android/app/`.
-3. أضف بصمة SHA-1 لتسجيل الدخول بجوجل.
-4. طبّق plugin الـ google-services في Gradle (أو شغّل `flutterfire configure`).
-5. انسخ محتوى `firestore.rules` في Rules.
+السكربت بيجهز ملفات الأصحاحات الصغيرة وبعدين بيعمل Release build. خطوات النشر والـBackup موجودة في [الشرح الرئيسي](../README.md).
 
-بدون Firebase التطبيق يشتغل كامل محليًا، وأقسام الحساب والمجموعات تظهر برسالة أنها غير مفعّلة.
+الاختيارات الحالية: فان دايك + يسوعية، المشتركة 2025 مع المكملات الموضحة المصدر، KJV وWEB. اليسوعية القديمة مش اختيار مستقل؛ نصوصها بتكمل القانونية الثانية. صلاة منسى والمزمور 151 موجودين في النصوص المخزنة.
 
-## النصوص
-
-- فان دايك: `assets/bible/svd` (٦٦ سفر).
-- KJV: `assets/bible/kjv` (كل الـ٧٦ سفر بما فيها القانونية الثانية).
-- القانونية الثانية: شغّل على جهازك `pip install requests beautifulsoup4` ثم `python flutter_app/tools/fetch_takla_deut.py`. السكربت بينزّل النصوص من موقع الأنبا تكلا ويحفظها في `assets/bible/ar_extra/<رقم السفر>.json`، والتطبيق بيستخدمها تلقائيًا. لو ظهرت تحذيرات (آيات ناقصة أو عدد أصحاحات مختلف) ابعتهالي. صلاة منسى والمزمور ١٥١ مش مشمولين.
-
-## الويدجت
-
-بعد `setup_android.sh` يظهر "BibleWidgetProvider" في قائمة ويدجت الجهاز.
-
-## النشر
-
-`flutter build appbundle --release` ثم رفع الملف في Google Play Console (حساب مطوّر ٢٥$ مرة واحدة). عدّل `applicationId` واسم التطبيق والأيقونة قبل النشر وأضف رابط سياسة الخصوصية.
+مصادر النصوص والتراخيص في [SOURCES.md](assets/bible/SOURCES.md). ونتيجة مراجعة الحسابات والمزامنة وباقي الموقع في [تقرير المراجعة](../REVIEW-20261105.md).

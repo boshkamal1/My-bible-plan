@@ -69,10 +69,6 @@ class SettingsScreen extends StatelessWidget {
             },
           ),
           const SizedBox(height: 16),
-          if (s.translation == 'jesuit')
-            Text(gEn
-                ? 'Available here for the Deuterocanonical books only, with the stored prayer and Psalm 151 supplements.'
-                : 'المتاح هنا للأسفار القانونية الثانية فقط، مع مكملات صلاة منسى والمزمور 151 المحفوظة.'),
           if (s.translation == 'gna')
             Text(gEn
                 ? 'GNA2025, with missing Deuterocanonical books supplied from the old Arabic text and identified separately.'

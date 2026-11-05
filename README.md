@@ -1,10 +1,55 @@
-# My Bible Plan — رحلة الكتاب المقدس
+# رحلة الكتاب المقدس 📖
 
-Flutter reading planner and Arabic / English Bible reader. The maintained source, Firebase Hosting configuration and release notes are in this repository.
+الموقع ده بيساعدك تعمل خطة لقراءة الكتاب المقدس، وتمشي عليها وتتابع وصلت لفين. تختار هتقرا إيه وفي قد إيه، وتفتح الأصحاحات وتسجل ملاحظاتك وتقارن الترجمات من نفس المكان.
 
-## Build and run
+- [افتح الموقع](https://mybibleplan.web.app/)
+- [اللينك الثانوي للـBackup](https://bible-plan-boshkamal-20261101.web.app/)
 
-Validated with Flutter 3.41.6 and Node.js. Platform projects are already present; do not regenerate the customized web entry files.
+## تقدر تعمل إيه؟
+
+- تعمل خطة للعهد القديم أو الجديد أو الكتاب كله، أو تختار أسفار معينة من «هتقرا إيه؟».
+- تحدد مجموعة أسفار مرة واحدة، زي أسفار موسى، وتسيب قائمة الاستبعاد لوحدها.
+- تختار ترتيب الأسفار بنفسك من Advanced بطريقة Drag and drop.
+- تبدأ من المكان اللي وصلتله، وتعيد توزيع اللي فاتك لو اتأخرت.
+- لو اخترت 100 يوم، الخطة الجديدة بتخلص في 93 يوم. الـ7 أيام الاحتياطي بيتخصموا من المدة، ومش بيتضافوا كأيام فاضية. الخطط القديمة بتفضل بنفس توزيعها.
+- تعلّم على اللي قريته، وتكتب ملاحظات، وتعمل Highlight ومفضلة، وتبحث في النص.
+- تتابع تقدمك ووقت القراءة والأوسمة، وتستخدم الحساب والمزامنة والمجموعات.
+- تغيّر حجم الخط والثيم، وتشوف آية اليوم، وتثبت نسخة الويب كـPWA.
+
+## الترجمات الموجودة
+
+| الاختيار | هتلاقي فيه إيه؟ |
+|---|---|
+| فان دايك + يسوعية | فان دايك للأسفار الأساسية، ومعاه اليسوعية القديمة للأسفار القانونية الثانية. |
+| الترجمة العربية المشتركة | المشتركة 2025 للأسفار الـ66 المتاحة، والناقص من القانونية الثانية من النص العربي القديم مع توضيح المصدر. |
+| KJV | النص الإنجليزي المحفوظ مع المكملات الموجودة عندنا. |
+| WEB | النص الإنجليزي، بما فيه القانونية الثانية وصلاة منسى والمزمور 151. |
+
+شيلنا «اليسوعية القديمة» كاختيار لوحده، علشان النسخة اللي عندنا منها مش الكتاب كله. نصوصها لسه موجودة كمكملات مع فان دايك والمشتركة. لو كنت مختارها قبل كده، الموقع بيحوّلك تلقائيًا لـ«فان دايك + يسوعية»، ونفس الكلام لو رجّعت Backup قديم.
+
+صلاة منسى والمزمور 151 بالعربي موجودين من النصوص القديمة المحفوظة عندنا، وبيظهر توضيح للمصدر لما يتعرضوا كمكملات.
+
+المشتركة 2025 من دار الكتاب المقدس في لبنان، بترخيص [CC BY-NC-ND 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/)، والاستخدام هنا غير تجاري. كلمات الآيات محفوظة زي المصدر. تفاصيل النصوص والتراخيص في [مصادر النصوص](flutter_app/assets/bible/SOURCES.md)، والترجمات اللي ممكن تتضاف بعدين في [الملف ده](ARABIC-TRANSLATIONS.md).
+
+## مقارنة الترجمات
+
+افتح علامة المقارنة من القارئ، واختار أي ترجمة على اليمين وأي ترجمة على الشمال. ينفع الاتنين عربي أو الاتنين إنجليزي عادي.
+
+اختيار الأصحاح واحد للاتنين، ولما تنزل لتحت النصين بيتحركوا مع بعض في صفحة واحدة. ومن زر حجم الخط تقدر تكبّر وتصغّر النصين، والاختيار بيتحفظ عندك.
+
+في أسفار ترقيمها وتقسيمها مختلف بين الطبعات، زي أستير اليوناني ويوئيل وملاخي. فوجود آيتين في نفس الصف مش معناه دايمًا إنهم نفس المقطع.
+
+## تعمل Backup لبياناتك إزاي؟
+
+من الإعدادات افتح «تصدير واسترجاع البيانات»، ونزّل ملف JSON. الملف بيحفظ الخطة وتوزيع الأيام والتقدم والملاحظات والتمييز والمفضلة ووقت القراءة والأوسمة والإعدادات. بيانات تسجيل الدخول مش بتتحط في الملف.
+
+لما ترجع الملف، الموقع بيتأكد إنه سليم وبيوريك ملخص قبل ما توافق على استبدال البيانات الحالية. أقصى حجم للملف 10 MB. لو أنت مسجل دخول، البيانات اللي رجّعتها بتدخل في المزامنة الحالية.
+
+اللينك الثانوي نسخة من ملفات الموقع المنشورة، لكن الحسابات وFirestore مشتركين مع الرئيسي. يعني ده Backup للموقع نفسه، وملف JSON هو النسخة المنفصلة من بياناتك.
+
+## تشغّله عندك إزاي؟
+
+المشروع معمول بـFlutter، واتجرب على Flutter 3.41.6. هتحتاج Node.js كمان لتجهيز ملفات الأصحاحات. من جذر الريبو شغّل:
 
 ```powershell
 cd flutter_app
@@ -13,41 +58,46 @@ node tools/split_chapters.cjs
 flutter run -d chrome
 ```
 
-Release build (generates small chapter files first):
+ملفات Android وiOS والويب موجودة بالفعل. متشغّلش `flutter create` فوق المشروع، علشان ملفات الويب عندنا متعدلة.
+
+ملفات الأصحاحات الصغيرة بتتولد من النصوص الأصلية، فمش بنرفع النسخ المتولدة على GitHub. النصوص الأصلية والسكربت اللي بيولدها موجودين في الريبو. القارئ بيحمّل الأصحاح المطلوب علشان نقلل التحميل على الموبايل، والبحث بيستخدم ملفات الأسفار الكاملة.
+
+## تختبر التعديلات إزاي؟
+
+من جوه `flutter_app`:
+
+```powershell
+node tools/split_chapters.cjs
+flutter analyze --no-fatal-infos
+flutter test
+node --test tools/bootstrap_test.cjs tools/backup_download_test.cjs tools/split_chapters_test.cjs tools/sw_test.cjs tools/import_web_test.cjs tools/import_gna_test.cjs
+```
+
+إعادة استيراد المشتركة ليها مصدر وترخيص متسجلين في `tools/import_gna.cjs`. حط ملف المصدر `complete.simple.json` في `tools/cache/gna2025-source.json` قبل تشغيل السكربت. الاختبارات بتراجع إن الـ31,070 نص آية محفوظين زي المصدر، وكمان بتراجع تقسيم الأصحاحات.
+
+## تنشر وتحدّث الـBackup إزاي؟
+
+من جذر الريبو:
 
 ```powershell
 pwsh -File flutter_app/tools/build_web.ps1
 firebase deploy --only hosting --project bible-plan-boshkamal-20261101 --non-interactive
 ```
 
-Generated chapter JSON files are intentionally not committed. The generator reconstructs them from the committed Bible assets. If a custom/older build omits them, the reader falls back to whole-book assets. Full-text search continues using the original complete books.
-
-## User data and comparison
-
-- Settings → Backup & restore: download a JSON snapshot of the plan, exact daily assignments, completed chapters, history, notes, highlights, favorites, reading time, badge dates and preferences. Authentication credentials are not exported.
-- Restore accepts this application's versioned backup format, up to 10 MB. It validates the data and shows a summary before replacing local data. Signed-in restored data participates in the existing cloud sync.
-- The reader's column icon opens translation comparison, with independent translation selectors on both sides, including Arabic/Arabic and English/English. One compact chapter selector changes both sides; both share one scrolling page with paired verse rows. The toolbar font menu changes both text sizes and saves the setting. Edition numbering can differ; paired rows do not guarantee equivalent passages. See REVIEW-20261105.md for the review findings and remaining limitations.
-- Additional Arabic translation candidates and source/licensing notes: [ARABIC-TRANSLATIONS.md](ARABIC-TRANSLATIONS.md).
-
-## Checks
+بعد ما البناء والنشر ينجحوا وتتأكد إن الرئيسي شغال، انسخ النسخة المنشورة للينك الثانوي:
 
 ```powershell
-cd flutter_app
-node tools/split_chapters.cjs
-flutter analyze --no-fatal-infos
-flutter test
-node --test tools/bootstrap_test.cjs tools/backup_download_test.cjs tools/split_chapters_test.cjs tools/sw_test.cjs tools/import_web_test.cjs
+firebase hosting:clone mybibleplan:live bible-plan-boshkamal-20261101:live --project bible-plan-boshkamal-20261101 --non-interactive
 ```
 
-Primary site: https://mybibleplan.web.app/
+دي قاعدة ثابتة عندنا: أي تعديل يتنشر ويتراجع على الرئيسي، يتعمله Backup تلقائي على الثانوي، وبعدها نتأكد إن النسختين متطابقين ونسجل النتيجة في [سجل الـBackup](HOSTING-BACKUP.md). القاعدة متثبتة كـ[Skill](skills/bible-plan-backup/SKILL.md). لو الرئيسي فيه مشكلة، بنسيب الـBackup القديم لحد ما تتحل.
 
-The stable secondary Hosting snapshot and restoration command are documented in [HOSTING-BACKUP.md](HOSTING-BACKUP.md). It shares Authentication and Firestore with the primary site; portable JSON backups provide a separate copy of a user's local data.
+## إيه اللي لسه محتاج يتظبط؟
 
+آخر مراجعة للكود لقت 3 مشاكل قديمة لسه محتاجة شغل:
 
-## Current Arabic texts and automatic backup workflow
+1. بيانات الحسابات على نفس المتصفح مش منفصلة لكل مستخدم، فالتبديل بين حسابين ممكن يخلط البيانات.
+2. حذف بيانات الحساب بيبدأ قبل التأكد من نجاح حذف الحساب نفسه، وده ممكن يعمل حذف جزئي لو العملية اترفضت.
+3. المزامنة بتختار أحدث نسخة كاملة، فتعديلات جهازين من غير اتصال ممكن تستبدل بعضها بدل ما تتدمج.
 
-Arabic choices are Van Dyck + old Jesuit (`svd`), GNA2025 (`gna`, with separately identified old supplements), and the already stored old Jesuit Deuterocanonical books (`jesuit`, partial coverage). Missing old Jesuit main books are not silently replaced or relabeled. Translation sources/coverage are available in Settings and the comparison screen.
-
-Reimport GNA only from the licensed source recorded in `flutter_app/tools/import_gna.cjs`; place the downloaded `complete.simple.json` at `flutter_app/tools/cache/gna2025-source.json`, then run the importer. Tests check that all 31,070 source verse strings are preserved, including after plan-compatible chapter regrouping.
-
-The user requested a persistent automatic backup skill. Its maintained copy is `skills/bible-plan-backup/SKILL.md`; a validated copy is installed in the user's Codex skills directory. After every successful, verified primary publication, refresh the secondary Hosting snapshot, verify it and record the outcome. No additional conversational confirmation is required for this already authorized project-specific refresh.
+وإشعارات الويب التلقائية لسه مش مفعلة في النسخة المنشورة. تفاصيل المراجعة وحدود الاختبارات في [تقرير المراجعة](REVIEW-20261105.md)، وتفاصيل كل تحديث في [سجل التعديلات](UPDATE-20261105.md).

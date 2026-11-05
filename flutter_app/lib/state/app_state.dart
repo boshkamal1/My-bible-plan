@@ -134,7 +134,7 @@ class AppState extends ChangeNotifier {
           ((j['groups'] as List?) ?? []).map((e) => e as String).toList();
       final st = (j['settings'] as Map?) ?? {};
       lang = (st['lang'] as String?) ?? 'ar';
-      translation = (st['tr'] as String?) ?? 'svd';
+      translation = selectableTranslation((st['tr'] as String?) ?? 'svd');
       fontSize = (st['fs'] as num?)?.toDouble() ?? 20;
       themeMode = (st['theme'] as num?)?.toInt() ?? 0;
       remindOn = (st['rem'] as bool?) ?? true;
@@ -312,7 +312,7 @@ class AppState extends ChangeNotifier {
   }
 
   void setTranslation(String x) {
-    translation = x;
+    translation = selectableTranslation(x);
     touch(data: false);
   }
 

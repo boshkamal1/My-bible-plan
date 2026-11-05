@@ -14,7 +14,6 @@ import 'package:bible_journey/core/i18n.dart';
 import 'package:bible_journey/services/cloud.dart';
 import 'package:bible_journey/state/app_state.dart';
 import 'package:bible_journey/ui/comparison_screen.dart';
-import 'package:bible_journey/ui/books_screen.dart';
 import 'package:bible_journey/ui/reader_screen.dart';
 import 'package:bible_journey/ui/root.dart';
 import 'package:bible_journey/ui/stats_screen.dart';
@@ -230,22 +229,23 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
-  testWidgets('old Jesuit Psalms progress counts only the available Psalm 151',
+  testWidgets('settings and comparison offer only the four complete choices',
       (tester) async {
-    state.translation = 'jesuit';
-    state.done['20:1'] = '2026-11-05';
-    await tester.pumpWidget(app(const BooksScreen()));
-    await tester
-        .tap(find.widgetWithText(ExpansionTile, tr('bookGroup_wisdom')));
+    state.setTranslation('jesuit');
+    expect(state.translation, 'svd');
+    await tester.pumpWidget(app(const SettingsScreen()));
+    final picker = tester
+        .widget<DropdownButton<String>>(find.byType(DropdownButton<String>));
+    expect(picker.items!.map((item) => item.value).toList(),
+        ['svd', 'gna', 'kjv', 'web']);
+    await tester.pumpWidget(app(const ComparisonScreen(b: 0, c: 1)));
     await settle(tester);
-    final psalms = find.widgetWithText(ListTile, state.bookName(20));
-    LinearProgressIndicator progress() => tester.widget(find.descendant(
-        of: psalms, matching: find.byType(LinearProgressIndicator)));
-    expect(progress().value, 0);
-    state.done['20:151'] = '2026-11-05';
-    state.touch();
-    await settle(tester);
-    expect(progress().value, 1);
+    for (final side in ['left', 'right']) {
+      final picker = tester.widget<DropdownButton<String>>(
+          find.byKey(ValueKey('comparison-$side-translation')));
+      expect(picker.items!.map((item) => item.value).toList(),
+          ['svd', 'gna', 'kjv', 'web']);
+    }
     await tester.pump(const Duration(seconds: 1));
     await tester.pumpWidget(const SizedBox());
   });

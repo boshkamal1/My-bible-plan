@@ -118,7 +118,8 @@ class DataBackup {
       _invalid();
     final settings = j['settings'] as Map;
     if (!['ar', 'en'].contains(settings['lang']) ||
-        !kTranslationIds.contains(settings['tr']) ||
+        !(kTranslationIds.contains(settings['tr']) ||
+            settings['tr'] == 'jesuit') ||
         settings['fs'] is! num ||
         !(settings['fs'] as num).isFinite ||
         settings['fs'] < 14 ||

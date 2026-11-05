@@ -26,10 +26,14 @@ class TranslationSourcesScreen extends StatelessWidget {
               ? 'Licensed for non-commercial use, with attribution and no changes to the translation wording.'
               : 'الترخيص للاستخدام غير التجاري مع نسب النص إلى مصدره وعدم تعديل نص الترجمة.'),
           const Divider(height: 28),
-          Text(tr('jesuit'), style: Theme.of(context).textTheme.titleMedium),
+          Text(
+              gEn
+                  ? 'Deuterocanonical supplements'
+                  : 'مكملات الأسفار القانونية الثانية',
+              style: Theme.of(context).textTheme.titleMedium),
           Text(gEn
-              ? 'Only the old Jesuit Deuterocanonical texts already stored in this app are available. The main books are not available in this edition here; no Van Dyck text is presented as Jesuit.'
-              : 'المتاح هنا هو نص اليسوعية القديمة للأسفار القانونية الثانية المحفوظ عندنا. باقي الكتاب غير متوفر من هذه الطبعة هنا؛ ولا يُعرض نص فان دايك على أنه يسوعي.'),
+              ? 'The stored old Jesuit texts supply the Deuterocanonical books in the combined Van Dyck edition and the missing GNA supplements. This partial text is not offered as a separate translation.'
+              : 'نصوص اليسوعية القديمة المحفوظة بتكمّل الأسفار القانونية الثانية مع فان دايك، والناقص من المشتركة. النص الجزئي ده مش موجود كاختيار ترجمة لوحده.'),
           const SelectableText(
               'https://st-takla.org/pub_Deuterocanon/Deuterocanon-Apocrypha_El-Asfar_El-Kanoneya_El-Tanya__0-index_.html'),
           const Divider(height: 28),

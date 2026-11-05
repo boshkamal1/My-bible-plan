@@ -1,7 +1,9 @@
 import 'i18n.dart';
 import 'books.dart';
 
-const kTranslationIds = ['svd', 'gna', 'jesuit', 'kjv', 'web'];
+const kTranslationIds = ['svd', 'gna', 'kjv', 'web'];
+// The removed partial edition remains readable as source metadata and in old backups.
+String selectableTranslation(String id) => id == 'jesuit' ? 'svd' : id;
 bool isArabicTranslation(String id) =>
     const {'svd', 'gna', 'jesuit'}.contains(id);
 
