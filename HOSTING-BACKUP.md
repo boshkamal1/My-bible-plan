@@ -29,3 +29,7 @@ firebase hosting:clone bible-plan-boshkamal-20261101:live mybibleplan:live --pro
 Copied `mybibleplan:live` to `bible-plan-boshkamal-20261101:live` successfully with Firebase Hosting clone. Snapshot release: `20261105-26`, including book selection, per-group toggles, custom drag-and-drop order, reserve-aware plan duration, RTL references and repaired WEB assets. Source commits: `866af75` and `bd43801` on GitHub main.
 
 The clone copies the full published Hosting release. Authentication and Firestore remain shared; it is not an independent user-data backup.
+
+## Release 27 refresh — 2026-11-05
+
+After all 38 Flutter tests and 8 Node tests passed and the primary release was verified live, the entire primary Hosting release `20261105-27` was cloned to the backup. Both sites now include personal JSON backup/restore, bilingual comparison and small chapter assets. This refresh contains source commit `c8aca0e`. Backend Authentication and Firestore remain shared.
