@@ -41,3 +41,7 @@ After the paired-row comparison scroll tests and release web build passed, relea
 ## Release 29 refresh — 2026-11-05
 
 Source commit `05f177e` was pushed to GitHub main and release `20261105-29` deployed successfully. Following the installed `bible-plan-backup` skill and the user's standing authorization, the verified primary live release was cloned automatically to the secondary live site. Both pages returned HTTP 200, contained release 29 and had identical HTML. The backup's GNA Genesis 1 chapter asset returned HTTP 200 with 31 verses. Authentication and Firestore remain shared; this is a Hosting snapshot.
+
+## Release 30 refresh — 2026-11-05
+
+Source commit `8eaddf0` was pushed to GitHub main. After 45 Flutter tests, 14 Node checks, planner assertions, visual mobile review and the production build passed, release `20261105-30` was deployed to primary. Live HTML/bootstrap/worker release markers were verified; the published main.dart.js SHA-256 matched the tested local build. The primary live release was then cloned automatically to the secondary site under the backup skill. Both sites returned HTTP 200 with identical release HTML; the secondary main.dart.js SHA-256 also matched the tested build. Existing account and synchronization findings are recorded in REVIEW-20261105.md; the backup remains Hosting-only with shared backend data.
