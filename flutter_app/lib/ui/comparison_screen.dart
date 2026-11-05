@@ -21,6 +21,8 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
   late String _english;
   late Future<ChapterText?> _arabicText;
   late Future<ChapterText?> _englishText;
+  late Future<List<ChapterText?>> _texts;
+  final _scroll = ScrollController();
 
   @override
   void initState() {
@@ -31,12 +33,24 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
     _enChapter = math.min(widget.c, bookChapterCount(widget.b, _english));
     _loadArabic();
     _loadEnglish();
+    _refresh();
+  }
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
   }
 
   void _loadArabic() => _arabicText =
       context.read<AppState>().repo.chapter(widget.b, _arChapter, 'svd');
   void _loadEnglish() => _englishText =
       context.read<AppState>().repo.chapter(widget.b, _enChapter, _english);
+
+  void _refresh() {
+    _texts = Future.wait([_arabicText, _englishText]);
+    if (_scroll.hasClients) _scroll.jumpTo(0);
+  }
 
   Widget _chapterChoice(bool arabic) {
     final trId = arabic ? 'svd' : _english;
@@ -62,14 +76,16 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
             _enChapter = c;
             _loadEnglish();
           }
+          _refresh();
         });
       },
     );
   }
 
-  Widget _pane(bool arabic, double font) => Expanded(
-          child: Column(children: [
-        Padding(
+  Widget _header(bool arabic) => Expanded(
+          child: Directionality(
+        textDirection: arabic ? TextDirection.rtl : TextDirection.ltr,
+        child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             child: Column(children: [
               if (arabic)
@@ -96,6 +112,7 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
                         _enChapter = math.min(
                             _enChapter, bookChapterCount(widget.b, value));
                         _loadEnglish();
+                        _refresh();
                       });
                     }),
               SizedBox(
@@ -108,41 +125,69 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
                           textAlign: TextAlign.center))),
               _chapterChoice(arabic),
             ])),
-        Expanded(
-            child: FutureBuilder<ChapterText?>(
-          future: arabic ? _arabicText : _englishText,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState != ConnectionState.done)
-              return const Center(child: CircularProgressIndicator());
-            final text = snapshot.data;
-            if (text == null)
-              return Center(
-                  child:
-                      Text(gEn ? 'Chapter unavailable' : 'الأصحاح غير متاح'));
-            if (arabic && text.translation != 'svd')
-              return Center(
-                  child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Text(gEn
-                          ? 'Arabic text is unavailable for this chapter.'
-                          : 'النص العربي غير متاح للأصحاح ده.')));
-            return Directionality(
-                textDirection: arabic ? TextDirection.rtl : TextDirection.ltr,
-                child: ListView.builder(
-                  key: ValueKey(
-                      '${arabic ? 'svd' : _english}-${arabic ? _arChapter : _enChapter}'),
-                  padding: const EdgeInsets.fromLTRB(10, 8, 10, 24),
-                  itemCount: text.verses.length,
-                  itemBuilder: (context, i) => text.verses[i].isEmpty
-                      ? const SizedBox.shrink()
-                      : Padding(
-                          padding: const EdgeInsets.only(bottom: 16),
-                          child: SelectableText('${i + 1}  ${text.verses[i]}',
-                              style: TextStyle(fontSize: font, height: 1.8))),
-                ));
-          },
-        )),
-      ]));
+      ));
+
+  Widget _verse(bool arabic, ChapterText? text, int i, double font) {
+    final unavailable = text == null || (arabic && text.translation != 'svd');
+    final verse = !unavailable && i < text.verses.length ? text.verses[i] : '';
+    return Expanded(
+        child: Directionality(
+      textDirection: arabic ? TextDirection.rtl : TextDirection.ltr,
+      child: Padding(
+          padding: const EdgeInsets.fromLTRB(10, 8, 10, 16),
+          child: unavailable && i == 0
+              ? Text(arabic
+                  ? 'النص العربي غير متاح للأصحاح ده.'
+                  : 'Chapter unavailable')
+              : verse.isEmpty
+                  ? const SizedBox.shrink()
+                  : SelectableText('${i + 1}  $verse',
+                      key: ValueKey(
+                          'comparison-${arabic ? 'ar' : 'en'}-${i + 1}'),
+                      style: TextStyle(fontSize: font, height: 1.8))),
+    ));
+  }
+
+  Widget _reading(double font) => FutureBuilder<List<ChapterText?>>(
+        future: _texts,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final arabic = snapshot.data?[0];
+          final english = snapshot.data?[1];
+          final count =
+              math.max(arabic?.verses.length ?? 0, english?.verses.length ?? 0);
+          if (count == 0)
+            return Center(
+                child: Text(gEn ? 'Chapter unavailable' : 'الأصحاح غير متاح'));
+          return Stack(children: [
+            ListView.builder(
+              key: const ValueKey('comparison-scroll'),
+              controller: _scroll,
+              padding: const EdgeInsets.only(bottom: 24),
+              itemCount: count,
+              itemBuilder: (context, i) => Directionality(
+                  textDirection: TextDirection.ltr,
+                  child: Row(
+                      key: ValueKey('comparison-row-${i + 1}'),
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _verse(false, english, i, font),
+                        const SizedBox(width: 1),
+                        _verse(true, arabic, i, font),
+                      ])),
+            ),
+            Positioned.fill(
+                child: IgnorePointer(
+                    child: Center(
+                        child: SizedBox(
+                            width: 1,
+                            child: ColoredBox(
+                                color: Theme.of(context).dividerColor))))),
+          ]);
+        },
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -156,24 +201,23 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
             child: Text(
                 widget.b == 48 || widget.b == 47 || kDeut.contains(widget.b)
                     ? (gEn
-                        ? 'Numbering can differ between editions. Choose each chapter independently; matching row positions do not imply matching verses.'
-                        : 'ترقيم الأصحاحات والآيات قد يختلف بين الترجمات. اختار أصحاح كل ترجمة بنفسك؛ مكان الآية في العمودين مش معناه تطابقها.')
+                        ? 'Both columns scroll together. Numbering may differ between editions; matching row positions do not guarantee equivalent verses.'
+                        : 'العمودين بيتحركوا مع بعض. الترقيم قد يختلف بين الترجمات؛ وجود آيتين في نفس الصف مش بالضرورة معناه تطابقهما.')
                     : (gEn
-                        ? 'Read both translations side by side. Each column scrolls independently.'
-                        : 'اقرأ الترجمتين جنب بعض. تقدر تمرّر كل عمود وتختار أصحاحه بشكل مستقل.'),
+                        ? 'Scroll either column to move both translations together.'
+                        : 'مرّر من أي ناحية، العربي والإنجليزي هيتحركوا مع بعض في صفحة واحدة.'),
                 style: Theme.of(context).textTheme.bodySmall)),
-        Expanded(
-            child: Directionality(
-                textDirection: TextDirection.ltr,
-                child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _pane(false, font),
-                      const VerticalDivider(width: 1),
-                      Directionality(
-                          textDirection: TextDirection.rtl,
-                          child: _pane(true, font)),
-                    ]))),
+        Directionality(
+            textDirection: TextDirection.ltr,
+            child: Row(children: [
+              _header(false),
+              SizedBox(
+                  height: 144,
+                  width: 1,
+                  child: ColoredBox(color: Theme.of(context).dividerColor)),
+              _header(true)
+            ])),
+        Expanded(child: _reading(font)),
       ]),
     );
   }

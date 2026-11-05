@@ -107,7 +107,26 @@ void main() {
     });
     await tester.pumpWidget(app(const ComparisonScreen(b: 0, c: 1)));
     await settle(tester);
-    expect(find.byType(ListView), findsNWidgets(2));
+    expect(find.byType(ListView), findsOneWidget);
+    final enFirst = find.byKey(const ValueKey('comparison-en-1'));
+    final arFirst = find.byKey(const ValueKey('comparison-ar-1'));
+    final enY = tester.getTopLeft(enFirst).dy;
+    final arY = tester.getTopLeft(arFirst).dy;
+    await tester.drag(enFirst, const Offset(0, -100));
+    await settle(tester);
+    final enMoved = tester.getTopLeft(enFirst).dy - enY;
+    final arMoved = tester.getTopLeft(arFirst).dy - arY;
+    expect(enMoved, lessThan(-50));
+    expect(arMoved, closeTo(enMoved, 0.1));
+    final beforeRightDrag = tester.getTopLeft(enFirst).dy;
+    final bounds =
+        tester.getRect(find.byKey(const ValueKey('comparison-scroll')));
+    await tester.dragFrom(
+        Offset(bounds.right - 40, bounds.center.dy), const Offset(0, -60));
+    await settle(tester);
+    expect(tester.getTopLeft(enFirst).dy, lessThan(beforeRightDrag - 20));
+    expect(tester.getTopLeft(enFirst).dy - enY,
+        closeTo(tester.getTopLeft(arFirst).dy - arY, 0.1));
     final texts = tester
         .widgetList<SelectableText>(find.byType(SelectableText))
         .map((w) => w.data!)
