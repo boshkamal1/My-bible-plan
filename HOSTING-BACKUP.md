@@ -45,3 +45,7 @@ Source commit `05f177e` was pushed to GitHub main and release `20261105-29` depl
 ## Release 30 refresh — 2026-11-05
 
 Source commit `8eaddf0` was pushed to GitHub main. After 45 Flutter tests, 14 Node checks, planner assertions, visual mobile review and the production build passed, release `20261105-30` was deployed to primary. Live HTML/bootstrap/worker release markers were verified; the published main.dart.js SHA-256 matched the tested local build. The primary live release was then cloned automatically to the secondary site under the backup skill. Both sites returned HTTP 200 with identical release HTML; the secondary main.dart.js SHA-256 also matched the tested build. Existing account and synchronization findings are recorded in REVIEW-20261105.md; the backup remains Hosting-only with shared backend data.
+
+## الإصدار 31 — 2026-11-05
+
+التعديلات في commit `19c168d` اترفعت على GitHub، والبناء و18 اختبار Flutter و6 فحوص Node نجحوا. الإصدار `20261105-31` اتنشر على الرئيسي، واتراجع رقم الإصدار وبصمة ملف التطبيق مقابل البناء المحلي. بعدها اتنسخ تلقائيًا للثانوي حسب الـSkill. الموقعين رجعوا HTTP 200 بنفس HTML، وبصمة JavaScript على الثانوي مطابقة للبناء المتختبر. النسخة دي شالت اختيار اليسوعية الجزئي، مع الحفاظ على المكملات وتحويل الإعدادات القديمة. الحسابات وFirestore لسه مشتركين.
