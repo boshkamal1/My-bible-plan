@@ -33,3 +33,7 @@ The clone copies the full published Hosting release. Authentication and Firestor
 ## Release 27 refresh — 2026-11-05
 
 After all 38 Flutter tests and 8 Node tests passed and the primary release was verified live, the entire primary Hosting release `20261105-27` was cloned to the backup. Both sites now include personal JSON backup/restore, bilingual comparison and small chapter assets. This refresh contains source commit `c8aca0e`. Backend Authentication and Firestore remain shared.
+
+## Release 28 refresh — 2026-11-05
+
+After the paired-row comparison scroll tests and release web build passed, release `20261105-28` (source `bb05d5a`) was deployed to primary and cloned successfully to the backup. Both sites now use one scrolling page for Arabic/English comparison.
