@@ -7,7 +7,7 @@ const base = path.join(__dirname, '..', 'assets', 'bible');
 const output = path.join(base, 'chapters');
 fs.mkdirSync(output, {recursive: true});
 let count = 0;
-for (const tr of ['svd', 'ar_extra', 'kjv', 'web']) {
+for (const tr of ['svd', 'ar_extra', 'kjv', 'web', 'gna']) {
   for (const file of fs.readdirSync(path.join(base, tr))) {
     if (!/^\d+\.json$/.test(file)) continue;
     const book = file.slice(0, -5);

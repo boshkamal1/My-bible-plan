@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../core/i18n.dart';
+import '../core/translations.dart';
 import '../core/bible_repo.dart';
 import '../core/books.dart';
 import '../state/app_state.dart';
@@ -131,18 +132,22 @@ class _DailyVerseCardState extends State<DailyVerseCard> {
               builder: (context, snapshot) {
                 final chapter = snapshot.data;
                 if (chapter == null) {
-                  return CircularProgressIndicator(color: accentColor(context));
+                  return snapshot.connectionState == ConnectionState.done
+                      ? Text(translationUnavailable(state.translation),
+                          textAlign: TextAlign.center)
+                      : CircularProgressIndicator(color: accentColor(context));
                 }
                 if (chapter.verses.length < verse.$3 ||
                     chapter.verses[verse.$3 - 1].isEmpty) {
                   return Text(gEn ? 'Verse unavailable' : 'الآية غير متاحة');
                 }
                 final text = chapter.verses[verse.$3 - 1];
-                final reference = bibleReference(state.bookName(verse.$1), verse.$2, verse.$3);
+                final reference = bibleReference(
+                    state.bookName(verse.$1), verse.$2, verse.$3);
                 return Column(children: [
                   Text('«$text»',
                       textAlign: TextAlign.center,
-                      textDirection: chapter.translation == 'svd'
+                      textDirection: isArabicTranslation(chapter.translation)
                           ? TextDirection.rtl
                           : TextDirection.ltr,
                       style: Theme.of(context)

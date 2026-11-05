@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../core/bible_repo.dart';
 import '../core/books.dart';
 import '../core/i18n.dart';
+import '../core/translations.dart';
 import '../state/app_state.dart';
 import 'reader_screen.dart';
 import 'theme.dart';
@@ -60,13 +61,13 @@ class _SearchScreenState extends State<SearchScreen> {
         actions: [
           PopupMenuButton<String>(
             tooltip: tr('translation'),
-            icon: Text(tr(st.translation)),
+            icon: const Icon(Icons.translate),
             onSelected: (value) {
               st.setTranslation(value);
               if (_ctl.text.isNotEmpty) _go();
             },
             itemBuilder: (_) => [
-              for (final id in ['svd', 'kjv', 'web'])
+              for (final id in kTranslationIds)
                 PopupMenuItem(value: id, child: Text(tr(id))),
             ],
           ),
@@ -84,22 +85,29 @@ class _SearchScreenState extends State<SearchScreen> {
                     final h = hits[i];
                     final name =
                         h.b == kPsalms ? tr('psalm') : st.bookName(h.b);
+                    final ref =
+                        sourceVerseReference(h.b, h.c, h.v, st.translation);
                     return ListTile(
                       title: Text(
-                        bibleReference(
-                            name,
-                            displayChapterNumber(h.b, h.c, st.translation),
-                            h.v),
+                        bibleReference(name, ref.chapter, ref.verse),
                         style: const TextStyle(
                           color: kGold,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      subtitle: Text(
-                        h.text,
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                      subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (translationSourceNote(
+                                    st.translation, h.source, h.b) !=
+                                null)
+                              Text(
+                                  translationSourceNote(
+                                      st.translation, h.source, h.b)!,
+                                  style: const TextStyle(fontSize: 11)),
+                            Text(h.text,
+                                maxLines: 3, overflow: TextOverflow.ellipsis),
+                          ]),
                       onTap: () => Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (_) =>

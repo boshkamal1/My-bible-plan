@@ -9,6 +9,7 @@ import '../core/data_backup.dart';
 import '../core/books.dart';
 import '../core/day_util.dart';
 import '../core/i18n.dart';
+import '../core/translations.dart';
 import '../core/planner.dart';
 
 const String _kKey = 'jb-v1';
@@ -306,7 +307,7 @@ class AppState extends ChangeNotifier {
   void setLang(String l) {
     lang = l;
     gEn = l == 'en';
-    if (l == 'en' && translation == 'svd') translation = 'kjv';
+    if (l == 'en' && isArabicTranslation(translation)) translation = 'kjv';
     touch(data: false);
   }
 

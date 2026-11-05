@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../core/books.dart';
 import '../core/i18n.dart';
+import '../core/translations.dart';
 import '../state/app_state.dart';
 import 'reader_screen.dart';
 import 'theme.dart';
@@ -19,7 +20,7 @@ class BooksScreen extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         children: [
           for (final g in groups)
-            if (g.books.isNotEmpty)
+            if (g.books.any((b) => translationHasBook(s.translation, b)))
               Card(
                 child: ExpansionTile(
                   key: PageStorageKey('book-group-${g.id}'),
@@ -29,7 +30,8 @@ class BooksScreen extends StatelessWidget {
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   children: [
-                    for (final b in g.books)
+                    for (final b in g.books
+                        .where((b) => translationHasBook(s.translation, b)))
                       ListTile(
                         title: Text(b == 48 && s.translation == 'web'
                             ? (gEn ? 'Esther (Greek)' : 'أستير اليوناني')
@@ -39,7 +41,10 @@ class BooksScreen extends StatelessWidget {
                           color: kGold,
                           minHeight: 4,
                         ),
-                        trailing: Text(nf(bookChapterCount(b, s.translation))),
+                        trailing: Text(nf(
+                            s.translation == 'jesuit' && b == kPsalms
+                                ? 1
+                                : bookChapterCount(b, s.translation))),
                         onTap: () => Navigator.of(context).push(
                           MaterialPageRoute(builder: (_) => ChapterGrid(b: b)),
                         ),
@@ -69,6 +74,9 @@ class ChapterGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.watch<AppState>();
+    final chapterNumbers = s.translation == 'jesuit' && b == kPsalms
+        ? [151]
+        : [for (var c = 1; c <= bookChapterCount(b, s.translation); c++) c];
     return Scaffold(
       appBar: AppBar(
           title: Text(b == 48 && s.translation == 'web'
@@ -81,9 +89,9 @@ class ChapterGrid extends StatelessWidget {
           mainAxisSpacing: 10,
           crossAxisSpacing: 10,
         ),
-        itemCount: bookChapterCount(b, s.translation),
+        itemCount: chapterNumbers.length,
         itemBuilder: (ctx, i) {
-          final c = i + 1;
+          final c = chapterNumbers[i];
           final d = s.isDone('$b:$c');
           return InkWell(
             borderRadius: BorderRadius.circular(12),

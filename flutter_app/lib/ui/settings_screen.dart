@@ -3,11 +3,13 @@ import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 
 import '../core/i18n.dart';
+import '../core/translations.dart';
 import '../services/cloud.dart';
 import '../services/notifications.dart';
 import '../state/app_state.dart';
 import 'privacy_screen.dart';
 import 'backup_screen.dart';
+import 'translation_sources_screen.dart';
 import 'theme.dart';
 
 const bool _webPushReady = bool.fromEnvironment('WEB_PUSH_READY');
@@ -57,7 +59,7 @@ class SettingsScreen extends StatelessWidget {
             value: s.translation,
             isExpanded: true,
             items: [
-              for (final id in ['svd', 'kjv', 'web'])
+              for (final id in kTranslationIds)
                 DropdownMenuItem(
                     value: id,
                     child: Text(tr(id), overflow: TextOverflow.ellipsis)),
@@ -67,6 +69,21 @@ class SettingsScreen extends StatelessWidget {
             },
           ),
           const SizedBox(height: 16),
+          if (s.translation == 'jesuit')
+            Text(gEn
+                ? 'Available here for the Deuterocanonical books only, with the stored prayer and Psalm 151 supplements.'
+                : 'المتاح هنا للأسفار القانونية الثانية فقط، مع مكملات صلاة منسى والمزمور 151 المحفوظة.'),
+          if (s.translation == 'gna')
+            Text(gEn
+                ? 'GNA2025, with missing Deuterocanonical books supplied from the old Arabic text and identified separately.'
+                : 'المشتركة 2025، والأسفار القانونية الثانية الناقصة من النص العربي القديم مع توضيح المصدر.'),
+          TextButton.icon(
+              icon: const Icon(Icons.info_outline),
+              label: Text(gEn
+                  ? 'Translation sources and coverage'
+                  : 'مصادر الترجمات والأسفار المتاحة'),
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => const TranslationSourcesScreen()))),
           _h(tr('fontSize')),
           Slider(
             min: 14,

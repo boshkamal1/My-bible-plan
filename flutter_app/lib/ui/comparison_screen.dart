@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import '../core/bible_repo.dart';
 import '../core/books.dart';
 import '../core/i18n.dart';
+import '../core/translations.dart';
+import 'translation_sources_screen.dart';
 import '../state/app_state.dart';
 
 class ComparisonScreen extends StatefulWidget {
@@ -16,11 +18,12 @@ class ComparisonScreen extends StatefulWidget {
 }
 
 class _ComparisonScreenState extends State<ComparisonScreen> {
-  late int _arChapter;
-  late int _enChapter;
-  late String _english;
-  late Future<ChapterText?> _arabicText;
-  late Future<ChapterText?> _englishText;
+  late int _rightChapter;
+  late int _leftChapter;
+  late String _left;
+  late String _right;
+  late Future<ChapterText?> _rightText;
+  late Future<ChapterText?> _leftText;
   late Future<List<ChapterText?>> _texts;
   final _scroll = ScrollController();
 
@@ -28,11 +31,12 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
   void initState() {
     super.initState();
     final st = context.read<AppState>();
-    _english = st.translation == 'kjv' ? 'kjv' : 'web';
-    _arChapter = math.min(widget.c, bookChapterCount(widget.b, 'svd'));
-    _enChapter = math.min(widget.c, bookChapterCount(widget.b, _english));
-    _loadArabic();
-    _loadEnglish();
+    _right = st.translation;
+    _left = isArabicTranslation(_right) ? 'web' : 'svd';
+    _rightChapter = math.min(widget.c, bookChapterCount(widget.b, _right));
+    _leftChapter = math.min(widget.c, bookChapterCount(widget.b, _left));
+    _loadRight();
+    _loadLeft();
     _refresh();
   }
 
@@ -42,27 +46,28 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
     super.dispose();
   }
 
-  void _loadArabic() => _arabicText =
-      context.read<AppState>().repo.chapter(widget.b, _arChapter, 'svd');
-  void _loadEnglish() => _englishText =
-      context.read<AppState>().repo.chapter(widget.b, _enChapter, _english);
+  void _loadRight() => _rightText =
+      context.read<AppState>().repo.chapter(widget.b, _rightChapter, _right);
+  void _loadLeft() => _leftText =
+      context.read<AppState>().repo.chapter(widget.b, _leftChapter, _left);
 
   void _refresh() {
-    _texts = Future.wait([_arabicText, _englishText]);
+    _texts = Future.wait([_rightText, _leftText]);
     if (_scroll.hasClients) _scroll.jumpTo(0);
   }
 
   Widget _chapterChoice(bool arabic) {
-    final trId = arabic ? 'svd' : _english;
+    final trId = arabic ? _right : _left;
     return DropdownButton<int>(
-      key: ValueKey(arabic ? 'arabic-chapter' : 'english-chapter'),
+      key: ValueKey(
+          arabic ? 'comparison-right-chapter' : 'comparison-left-chapter'),
       isExpanded: true,
-      value: arabic ? _arChapter : _enChapter,
+      value: arabic ? _rightChapter : _leftChapter,
       items: [
         for (var c = 1; c <= bookChapterCount(widget.b, trId); c++)
           DropdownMenuItem(
               value: c,
-              child: Text(arabic
+              child: Text(isArabicTranslation(trId)
                   ? 'أصحاح ${nf(displayChapterNumber(widget.b, c, trId))}'
                   : 'Chapter ${displayChapterNumber(widget.b, c, trId)}'))
       ],
@@ -70,11 +75,11 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
         if (c == null) return;
         setState(() {
           if (arabic) {
-            _arChapter = c;
-            _loadArabic();
+            _rightChapter = c;
+            _loadRight();
           } else {
-            _enChapter = c;
-            _loadEnglish();
+            _leftChapter = c;
+            _loadLeft();
           }
           _refresh();
         });
@@ -82,69 +87,89 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
     );
   }
 
-  Widget _header(bool arabic) => Expanded(
-          child: Directionality(
-        textDirection: arabic ? TextDirection.rtl : TextDirection.ltr,
-        child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            child: Column(children: [
-              if (arabic)
-                SizedBox(
-                    height: 48,
-                    child: Center(
-                        child: Text(tr('svd'),
-                            textAlign: TextAlign.center,
-                            style:
-                                const TextStyle(fontWeight: FontWeight.bold))))
-              else
-                DropdownButton<String>(
-                    key: const ValueKey('comparison-translation'),
-                    value: _english,
-                    isExpanded: true,
-                    items: const [
-                      DropdownMenuItem(value: 'web', child: Text('WEB')),
-                      DropdownMenuItem(value: 'kjv', child: Text('KJV'))
-                    ],
-                    onChanged: (value) {
-                      if (value == null) return;
-                      setState(() {
-                        _english = value;
-                        _enChapter = math.min(
-                            _enChapter, bookChapterCount(widget.b, value));
-                        _loadEnglish();
-                        _refresh();
-                      });
-                    }),
-              SizedBox(
-                  height: 40,
-                  child: Center(
-                      child: Text(
-                          arabic ? kArNames[widget.b] : kEnNames[widget.b],
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.center))),
-              _chapterChoice(arabic),
-            ])),
-      ));
+  Widget _header(bool right) {
+    final selected = right ? _right : _left;
+    return Expanded(
+        child: Directionality(
+      textDirection:
+          isArabicTranslation(selected) ? TextDirection.rtl : TextDirection.ltr,
+      child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          child: Column(children: [
+            DropdownButton<String>(
+                key: ValueKey(right
+                    ? 'comparison-right-translation'
+                    : 'comparison-left-translation'),
+                value: selected,
+                isExpanded: true,
+                items: [
+                  for (final id in kTranslationIds)
+                    DropdownMenuItem(
+                        value: id,
+                        child: Tooltip(
+                            message: tr(id),
+                            child: Text(tr(id),
+                                maxLines: 2,
+                                style: const TextStyle(fontSize: 13),
+                                overflow: TextOverflow.ellipsis)))
+                ],
+                onChanged: (value) {
+                  if (value == null) return;
+                  setState(() {
+                    if (right) {
+                      _right = value;
+                      _rightChapter = math.min(
+                          _rightChapter, bookChapterCount(widget.b, value));
+                      _loadRight();
+                    } else {
+                      _left = value;
+                      _leftChapter = math.min(
+                          _leftChapter, bookChapterCount(widget.b, value));
+                      _loadLeft();
+                    }
+                    _refresh();
+                  });
+                }),
+            SizedBox(
+                height: 40,
+                child: Center(
+                    child: Text(
+                        isArabicTranslation(selected)
+                            ? kArNames[widget.b]
+                            : kEnNames[widget.b],
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center))),
+            _chapterChoice(right),
+          ])),
+    ));
+  }
 
-  Widget _verse(bool arabic, ChapterText? text, int i, double font) {
-    final unavailable = text == null || (arabic && text.translation != 'svd');
-    final verse = !unavailable && i < text.verses.length ? text.verses[i] : '';
+  Widget _verse(bool right, ChapterText? text, int i, double font) {
+    final selected = right ? _right : _left;
+    final arabic = isArabicTranslation(text?.translation ?? selected);
+    final verse = text != null && i < text.verses.length ? text.verses[i] : '';
+    final note = translationSourceNote(selected, text?.source, widget.b);
     return Expanded(
         child: Directionality(
       textDirection: arabic ? TextDirection.rtl : TextDirection.ltr,
       child: Padding(
           padding: const EdgeInsets.fromLTRB(10, 8, 10, 16),
-          child: unavailable && i == 0
-              ? Text(arabic
-                  ? 'النص العربي غير متاح للأصحاح ده.'
-                  : 'Chapter unavailable')
-              : verse.isEmpty
-                  ? const SizedBox.shrink()
-                  : SelectableText('${i + 1}  $verse',
-                      key: ValueKey(
-                          'comparison-${arabic ? 'ar' : 'en'}-${i + 1}'),
-                      style: TextStyle(fontSize: font, height: 1.8))),
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            if (i == 0 && note != null)
+              Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Text(note, style: const TextStyle(fontSize: 12))),
+            if (text == null && i == 0)
+              Text(translationUnavailable(selected))
+            else if (verse.isNotEmpty)
+              SelectableText(
+                  '${editionVerseLabel(widget.b, right ? _rightChapter : _leftChapter, i + 1, text?.translation ?? selected)}  $verse',
+                  key: ValueKey(
+                      'comparison-${right ? 'right' : 'left'}-${i + 1}'),
+                  style: TextStyle(fontSize: font, height: 1.8)),
+          ])),
     ));
   }
 
@@ -160,7 +185,10 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
               math.max(arabic?.verses.length ?? 0, english?.verses.length ?? 0);
           if (count == 0)
             return Center(
-                child: Text(gEn ? 'Chapter unavailable' : 'الأصحاح غير متاح'));
+                child: Text(translationUnavailable(
+                    _right == 'jesuit' || _left == 'jesuit'
+                        ? 'jesuit'
+                        : _right)));
           return Stack(children: [
             ListView.builder(
               key: const ValueKey('comparison-scroll'),
@@ -194,7 +222,14 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
     final font = context.select<AppState, double>((s) => s.fontSize);
     return Scaffold(
       appBar: AppBar(
-          title: Text(gEn ? 'Arabic / English' : 'مقارنة العربي والإنجليزي')),
+          title: Text(gEn ? 'Compare translations' : 'مقارنة الترجمات'),
+          actions: [
+            IconButton(
+                tooltip: gEn ? 'Text sources' : 'مصادر النصوص',
+                icon: const Icon(Icons.info_outline),
+                onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => const TranslationSourcesScreen()))),
+          ]),
       body: Column(children: [
         Padding(
             padding: const EdgeInsets.all(10),
@@ -204,9 +239,14 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
                         ? 'Both columns scroll together. Numbering may differ between editions; matching row positions do not guarantee equivalent verses.'
                         : 'العمودين بيتحركوا مع بعض. الترقيم قد يختلف بين الترجمات؛ وجود آيتين في نفس الصف مش بالضرورة معناه تطابقهما.')
                     : (gEn
-                        ? 'Scroll either column to move both translations together.'
-                        : 'مرّر من أي ناحية، العربي والإنجليزي هيتحركوا مع بعض في صفحة واحدة.'),
+                        ? 'Choose any translation on each side. Scroll either side to move both together.'
+                        : 'اختار أي ترجمة لكل ناحية. مرّر من أي ناحية، والترجمتين هيتحركوا مع بعض.'),
                 style: Theme.of(context).textTheme.bodySmall)),
+        if (_left == 'gna' || _right == 'gna')
+          Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child:
+                  Text(gnaAttribution, style: const TextStyle(fontSize: 10))),
         Directionality(
             textDirection: TextDirection.ltr,
             child: Row(children: [

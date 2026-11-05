@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../core/books.dart';
 import '../core/i18n.dart';
+import '../core/translations.dart';
 import '../state/app_state.dart';
 import 'reader_screen.dart';
 import 'theme.dart';
@@ -91,13 +92,14 @@ class _List extends StatelessWidget {
         final k = keys[i];
         final p = k.split(':').map(int.parse).toList();
         final name = p[0] == kPsalms ? tr('psalm') : s.bookName(p[0]);
+        final ref = sourceVerseReference(p[0], p[1], p[2], s.translation);
         return Card(
           child: ListTile(
             leading: kind == 2
                 ? CircleAvatar(radius: 10, backgroundColor: kHlColors[s.hl[k]!])
                 : null,
             title: Text(
-              bibleReference(name, p[1], p[2]),
+              bibleReference(name, ref.chapter, ref.verse),
               style: const TextStyle(color: kGold, fontWeight: FontWeight.bold),
             ),
             subtitle: kind == 0 ? Text(s.notes[k]!) : null,

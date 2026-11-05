@@ -26,7 +26,7 @@ Generated chapter JSON files are intentionally not committed. The generator reco
 
 - Settings → Backup & restore: download a JSON snapshot of the plan, exact daily assignments, completed chapters, history, notes, highlights, favorites, reading time, badge dates and preferences. Authentication credentials are not exported.
 - Restore accepts this application's versioned backup format, up to 10 MB. It validates the data and shows a summary before replacing local data. Signed-in restored data participates in the existing cloud sync.
-- The reader's column icon opens Arabic / English comparison, with independent chapter selectors and a choice of WEB or KJV. Both translations share one scrolling page, with paired verse rows. Editions with differing numbering have an explanation.
+- The reader's column icon opens Arabic / English comparison, with independent translation/chapter selectors on both sides, including Arabic/Arabic and English/English. Both translations share one scrolling page, with paired verse rows. Editions with differing numbering have an explanation.
 - Additional Arabic translation candidates and source/licensing notes: [ARABIC-TRANSLATIONS.md](ARABIC-TRANSLATIONS.md).
 
 ## Checks
@@ -42,3 +42,12 @@ node --test tools/bootstrap_test.cjs tools/backup_download_test.cjs tools/split_
 Primary site: https://mybibleplan.web.app/
 
 The stable secondary Hosting snapshot and restoration command are documented in [HOSTING-BACKUP.md](HOSTING-BACKUP.md). It shares Authentication and Firestore with the primary site; portable JSON backups provide a separate copy of a user's local data.
+
+
+## Current Arabic texts and automatic backup workflow
+
+Arabic choices are Van Dyck + old Jesuit (`svd`), GNA2025 (`gna`, with separately identified old supplements), and the already stored old Jesuit Deuterocanonical books (`jesuit`, partial coverage). Missing old Jesuit main books are not silently replaced or relabeled. Translation sources/coverage are available in Settings and the comparison screen.
+
+Reimport GNA only from the licensed source recorded in `flutter_app/tools/import_gna.cjs`; place the downloaded `complete.simple.json` at `flutter_app/tools/cache/gna2025-source.json`, then run the importer. Tests check that all 31,070 source verse strings are preserved, including after plan-compatible chapter regrouping.
+
+The user requested a persistent automatic backup skill. Its maintained copy is `skills/bible-plan-backup/SKILL.md`; a validated copy is installed in the user's Codex skills directory. After every successful, verified primary publication, refresh the secondary Hosting snapshot, verify it and record the outcome. No additional conversational confirmation is required for this already authorized project-specific refresh.

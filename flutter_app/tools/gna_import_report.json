@@ -1,0 +1,433 @@
+{
+  "translation": {
+    "id": "arb_gna",
+    "name": "الترجمة العربية المشتركة",
+    "website": "https://app.library.bible/content/fd5704b4b8ddef79",
+    "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/",
+    "licenseNotice": "Bible Society in Lebanon",
+    "license": {
+      "attribution": "required",
+      "commercialUse": "not-allowed",
+      "derivatives": "not-allowed",
+      "copyleft": false,
+      "publicDomain": false
+    },
+    "shortName": "GNA2025",
+    "englishName": "Good News Arabic 2025",
+    "language": "arb",
+    "textDirection": "rtl",
+    "sha256": "5f42c59e6c8645b6ab933f398205038597ef868ed2028099d598d52ba5484db0",
+    "availableFormats": [
+      "json"
+    ],
+    "listOfBooksApiLink": "/api/arb_gna/books.json",
+    "completeTranslationApiLink": "/api/arb_gna/complete.json",
+    "simpleCompleteTranslationApiLink": "/api/arb_gna/complete.simple.json",
+    "numberOfBooks": 66,
+    "totalNumberOfChapters": 1189,
+    "totalNumberOfVerses": 31070,
+    "languageName": "العربية",
+    "languageEnglishName": "Arabic"
+  },
+  "sourceSha256": "72dc233247f2b012ca83b8673978cd1b7f0511ad14a2fd78602f14daaf0f25b2",
+  "verseTextSha256": "58a4de695aa687674372883dfc414c6a3152ab9a0d395f6020cd0dbfd896ce01",
+  "books": [
+    {
+      "b": 0,
+      "code": "GEN",
+      "chapters": 50,
+      "verseSlots": 1533
+    },
+    {
+      "b": 1,
+      "code": "EXO",
+      "chapters": 40,
+      "verseSlots": 1213
+    },
+    {
+      "b": 2,
+      "code": "LEV",
+      "chapters": 27,
+      "verseSlots": 859
+    },
+    {
+      "b": 3,
+      "code": "NUM",
+      "chapters": 36,
+      "verseSlots": 1288
+    },
+    {
+      "b": 4,
+      "code": "DEU",
+      "chapters": 34,
+      "verseSlots": 959
+    },
+    {
+      "b": 5,
+      "code": "JOS",
+      "chapters": 24,
+      "verseSlots": 658
+    },
+    {
+      "b": 6,
+      "code": "JDG",
+      "chapters": 21,
+      "verseSlots": 618
+    },
+    {
+      "b": 7,
+      "code": "RUT",
+      "chapters": 4,
+      "verseSlots": 85
+    },
+    {
+      "b": 8,
+      "code": "1SA",
+      "chapters": 31,
+      "verseSlots": 811
+    },
+    {
+      "b": 9,
+      "code": "2SA",
+      "chapters": 24,
+      "verseSlots": 695
+    },
+    {
+      "b": 10,
+      "code": "1KI",
+      "chapters": 22,
+      "verseSlots": 817
+    },
+    {
+      "b": 11,
+      "code": "2KI",
+      "chapters": 25,
+      "verseSlots": 719
+    },
+    {
+      "b": 12,
+      "code": "1CH",
+      "chapters": 29,
+      "verseSlots": 943
+    },
+    {
+      "b": 13,
+      "code": "2CH",
+      "chapters": 36,
+      "verseSlots": 822
+    },
+    {
+      "b": 14,
+      "code": "EZR",
+      "chapters": 10,
+      "verseSlots": 280
+    },
+    {
+      "b": 15,
+      "code": "NEH",
+      "chapters": 13,
+      "verseSlots": 405
+    },
+    {
+      "b": 18,
+      "code": "EST",
+      "chapters": 10,
+      "verseSlots": 167
+    },
+    {
+      "b": 19,
+      "code": "JOB",
+      "chapters": 42,
+      "verseSlots": 1070
+    },
+    {
+      "b": 20,
+      "code": "PSA",
+      "chapters": 150,
+      "verseSlots": 2528
+    },
+    {
+      "b": 21,
+      "code": "PRO",
+      "chapters": 31,
+      "verseSlots": 915
+    },
+    {
+      "b": 22,
+      "code": "ECC",
+      "chapters": 12,
+      "verseSlots": 222
+    },
+    {
+      "b": 23,
+      "code": "SNG",
+      "chapters": 8,
+      "verseSlots": 117
+    },
+    {
+      "b": 26,
+      "code": "ISA",
+      "chapters": 66,
+      "verseSlots": 1291
+    },
+    {
+      "b": 27,
+      "code": "JER",
+      "chapters": 52,
+      "verseSlots": 1364
+    },
+    {
+      "b": 28,
+      "code": "LAM",
+      "chapters": 5,
+      "verseSlots": 154
+    },
+    {
+      "b": 30,
+      "code": "EZK",
+      "chapters": 48,
+      "verseSlots": 1273
+    },
+    {
+      "b": 31,
+      "code": "DAN",
+      "chapters": 12,
+      "verseSlots": 357
+    },
+    {
+      "b": 32,
+      "code": "HOS",
+      "chapters": 14,
+      "verseSlots": 197
+    },
+    {
+      "b": 33,
+      "code": "JOL",
+      "chapters": 3,
+      "verseSlots": 73
+    },
+    {
+      "b": 34,
+      "code": "AMO",
+      "chapters": 9,
+      "verseSlots": 146
+    },
+    {
+      "b": 35,
+      "code": "OBA",
+      "chapters": 1,
+      "verseSlots": 21
+    },
+    {
+      "b": 36,
+      "code": "JON",
+      "chapters": 4,
+      "verseSlots": 48
+    },
+    {
+      "b": 37,
+      "code": "MIC",
+      "chapters": 7,
+      "verseSlots": 105
+    },
+    {
+      "b": 38,
+      "code": "NAM",
+      "chapters": 3,
+      "verseSlots": 47
+    },
+    {
+      "b": 39,
+      "code": "HAB",
+      "chapters": 3,
+      "verseSlots": 56
+    },
+    {
+      "b": 40,
+      "code": "ZEP",
+      "chapters": 3,
+      "verseSlots": 53
+    },
+    {
+      "b": 41,
+      "code": "HAG",
+      "chapters": 2,
+      "verseSlots": 38
+    },
+    {
+      "b": 42,
+      "code": "ZEC",
+      "chapters": 14,
+      "verseSlots": 211
+    },
+    {
+      "b": 43,
+      "code": "MAL",
+      "chapters": 4,
+      "verseSlots": 55
+    },
+    {
+      "b": 49,
+      "code": "MAT",
+      "chapters": 28,
+      "verseSlots": 1071
+    },
+    {
+      "b": 50,
+      "code": "MRK",
+      "chapters": 16,
+      "verseSlots": 678
+    },
+    {
+      "b": 51,
+      "code": "LUK",
+      "chapters": 24,
+      "verseSlots": 1151
+    },
+    {
+      "b": 52,
+      "code": "JHN",
+      "chapters": 21,
+      "verseSlots": 879
+    },
+    {
+      "b": 53,
+      "code": "ACT",
+      "chapters": 28,
+      "verseSlots": 1007
+    },
+    {
+      "b": 54,
+      "code": "ROM",
+      "chapters": 16,
+      "verseSlots": 433
+    },
+    {
+      "b": 55,
+      "code": "1CO",
+      "chapters": 16,
+      "verseSlots": 437
+    },
+    {
+      "b": 56,
+      "code": "2CO",
+      "chapters": 13,
+      "verseSlots": 256
+    },
+    {
+      "b": 57,
+      "code": "GAL",
+      "chapters": 6,
+      "verseSlots": 149
+    },
+    {
+      "b": 58,
+      "code": "EPH",
+      "chapters": 6,
+      "verseSlots": 155
+    },
+    {
+      "b": 59,
+      "code": "PHP",
+      "chapters": 4,
+      "verseSlots": 104
+    },
+    {
+      "b": 60,
+      "code": "COL",
+      "chapters": 4,
+      "verseSlots": 95
+    },
+    {
+      "b": 61,
+      "code": "1TH",
+      "chapters": 5,
+      "verseSlots": 89
+    },
+    {
+      "b": 62,
+      "code": "2TH",
+      "chapters": 3,
+      "verseSlots": 47
+    },
+    {
+      "b": 63,
+      "code": "1TI",
+      "chapters": 6,
+      "verseSlots": 113
+    },
+    {
+      "b": 64,
+      "code": "2TI",
+      "chapters": 4,
+      "verseSlots": 83
+    },
+    {
+      "b": 65,
+      "code": "TIT",
+      "chapters": 3,
+      "verseSlots": 46
+    },
+    {
+      "b": 66,
+      "code": "PHM",
+      "chapters": 1,
+      "verseSlots": 25
+    },
+    {
+      "b": 67,
+      "code": "HEB",
+      "chapters": 13,
+      "verseSlots": 303
+    },
+    {
+      "b": 68,
+      "code": "JAS",
+      "chapters": 5,
+      "verseSlots": 108
+    },
+    {
+      "b": 69,
+      "code": "1PE",
+      "chapters": 5,
+      "verseSlots": 105
+    },
+    {
+      "b": 70,
+      "code": "2PE",
+      "chapters": 3,
+      "verseSlots": 61
+    },
+    {
+      "b": 71,
+      "code": "1JN",
+      "chapters": 5,
+      "verseSlots": 105
+    },
+    {
+      "b": 72,
+      "code": "2JN",
+      "chapters": 1,
+      "verseSlots": 13
+    },
+    {
+      "b": 73,
+      "code": "3JN",
+      "chapters": 1,
+      "verseSlots": 15
+    },
+    {
+      "b": 74,
+      "code": "JUD",
+      "chapters": 1,
+      "verseSlots": 25
+    },
+    {
+      "b": 75,
+      "code": "REV",
+      "chapters": 22,
+      "verseSlots": 405
+    }
+  ],
+  "sourceVerseCount": 31070
+}

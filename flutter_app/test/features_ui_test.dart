@@ -108,8 +108,8 @@ void main() {
     await tester.pumpWidget(app(const ComparisonScreen(b: 0, c: 1)));
     await settle(tester);
     expect(find.byType(ListView), findsOneWidget);
-    final enFirst = find.byKey(const ValueKey('comparison-en-1'));
-    final arFirst = find.byKey(const ValueKey('comparison-ar-1'));
+    final enFirst = find.byKey(const ValueKey('comparison-left-1'));
+    final arFirst = find.byKey(const ValueKey('comparison-right-1'));
     final enY = tester.getTopLeft(enFirst).dy;
     final arY = tester.getTopLeft(arFirst).dy;
     await tester.drag(enFirst, const Offset(0, -100));
@@ -144,30 +144,30 @@ void main() {
       await file.writeAsBytes(png!.buffer.asUint8List());
       image.dispose();
     });
-    await tester.tap(find.byKey(const ValueKey('comparison-translation')));
+    await tester.tap(find.byKey(const ValueKey('comparison-left-translation')));
     await settle(tester);
     await tester.tap(find.text('KJV').last);
     await settle(tester);
     expect(
         tester
             .widget<DropdownButton<String>>(
-                find.byKey(const ValueKey('comparison-translation')))
+                find.byKey(const ValueKey('comparison-left-translation')))
             .value,
         'kjv');
-    await tester.tap(find.byKey(const ValueKey('english-chapter')));
+    await tester.tap(find.byKey(const ValueKey('comparison-left-chapter')));
     await settle(tester);
     await tester.tap(find.text('Chapter 2').last);
     await settle(tester);
     expect(
         tester
             .widget<DropdownButton<int>>(
-                find.byKey(const ValueKey('arabic-chapter')))
+                find.byKey(const ValueKey('comparison-right-chapter')))
             .value,
         1);
     expect(
         tester
             .widget<DropdownButton<int>>(
-                find.byKey(const ValueKey('english-chapter')))
+                find.byKey(const ValueKey('comparison-left-chapter')))
             .value,
         2);
     tester.view.physicalSize = const Size(320, 700);
@@ -253,5 +253,63 @@ void main() {
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));
+  });
+
+  testWidgets(
+      'comparison accepts any translation on either side, including matching languages',
+      (tester) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.runAsync(() async {
+      for (final tr in ['svd', 'gna', 'kjv', 'web']) {
+        await state.repo.chapter(0, 1, tr);
+      }
+    });
+    await tester.pumpWidget(app(const ComparisonScreen(b: 0, c: 1)));
+    await settle(tester);
+    Future<void> choose(String side, String id) async {
+      await tester.tap(find.byKey(ValueKey('comparison-$side-translation')));
+      await settle(tester);
+      await tester.tap(find.text(tr(id)).last);
+      await settle(tester);
+    }
+
+    String text(String side) => tester
+        .widget<SelectableText>(find.byKey(ValueKey('comparison-$side-1')))
+        .data!;
+    final arabic = RegExp(r'[\u0600-\u06ff]');
+    await choose('left', 'gna');
+    expect(arabic.hasMatch(text('left')), true);
+    expect(arabic.hasMatch(text('right')), true);
+    expect(text('left'), isNot(text('right')));
+    await tester.runAsync(() async {
+      final image = await (captureKey.currentContext!.findRenderObject()
+              as RenderRepaintBoundary)
+          .toImage(pixelRatio: 2);
+      final png = await image.toByteData(format: ui.ImageByteFormat.png);
+      await File('test_artifacts/comparison-arabic-mobile.png')
+          .writeAsBytes(png!.buffer.asUint8List());
+      image.dispose();
+    });
+
+    tester.view.physicalSize = const Size(320, 700);
+    await settle(tester);
+    expect(tester.takeException(), isNull);
+    tester.view.physicalSize = const Size(360, 800);
+    await settle(tester);
+
+    await choose('right', 'kjv');
+    await choose('left', 'web');
+    expect(text('left'), contains('In the beginning'));
+    expect(text('right'), contains('In the beginning'));
+    await choose('right', 'gna');
+    await choose('left', 'svd');
+    expect(arabic.hasMatch(text('left')), true);
+    expect(arabic.hasMatch(text('right')), true);
+    expect(find.byType(ListView), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox());
   });
 }

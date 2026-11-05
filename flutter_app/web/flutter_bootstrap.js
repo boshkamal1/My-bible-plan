@@ -3,7 +3,7 @@
 
 for (const build of _flutter.buildConfig.builds) {
   if (build.mainJsPath === 'main.dart.js') {
-    build.mainJsPath = 'main.dart.js?v=20261105-28';
+    build.mainJsPath = 'main.dart.js?v=20261105-29';
   }
 }
 
@@ -39,8 +39,8 @@ if ('serviceWorker' in navigator) {
     // The first worker already serves this release. Avoid reloading the app
     // a second time on a first visit; reload only when upgrading an old worker.
     if (!wasControlledAtLoad) return;
-    if (sessionStorage.getItem('bible-pwa-refreshed-v28') !== 'yes') {
-      sessionStorage.setItem('bible-pwa-refreshed-v28', 'yes');
+    if (sessionStorage.getItem('bible-pwa-refreshed-v29') !== 'yes') {
+      sessionStorage.setItem('bible-pwa-refreshed-v29', 'yes');
       location.reload();
     }
   });

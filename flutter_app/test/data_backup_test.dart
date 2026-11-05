@@ -88,4 +88,15 @@ void main() {
     await expectLater(source.restoreBackup(preview), throwsFormatException);
     expect(source.hl['49:1:2'], 3);
   });
+
+  test('new Arabic translation choices survive backup and restore', () async {
+    final target = AppState(await SharedPreferences.getInstance())..load();
+    for (final id in ['gna', 'jesuit']) {
+      source.setTranslation(id);
+      await target.restoreBackup(DataBackup.decode(source.exportBackup()));
+      expect(target.translation, id);
+      expect(target.days.length, source.days.length);
+    }
+    target.dispose();
+  });
 }

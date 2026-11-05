@@ -7,6 +7,7 @@ import 'package:share_plus/share_plus.dart';
 import '../core/bible_repo.dart';
 import '../core/books.dart';
 import '../core/i18n.dart';
+import '../core/translations.dart';
 import '../state/app_state.dart';
 import 'theme.dart';
 import 'route_observer.dart';
@@ -147,12 +148,19 @@ class _ReaderScreenState extends State<ReaderScreen>
   bool get _hasNext {
     final q = widget.queue;
     if (q != null && _qi >= 0) return _qi < q.length - 1;
+    if (_st.translation == 'jesuit' && q == null) {
+      return storedJesuitChapters.indexWhere((x) => x.b == b && x.c == c) <
+          storedJesuitChapters.length - 1;
+    }
     return !(b == kBookCount - 1 && c == bookChapterCount(b, _st.translation));
   }
 
   bool get _hasPrev {
     final q = widget.queue;
     if (q != null && _qi >= 0) return _qi > 0;
+    if (_st.translation == 'jesuit' && q == null) {
+      return storedJesuitChapters.indexWhere((x) => x.b == b && x.c == c) > 0;
+    }
     return !(b == 0 && c == 1);
   }
 
@@ -162,6 +170,15 @@ class _ReaderScreenState extends State<ReaderScreen>
       final n = q[_qi + dir];
       b = n.b;
       c = n.c;
+    } else if (_st.translation == 'jesuit' && q == null) {
+      final index =
+          storedJesuitChapters.indexWhere((x) => x.b == b && x.c == c);
+      if (index < 0 ||
+          index + dir < 0 ||
+          index + dir >= storedJesuitChapters.length) return;
+      final next = storedJesuitChapters[index + dir];
+      b = next.b;
+      c = next.c;
     } else if (dir > 0) {
       if (c < bookChapterCount(b, _st.translation)) {
         c++;
@@ -182,12 +199,10 @@ class _ReaderScreenState extends State<ReaderScreen>
 
   String _ref(int v) {
     final st = context.read<AppState>();
-    final shown = displayChapterNumber(b, c, st.translation);
-    final book = b == 48 && st.translation == 'web'
-        ? (gEn ? 'Esther (Greek)' : 'أستير اليوناني')
-        : st.bookName(b);
-    final name = b == kPsalms ? '${tr('psalm')} $c' : '$book $shown';
-    return b == kPsalms ? '$name:$v' : '$name:$v';
+    final id = text?.translation ?? st.translation;
+    final ref = sourceVerseReference(b, c, v, id);
+    final book = b == kPsalms ? tr('psalm') : st.bookName(b);
+    return bibleReference(book, ref.chapter, ref.verse);
   }
 
   void _verseSheet(int v, String verse) {
@@ -341,7 +356,7 @@ class _ReaderScreenState extends State<ReaderScreen>
         : b == kPsalms
             ? '${tr('psalm')} ${nf(c)}'
             : '${st.bookName(b)} ${nf(shownChapter)}';
-    final rtl = t == null ? !st.en : t.translation == 'svd';
+    final rtl = t == null ? !st.en : isArabicTranslation(t.translation);
     return Scaffold(
       appBar: AppBar(
         title: Text(title),
@@ -364,7 +379,7 @@ class _ReaderScreenState extends State<ReaderScreen>
               _load();
             },
             itemBuilder: (_) => [
-              for (final id in ['svd', 'kjv', 'web'])
+              for (final id in kTranslationIds)
                 PopupMenuItem(value: id, child: Text(tr(id))),
             ],
           ),
@@ -384,7 +399,11 @@ class _ReaderScreenState extends State<ReaderScreen>
       body: loading
           ? const Center(child: CircularProgressIndicator())
           : t == null
-              ? Center(child: Text(tr('error')))
+              ? Center(
+                  child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Text(translationUnavailable(st.translation),
+                          textAlign: TextAlign.center)))
               : Column(
                   children: [
                     if (b == 48 && t.translation == 'web')
@@ -400,7 +419,24 @@ class _ReaderScreenState extends State<ReaderScreen>
                           style: const TextStyle(fontSize: 13),
                         ),
                       ),
-                    if (t.fallback)
+                    if (translationSourceNote(st.translation, t.source, b) !=
+                        null)
+                      Padding(
+                          padding: const EdgeInsets.all(10),
+                          child: Text(
+                              translationSourceNote(
+                                  st.translation, t.source, b)!,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(fontSize: 13))),
+                    if (st.translation == 'gna' && t.source == 'gna')
+                      Padding(
+                          padding: const EdgeInsets.all(6),
+                          child: Text(gnaAttribution,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(fontSize: 11))),
+                    if (t.fallback &&
+                        translationSourceNote(st.translation, t.source, b) ==
+                            null)
                       Container(
                         width: double.infinity,
                         color: kGold.withValues(alpha: 0.15),
@@ -501,7 +537,8 @@ class _ReaderScreenState extends State<ReaderScreen>
               TextSpan(
                 children: [
                   TextSpan(
-                    text: '${nf(v)}  ',
+                    text:
+                        '${editionVerseLabel(b, c, v, text?.translation ?? st.translation)}  ',
                     style: TextStyle(
                       color: kGold,
                       fontWeight: FontWeight.bold,

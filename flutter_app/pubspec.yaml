@@ -39,4 +39,5 @@ flutter:
     - assets/bible/kjv/
     - assets/bible/ar_extra/
     - assets/bible/web/
+    - assets/bible/gna/
     - assets/bible/chapters/

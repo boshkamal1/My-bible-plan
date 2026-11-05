@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'books.dart';
 import 'day_util.dart';
 import 'planner.dart';
+import 'translations.dart';
 
 /// A portable snapshot of application data, never authentication credentials.
 class DataBackup {
@@ -117,7 +118,7 @@ class DataBackup {
       _invalid();
     final settings = j['settings'] as Map;
     if (!['ar', 'en'].contains(settings['lang']) ||
-        !['svd', 'kjv', 'web'].contains(settings['tr']) ||
+        !kTranslationIds.contains(settings['tr']) ||
         settings['fs'] is! num ||
         !(settings['fs'] as num).isFinite ||
         settings['fs'] < 14 ||

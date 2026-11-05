@@ -1,0 +1,6 @@
+Good News Arabic 2025 / الترجمة العربية المشتركة
+Bible Society in Lebanon
+CC BY-NC-ND 4.0: https://creativecommons.org/licenses/by-nc-nd/4.0/
+Source: https://app.library.bible/content/fd5704b4b8ddef79
+Distribution: https://bible.helloao.org/api/arb_gna/complete.simple.json
+Non-commercial redistribution. Verse strings are unchanged. JSON presentation and Joel/Malachi chapter boundaries follow the application's existing plan keys; source numbering is explained in the reader. Supplements are separately attributed to their actual sources and are not represented as GNA text.
