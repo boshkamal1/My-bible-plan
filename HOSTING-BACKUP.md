@@ -23,3 +23,9 @@ Restore the snapshot to primary when needed (this replaces its published files):
 ```powershell
 firebase hosting:clone bible-plan-boshkamal-20261101:live mybibleplan:live --project bible-plan-boshkamal-20261101 --non-interactive
 ```
+
+## Latest refresh — 2026-11-05
+
+Copied `mybibleplan:live` to `bible-plan-boshkamal-20261101:live` successfully with Firebase Hosting clone. Snapshot release: `20261105-26`, including book selection, per-group toggles, custom drag-and-drop order, reserve-aware plan duration, RTL references and repaired WEB assets. Source commits: `866af75` and `bd43801` on GitHub main.
+
+The clone copies the full published Hosting release. Authentication and Firestore remain shared; it is not an independent user-data backup.
