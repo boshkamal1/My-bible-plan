@@ -81,3 +81,9 @@ Added a five-second Undo action after redistributing chapters. Undo restores the
 All 23 related Flutter tests passed, including five new undo tests. The built Wasm application and the live primary site both passed an isolated browser test for restoration, saved data and expiry, without runtime errors. Evidence: security-audit/redistribute-undo-browser.json.
 
 Cloned the verified live primary release to the secondary site. Both return HTTP 200 with release 35, identical HTML/CSP and application hashes matching the tested build; see hosting-backup-verification.json. No account, database schema, security-rule or billing changes.
+
+## 2026-11-06 — release 20261106-36
+
+Reordered the home page to match the numbered screenshots: daily reading reminder, last-seven-days achievements, verse of the day, then today's readings.
+
+Published release 36 and cloned the primary Hosting release to the secondary site. Both return HTTP 200 and serve identical HTML and CSP; the JavaScript, WebAssembly and download helper hashes match the local build. Evidence: security-audit/hosting-backup-verification.json.

@@ -32,11 +32,11 @@ class HomeScreen extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
             children: [
               DailyReminderCard(onBrowseBooks: onBrowseBooks),
+              const SizedBox(height: 12),
+              _WeekCard(state: s),
               DailyVerseCard(state: s),
               const SizedBox(height: 12),
               _PlanCard(state: s, day: day, readings: readings),
-              const SizedBox(height: 12),
-              _WeekCard(state: s),
             ],
           ),
         ),
