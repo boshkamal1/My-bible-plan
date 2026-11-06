@@ -36,6 +36,7 @@ class AppState extends ChangeNotifier {
   List<String> delays = [];
   List<String> pb = [];
   List<List<String>>? planOverride;
+  int _redistributionRevision = 0;
   Setup? setup;
   int t = 0;
   String? activeUid;
@@ -659,10 +660,27 @@ class AppState extends ChangeNotifier {
   }
 
   /// Redistribute unread chapters (from days <= k, or only the viewed day if [onlyThis]) over days after k.
-  void redistribute(int k, {bool onlyThis = false}) {
-    if (plan == null) return;
+  VoidCallback? redistribute(int k, {bool onlyThis = false}) {
+    if (plan == null || k < 0 || k >= plan!.nDays - 1) return null;
+    final previous = planOverride;
+    final journey = jsonEncode(setup?.toJson());
+    final session = sessionRevision;
+    final revision = ++_redistributionRevision;
     _rebalance(k, onlyThis ? [k] : null);
+    final redistributed = jsonEncode(planOverride);
     touch(recompute: true);
+    return () {
+      // A stale snackbar must not replace a newer plan or another account's data.
+      if (_disposed ||
+          sessionRevision != session ||
+          revision != _redistributionRevision ||
+          jsonEncode(setup?.toJson()) != journey ||
+          jsonEncode(planOverride) != redistributed) {
+        return;
+      }
+      planOverride = previous;
+      touch(recompute: true);
+    };
   }
 
   void _rebalance(int k, List<int>? only) {

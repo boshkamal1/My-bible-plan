@@ -73,3 +73,11 @@ Fixed progress-image downloads: prepare the complete PNG after the screen entran
 Verified real pointer downloads at 575x532 in Wasm and JavaScript fallback, including a live primary download: valid complete 960x1281 PNG, no runtime errors or CSP violations. All 18 existing UI regression tests and 8 JavaScript checks passed. Analyzer has only the existing 64 informational notices.
 
 Cloned the verified primary release to the secondary Hosting site. Both return HTTP 200 and identical release-34 HTML/CSP, with downloads.js, JavaScript and Wasm hashes matching the tested local build. Evidence: security-audit/progress-save-*.json and hosting-backup-verification.json. No database, account, billing or security-rule changes.
+
+## 2026-11-06 — release 20261106-35
+
+Added a five-second Undo action after redistributing chapters. Undo restores the previous chapter distribution while preserving reading progress recorded afterward. Normal cloud synchronization keeps Undo usable; a newer distribution, changed journey or account session cannot be overwritten by a stale action. The message expires and retains the new distribution when ignored.
+
+All 23 related Flutter tests passed, including five new undo tests. The built Wasm application and the live primary site both passed an isolated browser test for restoration, saved data and expiry, without runtime errors. Evidence: security-audit/redistribute-undo-browser.json.
+
+Cloned the verified live primary release to the secondary site. Both return HTTP 200 with release 35, identical HTML/CSP and application hashes matching the tested build; see hosting-backup-verification.json. No account, database schema, security-rule or billing changes.

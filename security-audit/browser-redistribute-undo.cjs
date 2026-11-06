@@ -1,0 +1,25 @@
+const fs=require('fs'),assert=require('assert/strict');
+const {chromium}=require('../flutter_app/rules_tests/node_modules/playwright');
+const target=process.argv[2]||'http://127.0.0.1:8199/?refresh=20261106-35#/?tab=1';
+if(!['127.0.0.1','mybibleplan.web.app'].includes(new URL(target).hostname))throw Error('Unexpected target');
+(async()=>{const browser=await chromium.launch({channel:'chrome',headless:true});try{
+ const page=await browser.newPage({viewport:{width:575,height:532}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.addInitScript(()=>{const date=new Date(),start=[date.getFullYear(),String(date.getMonth()+1).padStart(2,'0'),String(date.getDate()).padStart(2,'0')].join('-');
+ const data={setup:{scope:'all',mode:'seq',days:30,start,first:start,end:null,ot:{b:-1,c:0,p:0},nt:{b:-1,c:0},skip:[],selectedBooks:[0],bookOrder:[],reserveWithinDuration:true},done:{},t:1,plannerVersion:14,plan:null,hist:[],delays:[],pb:[],notes:{},hl:{},fav:[],secs:{},badgeDates:{},groups:[],conflicts:{},settings:{lang:'ar',tr:'svd',fs:20,theme:0,rem:true,risk:true,rh:8,rm:0,welcome:true,name:''}};
+ localStorage.setItem('flutter.jb-v1',JSON.stringify(JSON.stringify(data)));});
+ await page.goto(target);await page.waitForFunction(()=>!document.getElementById('app-loading'));
+ await page.locator('flt-semantics-placeholder').evaluate(e=>e.click());
+ await page.getByText(/التكوين/).first().evaluate(e=>e.click());
+ const redistribute=page.getByText('وزّع الأصحاحات',{exact:true});await redistribute.waitFor({state:'attached'});
+ await redistribute.evaluate(e=>e.click());const undo=page.getByText('تراجع',{exact:true});await undo.waitFor({state:'attached'});
+ await page.waitForFunction(()=>JSON.parse(JSON.parse(localStorage.getItem('flutter.jb-v1'))).plan?.[0]==='');
+ await undo.evaluate(e=>e.click());
+ await page.waitForFunction(()=>JSON.parse(JSON.parse(localStorage.getItem('flutter.jb-v1'))).plan?.[0]?.includes('0:1'));
+ const restored=await page.evaluate(()=>JSON.parse(JSON.parse(localStorage.getItem('flutter.jb-v1'))).plan);
+ await redistribute.evaluate(e=>e.click());await undo.waitFor({state:'attached'});
+ await page.waitForTimeout(5700);assert.equal(await undo.count(),0);
+ const retained=await page.evaluate(()=>JSON.parse(JSON.parse(localStorage.getItem('flutter.jb-v1'))).plan);
+ assert.equal(retained[0],'');assert.notDeepEqual(retained,restored);assert.deepEqual(errors,[]);
+ const proof={target,verifiedAt:new Date().toISOString(),undoRestoresReadings:true,expiresAfterFiveSeconds:true,distributionRetainedAfterExpiry:true,pageErrors:errors,scope:'Isolated synthetic guest data only'};
+ fs.writeFileSync('security-audit/redistribute-undo-browser.json',JSON.stringify(proof,null,2)+'\n');console.log(JSON.stringify(proof));
+}finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1;});

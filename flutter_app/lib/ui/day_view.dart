@@ -87,7 +87,9 @@ class DayView extends StatelessWidget {
                     Expanded(
                       child: Text(
                         '${tr('day')} ${nf(k + 1)} ${tr('of')} ${nf(p.nDays)}',
-                        style: Theme.of(context).textTheme.titleMedium
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
                             ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                     ),
@@ -162,9 +164,8 @@ class DayView extends StatelessWidget {
                       label: Text(
                         incomplete ? tr('markDone') : tr('markUndone'),
                       ),
-                      onPressed: list.isEmpty
-                          ? null
-                          : () => s.markDay(k, incomplete),
+                      onPressed:
+                          list.isEmpty ? null : () => s.markDay(k, incomplete),
                     ),
                   ],
                 ),
@@ -187,9 +188,8 @@ class DayView extends StatelessWidget {
                       icon: const Icon(Icons.shield_outlined),
                       label: Text('${tr('useBuffer')} (${nf(s.bufLeft)})'),
                       onPressed: () {
-                        final ok = isToday
-                            ? s.useBuffer()
-                            : s.usePastBuffer(ds, k);
+                        final ok =
+                            isToday ? s.useBuffer() : s.usePastBuffer(ds, k);
                         if (ok) toast(context, tr('bufferUsed'));
                       },
                     ),
@@ -198,8 +198,19 @@ class DayView extends StatelessWidget {
                       icon: const Icon(Icons.shuffle),
                       label: Text(tr('redistribute')),
                       onPressed: () {
-                        s.redistribute(k);
-                        toast(context, tr('redistributed'));
+                        final undo = s.redistribute(k);
+                        if (undo == null) return;
+                        ScaffoldMessenger.of(context)
+                          ..removeCurrentSnackBar()
+                          ..showSnackBar(SnackBar(
+                            content: Text(tr('redistributed')),
+                            duration: const Duration(seconds: 5),
+                            persist: false,
+                            action: SnackBarAction(
+                              label: tr('undo'),
+                              onPressed: undo,
+                            ),
+                          ));
                       },
                     ),
                 ],
