@@ -1,0 +1,13 @@
+{
+  "target": "https://mybibleplan.web.app/?refresh=20261106-33",
+  "plainExport": true,
+  "filePickerRegistered": true,
+  "restorePreview": true,
+  "cancelPreservedData": true,
+  "restoreCompleted": true,
+  "encryptedRoundTrip": true,
+  "nodeCryptoInteroperability": true,
+  "cspViolations": [],
+  "pageErrors": [],
+  "scope": "Isolated guest with synthetic data; no account writes."
+}

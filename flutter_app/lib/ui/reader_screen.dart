@@ -38,11 +38,13 @@ class _ReaderScreenState extends State<ReaderScreen>
   int _loadRevision = 0;
   final Stopwatch _sw = Stopwatch();
   Timer? _timeTick;
+  Timer? _prefetch;
   ModalRoute<dynamic>? _route;
   bool _routeVisible = true;
   bool _appActive = true;
   final ScrollController _sc = ScrollController();
   late AppState _st;
+  int? _session;
   final Map<int, GlobalKey> _keys = {};
 
   @override
@@ -61,6 +63,7 @@ class _ReaderScreenState extends State<ReaderScreen>
   void didChangeDependencies() {
     super.didChangeDependencies();
     _st = context.read<AppState>();
+    _session ??= _st.sessionRevision;
     final route = ModalRoute.of(context);
     if (route != null && route != _route) {
       if (_route != null) readerRouteObserver.unsubscribe(this);
@@ -71,6 +74,11 @@ class _ReaderScreenState extends State<ReaderScreen>
 
   void _recordTime() {
     final seconds = _sw.elapsed.inSeconds;
+    if (_session != _st.sessionRevision) {
+      _sw.stop();
+      _sw.reset();
+      return;
+    }
     if (seconds > 0) {
       _sw.reset();
       _st.addSeconds(seconds);
@@ -107,6 +115,7 @@ class _ReaderScreenState extends State<ReaderScreen>
   @override
   void dispose() {
     _timeTick?.cancel();
+    _prefetch?.cancel();
     _sw.stop();
     _recordTime();
     readerRouteObserver.unsubscribe(this);
@@ -117,6 +126,7 @@ class _ReaderScreenState extends State<ReaderScreen>
 
   Future<void> _load() async {
     final st = context.read<AppState>();
+    _prefetch?.cancel();
     final revision = ++_loadRevision;
     final book = b, chapter = c;
     final translation = st.translation;
@@ -126,6 +136,23 @@ class _ReaderScreenState extends State<ReaderScreen>
     setState(() {
       text = r;
       loading = false;
+    });
+    // Fetch at most one small chapter after the visible text has rendered.
+    _prefetch = Timer(const Duration(milliseconds: 350), () {
+      if (!mounted ||
+          revision != _loadRevision ||
+          !_routeVisible ||
+          !_appActive ||
+          _session != st.sessionRevision) return;
+      final queue = widget.queue;
+      final index =
+          queue?.indexWhere((x) => x.b == book && x.c == chapter) ?? -1;
+      if (queue != null && index >= 0 && index + 1 < queue.length) {
+        final next = queue[index + 1];
+        unawaited(st.repo.chapter(next.b, next.c, translation));
+      } else if (chapter < bookChapterCount(book, translation)) {
+        unawaited(st.repo.chapter(book, chapter + 1, translation));
+      }
     });
     if (_sc.hasClients) _sc.jumpTo(0);
     final sv = widget.scrollToVerse;
@@ -362,8 +389,7 @@ class _ReaderScreenState extends State<ReaderScreen>
         title: Text(title),
         actions: [
           IconButton(
-            tooltip:
-                gEn ? 'Compare Arabic and English' : 'مقارنة العربي والإنجليزي',
+            tooltip: gEn ? 'Compare translations' : 'مقارنة الترجمات',
             icon: const Icon(Icons.view_column_outlined),
             onPressed: () => Navigator.of(context).push(MaterialPageRoute(
                 builder: (_) => ComparisonScreen(b: b, c: c))),
@@ -456,6 +482,8 @@ class _ReaderScreenState extends State<ReaderScreen>
                           children: [
                             IconButton(
                               icon: const Icon(Icons.chevron_left),
+                              tooltip:
+                                  gEn ? 'Previous chapter' : 'الأصحاح السابق',
                               onPressed: _hasPrev ? () => _go(-1) : null,
                             ),
                             Expanded(
@@ -475,6 +503,7 @@ class _ReaderScreenState extends State<ReaderScreen>
                             ),
                             IconButton(
                               icon: const Icon(Icons.chevron_right),
+                              tooltip: gEn ? 'Next chapter' : 'الأصحاح التالي',
                               onPressed: _hasNext ? () => _go(1) : null,
                             ),
                           ],

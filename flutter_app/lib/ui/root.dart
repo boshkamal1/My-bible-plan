@@ -20,6 +20,7 @@ import 'stats_screen.dart';
 import 'tab_navigation.dart';
 import 'web_home_bar.dart';
 import 'theme.dart';
+import 'sync_conflicts_screen.dart';
 
 class Root extends StatefulWidget {
   const Root({super.key});
@@ -114,22 +115,41 @@ class _RootState extends State<Root> {
         child: Scaffold(
           // Mount only the visible tab. Hidden stats, groups and plan screens
           // otherwise all rebuild on each progress/font/reader-time update.
-          body: PageStorage(
-              bucket: _tabStorage,
-              child: KeyedSubtree(
-                key: PageStorageKey('tab-$_i'),
-                child: switch (_i) {
-                  0 => hasPlan
-                      ? HomeScreen(onBrowseBooks: () => _select(2))
-                      : WelcomeScreen(onBrowseBooks: () => _select(2)),
-                  1 => hasPlan ? const PlanScreen() : const _NoPlan(),
-                  2 => const BooksScreen(),
-                  3 => const StatsScreen(),
-                  4 => const NotesScreen(),
-                  5 => const GroupsScreen(),
-                  _ => const SettingsScreen(),
-                },
-              )),
+          body: Column(children: [
+            if (context.select<AppState, int>((s) => s.syncConflicts.length) >
+                0)
+              SafeArea(
+                  bottom: false,
+                  child: MaterialBanner(
+                      content: Text(gEn
+                          ? 'Different saved versions need your choice.'
+                          : 'في نسخ مختلفة محفوظة محتاجة اختيارك.'),
+                      actions: [
+                        TextButton(
+                            onPressed: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                    builder: (_) =>
+                                        const SyncConflictsScreen())),
+                            child: Text(gEn ? 'Review' : 'مراجعة'))
+                      ])),
+            Expanded(
+                child: PageStorage(
+                    bucket: _tabStorage,
+                    child: KeyedSubtree(
+                      key: PageStorageKey('tab-$_i'),
+                      child: switch (_i) {
+                        0 => hasPlan
+                            ? HomeScreen(onBrowseBooks: () => _select(2))
+                            : WelcomeScreen(onBrowseBooks: () => _select(2)),
+                        1 => hasPlan ? const PlanScreen() : const _NoPlan(),
+                        2 => const BooksScreen(),
+                        3 => const StatsScreen(),
+                        4 => const NotesScreen(),
+                        5 => const GroupsScreen(),
+                        _ => const SettingsScreen(),
+                      },
+                    ))),
+          ]),
           bottomNavigationBar: Material(
             color: Theme.of(context).colorScheme.surfaceContainer,
             child: SafeArea(

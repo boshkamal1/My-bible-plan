@@ -1,0 +1,27 @@
+[
+  {
+    "path": ".env",
+    "status": 404,
+    "looksLikeApp": false
+  },
+  {
+    "path": "firebase-debug.log",
+    "status": 404,
+    "looksLikeApp": false
+  },
+  {
+    "path": ".git/config",
+    "status": 404,
+    "looksLikeApp": false
+  },
+  {
+    "path": "serviceAccount.json",
+    "status": 404,
+    "looksLikeApp": false
+  },
+  {
+    "path": "flutter_app/firestore.rules",
+    "status": 404,
+    "looksLikeApp": false
+  }
+]

@@ -1,0 +1,25 @@
+{
+  "date": "2026-11-05",
+  "release": "20261105-31",
+  "sourceCommit": "dfe275c",
+  "rulesMatchLive": true,
+  "tests": {
+    "firestoreEmulator": 14,
+    "reminders": 34,
+    "dartSecurityAndBackup": 10
+  },
+  "dependencyChecks": {
+    "dartPubPackages": 105,
+    "browserFirebasePackages": 7,
+    "osvMatches": 0,
+    "functionsNpmAffectedPackagesModerate": 7,
+    "rulesTestingNpmAffectedPackagesHigh": 5
+  },
+  "gitPatternScan": {
+    "commits": 46,
+    "uniqueBlobs": 785,
+    "matches": 0
+  },
+  "productionChanges": false,
+  "publicDisclosure": false
+}

@@ -1,0 +1,11 @@
+{
+  "target": "https://mybibleplan.web.app/?refresh=20261106-33",
+  "renderer": "WebAssembly Skwasm",
+  "chapterOpenMs": 414.60020000000077,
+  "prefetchedNextMs": 41.886899999999514,
+  "guestFirebaseDeferred": true,
+  "nextChapterPrefetched": true,
+  "comparisonOpened": true,
+  "cspViolations": [],
+  "pageErrors": []
+}

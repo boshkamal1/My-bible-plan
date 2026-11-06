@@ -1,0 +1,200 @@
+{
+  "target": "https://bible-plan-boshkamal-20261101.web.app/?refresh=20261105-31",
+  "label": "baseline",
+  "viewport": "390x844",
+  "cpuSlowdown": 4,
+  "latencyMs": 150,
+  "downloadBytesPerSecond": 200000,
+  "runs": [
+    {
+      "type": "cold",
+      "firstFrameMs": 19836.300000000047,
+      "encodedNetworkBytes": 2946508,
+      "failedRequests": 0,
+      "cspViolations": [],
+      "pageErrors": [],
+      "resources": [
+        {
+          "host": "www.gstatic.com",
+          "path": "/flutter-canvaskit/425cfb54d01a9472b3e81d9e76fd63a4a44cfbcb/chromium/canvaskit.wasm",
+          "bytes": 1630588
+        },
+        {
+          "host": "bible-plan-boshkamal-20261101.web.app",
+          "path": "/main.dart.js",
+          "bytes": 837277
+        },
+        {
+          "host": "www.gstatic.com",
+          "path": "/firebasejs/11.9.1/firebase-firestore.js",
+          "bytes": 117672
+        },
+        {
+          "host": "accounts.google.com",
+          "path": "/gsi/client",
+          "bytes": 103225
+        },
+        {
+          "host": "fonts.gstatic.com",
+          "path": "/s/notosansarabic/v28/nwpxtLGrOAZMl5nJ_wfgRg3DrWFZWsnVBJ_sS6tlqHHFlhQ5l3sQWIHPqzCfyGyvvnCBFQLaig.woff2",
+          "bytes": 66566
+        },
+        {
+          "host": "fonts.gstatic.com",
+          "path": "/s/roboto/v32/KFOmCnqEu92Fr1Me4GZLCzYlKw.woff2",
+          "bytes": 64024
+        },
+        {
+          "host": "www.gstatic.com",
+          "path": "/firebasejs/11.9.1/firebase-auth.js",
+          "bytes": 43941
+        },
+        {
+          "host": "www.gstatic.com",
+          "path": "/flutter-canvaskit/425cfb54d01a9472b3e81d9e76fd63a4a44cfbcb/chromium/canvaskit.js",
+          "bytes": 24441
+        },
+        {
+          "host": "www.gstatic.com",
+          "path": "/firebasejs/11.9.1/firebase-app.js",
+          "bytes": 23401
+        },
+        {
+          "host": "bible-plan-boshkamal-20261101.web.app",
+          "path": "/icons/icon-192.png",
+          "bytes": 19661
+        },
+        {
+          "host": "bible-plan-boshkamal-20261101.web.app",
+          "path": "/assets/fonts/MaterialIcons-Regular.otf",
+          "bytes": 8639
+        },
+        {
+          "host": "bible-plan-boshkamal-20261101.web.app",
+          "path": "/flutter_bootstrap.js",
+          "bytes": 4005
+        },
+        {
+          "host": "bible-plan-boshkamal-20261101.web.app",
+          "path": "/",
+          "bytes": 1726
+        },
+        {
+          "host": "bible-plan-boshkamal-20261101.web.app",
+          "path": "/push.js",
+          "bytes": 811
+        },
+        {
+          "host": "bible-plan-boshkamal-20261101.web.app",
+          "path": "/assets/FontManifest.json",
+          "bytes": 531
+        },
+        {
+          "host": "bible-plan-boshkamal-20261101.web.app",
+          "path": "/assets/assets/bible/chapters/svd-55-13.json",
+          "bytes": 0
+        },
+        {
+          "host": "fonts.gstatic.com",
+          "path": "/s/notosans/v37/o-0mIpQlx3QUlC5A4PNB6Ryti20_6n1iPHjcz6L1SoM-jCpoiyD9A99Y41P6zHtY.woff2",
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "type": "warm",
+      "firstFrameMs": 4019,
+      "encodedNetworkBytes": 0,
+      "failedRequests": 0,
+      "cspViolations": [],
+      "pageErrors": [],
+      "resources": [
+        {
+          "host": "bible-plan-boshkamal-20261101.web.app",
+          "path": "/",
+          "bytes": 0
+        },
+        {
+          "host": "bible-plan-boshkamal-20261101.web.app",
+          "path": "/push.js",
+          "bytes": 0
+        },
+        {
+          "host": "bible-plan-boshkamal-20261101.web.app",
+          "path": "/flutter_bootstrap.js",
+          "bytes": 0
+        },
+        {
+          "host": "www.gstatic.com",
+          "path": "/flutter-canvaskit/425cfb54d01a9472b3e81d9e76fd63a4a44cfbcb/chromium/canvaskit.wasm",
+          "bytes": 0
+        },
+        {
+          "host": "www.gstatic.com",
+          "path": "/flutter-canvaskit/425cfb54d01a9472b3e81d9e76fd63a4a44cfbcb/chromium/canvaskit.js",
+          "bytes": 0
+        },
+        {
+          "host": "bible-plan-boshkamal-20261101.web.app",
+          "path": "/main.dart.js",
+          "bytes": 0
+        },
+        {
+          "host": "bible-plan-boshkamal-20261101.web.app",
+          "path": "/assets/FontManifest.json",
+          "bytes": 0
+        },
+        {
+          "host": "bible-plan-boshkamal-20261101.web.app",
+          "path": "/icons/icon-192.png",
+          "bytes": 0
+        },
+        {
+          "host": "bible-plan-boshkamal-20261101.web.app",
+          "path": "/assets/fonts/MaterialIcons-Regular.otf",
+          "bytes": 0
+        },
+        {
+          "host": "fonts.gstatic.com",
+          "path": "/s/roboto/v32/KFOmCnqEu92Fr1Me4GZLCzYlKw.woff2",
+          "bytes": 0
+        },
+        {
+          "host": "accounts.google.com",
+          "path": "/gsi/client",
+          "bytes": 0
+        },
+        {
+          "host": "www.gstatic.com",
+          "path": "/firebasejs/11.9.1/firebase-app.js",
+          "bytes": 0
+        },
+        {
+          "host": "www.gstatic.com",
+          "path": "/firebasejs/11.9.1/firebase-firestore.js",
+          "bytes": 0
+        },
+        {
+          "host": "www.gstatic.com",
+          "path": "/firebasejs/11.9.1/firebase-auth.js",
+          "bytes": 0
+        },
+        {
+          "host": "bible-plan-boshkamal-20261101.web.app",
+          "path": "/assets/assets/bible/chapters/svd-55-13.json",
+          "bytes": 0
+        },
+        {
+          "host": "fonts.gstatic.com",
+          "path": "/s/notosansarabic/v28/nwpxtLGrOAZMl5nJ_wfgRg3DrWFZWsnVBJ_sS6tlqHHFlhQ5l3sQWIHPqzCfyGyvvnCBFQLaig.woff2",
+          "bytes": 0
+        },
+        {
+          "host": "fonts.gstatic.com",
+          "path": "/s/notosans/v37/o-0mIpQlx3QUlC5A4PNB6Ryti20_6n1iPHjcz6L1SoM-jCpoiyD9A99Y41P6zHtY.woff2",
+          "bytes": 0
+        }
+      ]
+    }
+  ]
+}

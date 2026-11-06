@@ -2,8 +2,8 @@
 {{flutter_build_config}}
 
 for (const build of _flutter.buildConfig.builds) {
-  if (build.mainJsPath === 'main.dart.js') {
-    build.mainJsPath = 'main.dart.js?v=20261105-31';
+  for (const field of ['mainJsPath', 'mainWasmPath', 'jsSupportRuntimePath']) {
+    if (build[field]) build[field] += '?v=20261106-33';
   }
 }
 
@@ -20,6 +20,7 @@ const slowLoadingTimer = setTimeout(() => loadingScreen?.classList.add('slow'), 
 window.addEventListener('flutter-first-frame', finishLoading, {once: true});
 
 _flutter.loader.load({
+  config: {forceSingleThreadedSkwasm: true},
   onEntrypointLoaded: async function (engineInitializer) {
     try {
       const appRunner = await engineInitializer.initializeEngine();
@@ -39,8 +40,8 @@ if ('serviceWorker' in navigator) {
     // The first worker already serves this release. Avoid reloading the app
     // a second time on a first visit; reload only when upgrading an old worker.
     if (!wasControlledAtLoad) return;
-    if (sessionStorage.getItem('bible-pwa-refreshed-v31') !== 'yes') {
-      sessionStorage.setItem('bible-pwa-refreshed-v31', 'yes');
+    if (sessionStorage.getItem('bible-pwa-refreshed-v33') !== 'yes') {
+      sessionStorage.setItem('bible-pwa-refreshed-v33', 'yes');
       location.reload();
     }
   });

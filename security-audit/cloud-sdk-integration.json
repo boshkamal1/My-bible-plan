@@ -1,0 +1,13 @@
+{
+  "release": "20261106-33",
+  "project": "demo-bible-integration",
+  "backend": "localhost Auth + Firestore emulators only",
+  "realReleaseApp": true,
+  "initialSync": true,
+  "typedTimestampPull": true,
+  "unchangedPullDidNotWrite": true,
+  "subsequentLocalEditSynced": true,
+  "finalRevision": 3,
+  "productionApiRequests": 0,
+  "verifiedAt": "2026-11-06T10:50:44.347Z"
+}

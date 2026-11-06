@@ -1,0 +1,200 @@
+{
+  "target": "https://mybibleplan.web.app/?refresh=20261105-32",
+  "label": "after",
+  "viewport": "390x844",
+  "cpuSlowdown": 4,
+  "latencyMs": 150,
+  "downloadBytesPerSecond": 200000,
+  "runs": [
+    {
+      "type": "cold",
+      "firstFrameMs": 16421.300000000047,
+      "encodedNetworkBytes": 2486570,
+      "failedRequests": 0,
+      "cspViolations": [],
+      "pageErrors": [],
+      "resources": [
+        {
+          "host": "www.gstatic.com",
+          "path": "/flutter-canvaskit/425cfb54d01a9472b3e81d9e76fd63a4a44cfbcb/skwasm.wasm",
+          "bytes": 1208411
+        },
+        {
+          "host": "mybibleplan.web.app",
+          "path": "/main.dart.wasm",
+          "bytes": 990857
+        },
+        {
+          "host": "accounts.google.com",
+          "path": "/gsi/client",
+          "bytes": 103195
+        },
+        {
+          "host": "fonts.gstatic.com",
+          "path": "/s/notosansarabic/v28/nwpxtLGrOAZMl5nJ_wfgRg3DrWFZWsnVBJ_sS6tlqHHFlhQ5l3sQWIHPqzCfyGyvvnCBFQLaig.woff2",
+          "bytes": 66566
+        },
+        {
+          "host": "fonts.gstatic.com",
+          "path": "/s/roboto/v32/KFOmCnqEu92Fr1Me4GZLCzYlKw.woff2",
+          "bytes": 64024
+        },
+        {
+          "host": "mybibleplan.web.app",
+          "path": "/icons/icon-192.png",
+          "bytes": 20335
+        },
+        {
+          "host": "www.gstatic.com",
+          "path": "/flutter-canvaskit/425cfb54d01a9472b3e81d9e76fd63a4a44cfbcb/skwasm.js",
+          "bytes": 15052
+        },
+        {
+          "host": "mybibleplan.web.app",
+          "path": "/main.dart.mjs",
+          "bytes": 9845
+        },
+        {
+          "host": "mybibleplan.web.app",
+          "path": "/flutter_bootstrap.js",
+          "bytes": 4097
+        },
+        {
+          "host": "mybibleplan.web.app",
+          "path": "/",
+          "bytes": 2236
+        },
+        {
+          "host": "mybibleplan.web.app",
+          "path": "/push.js",
+          "bytes": 770
+        },
+        {
+          "host": "mybibleplan.web.app",
+          "path": "/firebase_loader.js",
+          "bytes": 481
+        },
+        {
+          "host": "mybibleplan.web.app",
+          "path": "/app_shell.js",
+          "bytes": 356
+        },
+        {
+          "host": "mybibleplan.web.app",
+          "path": "/downloads.js",
+          "bytes": 345
+        },
+        {
+          "host": "mybibleplan.web.app",
+          "path": "/assets/FontManifest.json",
+          "bytes": 0
+        },
+        {
+          "host": "mybibleplan.web.app",
+          "path": "/assets/fonts/MaterialIcons-Regular.otf",
+          "bytes": 0
+        },
+        {
+          "host": "mybibleplan.web.app",
+          "path": "/assets/assets/bible/chapters/svd-55-13.json",
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "type": "warm",
+      "firstFrameMs": 3233.8000000000466,
+      "encodedNetworkBytes": 0,
+      "failedRequests": 0,
+      "cspViolations": [],
+      "pageErrors": [],
+      "resources": [
+        {
+          "host": "mybibleplan.web.app",
+          "path": "/",
+          "bytes": 0
+        },
+        {
+          "host": "mybibleplan.web.app",
+          "path": "/downloads.js",
+          "bytes": 0
+        },
+        {
+          "host": "mybibleplan.web.app",
+          "path": "/firebase_loader.js",
+          "bytes": 0
+        },
+        {
+          "host": "mybibleplan.web.app",
+          "path": "/app_shell.js",
+          "bytes": 0
+        },
+        {
+          "host": "mybibleplan.web.app",
+          "path": "/push.js",
+          "bytes": 0
+        },
+        {
+          "host": "mybibleplan.web.app",
+          "path": "/flutter_bootstrap.js",
+          "bytes": 0
+        },
+        {
+          "host": "www.gstatic.com",
+          "path": "/flutter-canvaskit/425cfb54d01a9472b3e81d9e76fd63a4a44cfbcb/skwasm.wasm",
+          "bytes": 0
+        },
+        {
+          "host": "www.gstatic.com",
+          "path": "/flutter-canvaskit/425cfb54d01a9472b3e81d9e76fd63a4a44cfbcb/skwasm.js",
+          "bytes": 0
+        },
+        {
+          "host": "mybibleplan.web.app",
+          "path": "/main.dart.mjs",
+          "bytes": 0
+        },
+        {
+          "host": "mybibleplan.web.app",
+          "path": "/icons/icon-192.png",
+          "bytes": 0
+        },
+        {
+          "host": "mybibleplan.web.app",
+          "path": "/main.dart.wasm",
+          "bytes": 0
+        },
+        {
+          "host": "mybibleplan.web.app",
+          "path": "/assets/FontManifest.json",
+          "bytes": 0
+        },
+        {
+          "host": "mybibleplan.web.app",
+          "path": "/assets/fonts/MaterialIcons-Regular.otf",
+          "bytes": 0
+        },
+        {
+          "host": "fonts.gstatic.com",
+          "path": "/s/roboto/v32/KFOmCnqEu92Fr1Me4GZLCzYlKw.woff2",
+          "bytes": 0
+        },
+        {
+          "host": "accounts.google.com",
+          "path": "/gsi/client",
+          "bytes": 0
+        },
+        {
+          "host": "mybibleplan.web.app",
+          "path": "/assets/assets/bible/chapters/svd-55-13.json",
+          "bytes": 0
+        },
+        {
+          "host": "fonts.gstatic.com",
+          "path": "/s/notosansarabic/v28/nwpxtLGrOAZMl5nJ_wfgRg3DrWFZWsnVBJ_sS6tlqHHFlhQ5l3sQWIHPqzCfyGyvvnCBFQLaig.woff2",
+          "bytes": 0
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "legacyGroups": 1,
+  "validatedUserSnapshots": 16,
+  "plannedWrites": 5,
+  "sourceDocuments": 18,
+  "backupSha256": "fbf2f2b52858f2b70c0a32d6da46a8ae61f81bdb71faeaf4b840d52a7260da43",
+  "applied": true,
+  "appliedAt": "2026-11-06T10:07:39.088Z",
+  "preconditions": "All updates require the backed-up updateTime; new paths require nonexistence."
+}

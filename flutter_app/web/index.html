@@ -13,6 +13,8 @@
     <link rel="manifest" href="manifest.json" />
     <link rel="icon" type="image/png" href="icons/icon-192.png" />
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <title>رحلة الكتاب المقدس</title>
     <style>
       #app-loading { position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center; background: #101827; color: #f5eee1; font-family: system-ui, sans-serif; text-align: center; transition: opacity .3s ease; }
@@ -31,36 +33,20 @@
     </style>
   </head>
   <body>
-    <script>
-      function downloadBibleBackup(text, filename) {
-        const url = URL.createObjectURL(new Blob([text], {type: 'application/json;charset=utf-8'}));
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        setTimeout(() => URL.revokeObjectURL(url), 60000);
-      }
-      function downloadProgressImage(data) {
-        const link = document.createElement('a');
-        link.href = data;
-        link.download = 'bible-plan-progress.png';
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-      }
-    </script>
+
     <div id="app-loading" role="status" aria-live="polite">
       <div class="loading-content">
         <div class="loading-book" aria-hidden="true">✦</div>
         <div class="loading-title">رحلة الكتاب المقدس</div>
         <div class="loading-caption">بنجهّز قراءاتك...</div>
         <div class="loading-track" aria-hidden="true"></div>
-        <button class="loading-retry" onclick="location.reload()">إعادة المحاولة</button>
+        <button class="loading-retry" id="loading-retry">إعادة المحاولة</button>
       </div>
     </div>
-    <script src="push.js?v=20261105-31" defer></script>
-    <script src="flutter_bootstrap.js?v=20261105-31" defer></script>
+    <script src="downloads.js?v=20261106-33" defer></script>
+    <script src="firebase_loader.js?v=20261106-33" defer></script>
+    <script src="app_shell.js?v=20261106-33" defer></script>
+    <script src="push.js?v=20261106-33" defer></script>
+    <script src="flutter_bootstrap.js?v=20261106-33" defer></script>
   </body>
 </html>

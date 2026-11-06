@@ -1,0 +1,10 @@
+{
+  "backupSha256": "fbf2f2b52858f2b70c0a32d6da46a8ae61f81bdb71faeaf4b840d52a7260da43",
+  "verifiedFirestoreDocuments": 18,
+  "authRecordsIntegrityChecked": 16,
+  "authConfigPresent": true,
+  "firestoreRestoreVerified": true,
+  "authImportExecuted": false,
+  "target": "local demo-bible-restore only",
+  "authHashRecoveryParametersPresent": true
+}

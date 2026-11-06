@@ -1,0 +1,16 @@
+{
+  "status": 200,
+  "authorizedDomains": [
+    "localhost",
+    "bible-plan-boshkamal-20261101.firebaseapp.com",
+    "bible-plan-boshkamal-20261101.web.app",
+    "mybibleplan.web.app"
+  ],
+  "signIn": {
+    "emailEnabled": true,
+    "passwordRequired": true
+  },
+  "emailPrivacyConfig": {
+    "enableImprovedEmailPrivacy": true
+  }
+}

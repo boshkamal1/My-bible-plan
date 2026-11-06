@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'books.dart';
 import 'day_util.dart';
+import 'setup_validation.dart';
 
 class Setup {
   final String scope;
@@ -230,6 +231,7 @@ class PlanData {
 }
 
 PlanData buildPlan(Setup su, {bool legacyEsther = false}) {
+  validateSetupMap(su.toJson());
   final sc = su.scope;
   final start = parseDay(su.start);
   final first = parseDay(su.first);
@@ -493,8 +495,9 @@ List<List<String>> rebalanceDays({
     out[j].addAll(pp.sublist(i > 0 ? pcut[i - 1] : 0, pcut[i]));
     out[j].addAll(ci.sublist(i > 0 ? c[i - 1] : 0, c[i]).expand((e) => e));
   }
-  if (p.setup.bookOrder.isEmpty) _balanceDailyRows(out.sublist(lastFrozen + 1), pc.length + pp.length >= m,
-      movable: (chapter) => !isDone(chapter.key));
+  if (p.setup.bookOrder.isEmpty)
+    _balanceDailyRows(out.sublist(lastFrozen + 1), pc.length + pp.length >= m,
+        movable: (chapter) => !isDone(chapter.key));
   for (final d in out) {
     sortChaps(d, ord, custom: p.setup.bookOrder.isNotEmpty);
   }

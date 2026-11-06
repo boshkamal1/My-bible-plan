@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'ui/route_observer.dart';
@@ -8,6 +9,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/i18n.dart';
 import 'services/cloud.dart';
+import 'services/startup_auth_stub.dart'
+    if (dart.library.js_interop) 'services/startup_auth_web.dart';
 import 'services/notifications.dart';
 import 'services/widget_sync.dart';
 import 'state/app_state.dart';
@@ -19,7 +22,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
   final state = AppState(prefs)..load();
-  final cloud = Cloud();
+  final cloud = Cloud(state: state);
   if (!kIsWeb) await Notifier.init();
   state.afterChange = (s) {
     if (!kIsWeb) {
@@ -37,8 +40,16 @@ Future<void> main() async {
       child: const App(),
     ),
   );
-  await cloud.init();
-  if (cloud.signedIn) cloud.sync(state);
+  Future<void> restoreCloud() async {
+    if (!kIsWeb ||
+        prefs.getBool('cloud-used') == true ||
+        await hasSavedCloudSession()) {
+      await cloud.init(state);
+    }
+  }
+
+  WidgetsBinding.instance
+      .addPostFrameCallback((_) => unawaited(restoreCloud()));
   if (!kIsWeb) {
     Notifier.reschedule(state);
     WidgetSync.update(state);
@@ -52,7 +63,8 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> with WidgetsBindingObserver {
-  final _navigatorKey = GlobalKey<NavigatorState>();
+  var _navigatorKey = GlobalKey<NavigatorState>();
+  int? _profileSession;
   @override
   void initState() {
     super.initState();
@@ -76,7 +88,7 @@ class _AppState extends State<App> with WidgetsBindingObserver {
       final st = context.read<AppState>();
       st.refreshToday();
       final c = context.read<Cloud>();
-      if (c.signedIn) c.sync(st);
+      if (c.signedIn) c.sync(st, force: true);
     }
   }
 
@@ -104,8 +116,13 @@ class _AppState extends State<App> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    context.select<AppState, (String, int)>((s) => (s.lang, s.themeMode));
+    context.select<AppState, (String, int, int)>(
+        (s) => (s.lang, s.themeMode, s.sessionRevision));
     final s = context.read<AppState>();
+    if (_profileSession != null && _profileSession != s.sessionRevision) {
+      _navigatorKey = GlobalKey<NavigatorState>();
+    }
+    _profileSession = s.sessionRevision;
     gEn = s.en;
     return MaterialApp(
       navigatorKey: _navigatorKey,

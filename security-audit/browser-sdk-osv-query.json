@@ -1,0 +1,53 @@
+{
+  "queries": [
+    {
+      "version": "11.9.1",
+      "package": {
+        "ecosystem": "npm",
+        "name": "firebase"
+      }
+    },
+    {
+      "version": "0.13.1",
+      "package": {
+        "ecosystem": "npm",
+        "name": "@firebase/app"
+      }
+    },
+    {
+      "version": "1.10.7",
+      "package": {
+        "ecosystem": "npm",
+        "name": "@firebase/auth"
+      }
+    },
+    {
+      "version": "4.7.17",
+      "package": {
+        "ecosystem": "npm",
+        "name": "@firebase/firestore"
+      }
+    },
+    {
+      "version": "0.4.1",
+      "package": {
+        "ecosystem": "npm",
+        "name": "@firebase/app-compat"
+      }
+    },
+    {
+      "version": "0.5.27",
+      "package": {
+        "ecosystem": "npm",
+        "name": "@firebase/auth-compat"
+      }
+    },
+    {
+      "version": "0.3.52",
+      "package": {
+        "ecosystem": "npm",
+        "name": "@firebase/firestore-compat"
+      }
+    }
+  ]
+}

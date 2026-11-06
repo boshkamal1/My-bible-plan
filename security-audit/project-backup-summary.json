@@ -1,0 +1,13 @@
+{
+  "project": "bible-plan-boshkamal-20261101",
+  "createdAt": "2026-11-06T09:45:09.115Z",
+  "version": 1,
+  "file": "C:\\Users\\boshk\\AppData\\Local\\MyBiblePlan\\Backups\\2026-11-06T09-45-07-568Z.bpbak",
+  "sha256": "fbf2f2b52858f2b70c0a32d6da46a8ae61f81bdb71faeaf4b840d52a7260da43",
+  "documents": 18,
+  "missingParents": 0,
+  "users": 16,
+  "passwordHashes": 12,
+  "integrityVerified": true,
+  "keyProtection": "Windows DPAPI CurrentUser; separate from exported file"
+}

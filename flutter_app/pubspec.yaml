@@ -24,6 +24,9 @@ dependencies:
   firebase_auth: ^5.3.1
   google_sign_in: ^6.2.2
   cloud_firestore: ^5.4.4
+  cryptography: ^2.9.0
+  crypto: ^3.0.8
+  firebase_app_check: 0.3.2+10
 
 dev_dependencies:
   file_selector_platform_interface: ^2.7.0

@@ -11,6 +11,7 @@ import '../core/day_util.dart';
 import '../core/i18n.dart';
 import '../core/translations.dart';
 import '../core/planner.dart';
+import '../core/sync_merge.dart';
 
 const String _kKey = 'jb-v1';
 
@@ -37,6 +38,25 @@ class AppState extends ChangeNotifier {
   List<List<String>>? planOverride;
   Setup? setup;
   int t = 0;
+  String? activeUid;
+  int sessionRevision = 0;
+  String? dataError;
+  bool _guestAvailable = false;
+  Map<String, dynamic> syncBase = {};
+  Map<String, String> syncConflicts = {};
+  String get storageKey => activeUid == null ? _kKey : 'jb-v2:user:$activeUid';
+  Map<String, dynamic> get _defaultSettings => {
+        'lang': 'ar',
+        'tr': 'svd',
+        'fs': 20.0,
+        'theme': 0,
+        'rem': true,
+        'risk': true,
+        'rh': 8,
+        'rm': 0,
+        'welcome': false,
+        'name': '',
+      };
   Map<String, String> notes = {};
   Map<String, int> hl = {};
   Set<String> fav = {};
@@ -81,17 +101,22 @@ class AppState extends ChangeNotifier {
   bool get en => lang == 'en';
 
   void load() {
-    final raw = prefs.getString(_kKey);
+    final raw = prefs.getString(storageKey);
     if (raw != null) {
       try {
         _fromMap(jsonDecode(raw) as Map<String, dynamic>, withSettings: true);
-      } catch (_) {}
+      } catch (_) {
+        dataError = 'invalid-local-data';
+        prefs.setString('$storageKey:rejected', raw);
+      }
     }
     gEn = en;
     _recompute();
   }
 
   void _fromMap(Map<String, dynamic> j, {required bool withSettings}) {
+    j = DataBackup.normalizeState(j, settings: _defaultSettings);
+    syncConflicts = Map<String, String>.from(j['conflicts'] ?? {});
     done = ((j['done'] as Map?) ?? {}).map(
       (k, v) => MapEntry(k as String, v as String),
     );
@@ -152,7 +177,12 @@ class AppState extends ChangeNotifier {
         'delays': delays,
         'pb': pb,
         // Firestore does not allow nested arrays; store each day as a comma string.
-        'plan': planOverride?.map((d) => d.join(',')).toList(),
+        'plan': setup == null
+            ? null
+            : (planOverride ??
+                    days.map((d) => d.map((c) => c.key).toList()).toList())
+                .map((d) => d.join(','))
+                .toList(),
         'plannerVersion': 14,
         'setup': setup?.toJson(),
         't': t,
@@ -161,6 +191,7 @@ class AppState extends ChangeNotifier {
         'fav': fav.toList(),
         'secs': secs,
         'badgeDates': badgeDates,
+        'conflicts': syncConflicts,
         if (!cloud) ...{
           'groups': groupCodes,
           'settings': {
@@ -188,6 +219,7 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> restoreBackup(DataBackup backup) async {
+    final session = sessionRevision, key = storageKey;
     // Revalidate a copy: callers cannot mutate a preview and bypass validation.
     final checked = DataBackup.decode(DataBackup.encode(backup.data));
     final candidate = AppState(prefs);
@@ -200,7 +232,8 @@ class AppState extends ChangeNotifier {
       final snapshot = candidate.toMap();
       // Persist first. A failed file or failed write leaves the current state intact.
       _saveDeb?.cancel();
-      final saved = await prefs.setString(_kKey, jsonEncode(snapshot));
+      final saved = await prefs.setString(key, jsonEncode(snapshot));
+      if (session != sessionRevision) throw StateError('account-changed');
       if (!saved) {
         _persist();
         throw StateError('Could not save backup');
@@ -215,48 +248,174 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  /// Applies a cloud snapshot if it is newer. Returns true when applied.
+  /// A malformed snapshot is rejected before any live fields are changed.
   bool applyRemote(Map<String, dynamic> j) {
-    final rt = (j['t'] as num?)?.toInt() ?? 0;
-    if (rt <= t) return false;
-    final groups = groupCodes;
-    final keep = {
+    try {
+      final remote = DataBackup.normalizeState(j, settings: _defaultSettings);
+      final base =
+          DataBackup.normalizeState(syncBase, settings: _defaultSettings);
+      final local = DataBackup.normalizeState(toMap(cloud: true),
+          settings: _defaultSettings);
+      final merged = mergeReading(base, local, remote);
+      _fromMap(merged, withSettings: false);
+      syncBase = remote;
+      _recompute();
+      _persist();
+      notifyListeners();
+      return true;
+    } catch (_) {
+      dataError = 'invalid-remote-data';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<void> flush() async {
+    _saveDeb?.cancel();
+    if (!await prefs.setString(storageKey, jsonEncode(toMap()))) {
+      throw StateError('Could not save local profile');
+    }
+  }
+
+  Future<void> switchAccount(String? uid) async {
+    if (activeUid == uid) return;
+    await flush();
+    _deb?.cancel();
+    _saveDeb?.cancel();
+    sessionRevision++;
+    final settings = {
+      ..._defaultSettings,
       'lang': lang,
       'tr': translation,
       'fs': fontSize,
-      'theme': themeMode,
-      'rem': remindOn,
-      'risk': riskOn,
-      'rh': remindH,
-      'rm': remindM,
-      'welcome': seenWelcome,
-      'name': displayName,
+      'theme': themeMode
     };
-    final localBadges = Map<String, String>.from(badgeDates);
-    _fromMap(j, withSettings: false);
-    badgeDates = {...localBadges, ...badgeDates};
-    groupCodes = groups;
-    lang = keep['lang'] as String;
-    translation = keep['tr'] as String;
-    fontSize = keep['fs'] as double;
-    themeMode = keep['theme'] as int;
-    remindOn = keep['rem'] as bool;
-    riskOn = keep['risk'] as bool;
-    remindH = keep['rh'] as int;
-    remindM = keep['rm'] as int;
-    seenWelcome = keep['welcome'] as bool;
-    displayName = keep['name'] as String;
+    activeUid = uid;
+    syncBase = {};
+    dataError = null;
+    Map<String, dynamic> snapshot = {'settings': settings};
+    final raw = prefs.getString(storageKey);
+    if (raw != null) {
+      try {
+        snapshot =
+            DataBackup.normalizeState(jsonDecode(raw), settings: settings);
+      } catch (_) {
+        dataError = 'invalid-local-data';
+        await prefs.setString('$storageKey:rejected', raw);
+      }
+    }
+    _fromMap(snapshot, withSettings: true);
+    _guestAvailable = _checkGuestData();
+    final base = prefs.getString('$storageKey:base');
+    if (base != null) {
+      try {
+        syncBase = DataBackup.normalizeState(jsonDecode(base),
+            settings: _defaultSettings);
+      } catch (_) {
+        dataError = 'invalid-sync-base';
+      }
+    }
     _recompute();
-    _persist();
+    gEn = en;
+    notifyListeners();
+  }
+
+  bool get hasGuestData => activeUid != null && _guestAvailable;
+
+  bool _checkGuestData() {
+    if (activeUid == null) return false;
+    final raw = prefs.getString(_kKey);
+    if (raw == null) return false;
+    try {
+      final j = DataBackup.normalizeState(jsonDecode(raw),
+          settings: _defaultSettings);
+      return j['setup'] != null ||
+          (j['done'] as Map).isNotEmpty ||
+          (j['notes'] as Map).isNotEmpty ||
+          (j['fav'] as List).isNotEmpty;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> importGuest() async {
+    if (!hasGuestData) return;
+    final revision = sessionRevision;
+    final guest = DataBackup.normalizeState(jsonDecode(prefs.getString(_kKey)!),
+        settings: _defaultSettings);
+    final empty = DataBackup.normalizeState({}, settings: _defaultSettings);
+    final merged = mergeReading(empty, toMap(cloud: true), guest);
+    _fromMap(merged, withSettings: false);
+    _recompute();
+    await flush();
+    if (revision != sessionRevision) return;
+    await prefs.remove(_kKey);
+    _guestAvailable = false;
     notifyListeners();
     _scheduleAfter();
-    return true;
+  }
+
+  Future<void> acceptSynced(
+      Map<String, dynamic> sent, Map<String, dynamic> server,
+      {String? expectedUid, int? expectedSession}) async {
+    if ((expectedUid != null && expectedUid != activeUid) ||
+        (expectedSession != null && expectedSession != sessionRevision)) return;
+    final revision = sessionRevision, key = storageKey;
+    final current = DataBackup.normalizeState(toMap(cloud: true),
+        settings: _defaultSettings);
+    final merged = mergeReading(sent, current, server);
+    _fromMap(merged, withSettings: false);
+    syncBase = jsonDecode(jsonEncode(server));
+    await prefs.setString('$key:base', jsonEncode(syncBase));
+    if (revision != sessionRevision) return;
+    _recompute();
+    await flush();
+    notifyListeners();
+  }
+
+  void resolveConflict(String id, int version) {
+    final record = jsonDecode(syncConflicts[id]!);
+    final value = (record['versions'] as List)[version];
+    final field = record['field'] as String, key = record['key'] as String;
+    final snapshot = jsonDecode(jsonEncode(toMap())) as Map<String, dynamic>;
+    if (field == 'journey') {
+      snapshot.addAll(Map<String, dynamic>.from(value));
+    } else {
+      final map = snapshot[field] as Map;
+      if (value == null) {
+        map.remove(key);
+      } else {
+        map[key] = value;
+      }
+    }
+    (snapshot['conflicts'] as Map).remove(id);
+    _fromMap(snapshot, withSettings: true);
+    touch(recompute: true);
+  }
+
+  Future<void> forgetDeletedAccount(String uid) async {
+    _deb?.cancel();
+    _saveDeb?.cancel();
+    await prefs.remove('jb-v2:user:$uid');
+    await prefs.remove('jb-v2:user:$uid:base');
+    if (activeUid == uid) {
+      activeUid = null;
+      sessionRevision++;
+      syncBase = {};
+      final raw = prefs.getString(_kKey);
+      _fromMap(raw == null ? {} : jsonDecode(raw), withSettings: true);
+      _recompute();
+      notifyListeners();
+    }
   }
 
   void _persist() {
     _saveDeb?.cancel();
+    final key = storageKey;
+    final revision = sessionRevision;
     _saveDeb = Timer(const Duration(milliseconds: 250), () {
-      prefs.setString(_kKey, jsonEncode(toMap()));
+      if (!_disposed && revision == sessionRevision)
+        prefs.setString(key, jsonEncode(toMap()));
     });
   }
 
@@ -559,7 +718,8 @@ class AppState extends ChangeNotifier {
     groupCodes = [];
     t = DateTime.now().millisecondsSinceEpoch;
     _recompute();
-    await prefs.remove(_kKey);
+    syncConflicts = {};
+    await flush();
     notifyListeners();
     _scheduleAfter();
   }

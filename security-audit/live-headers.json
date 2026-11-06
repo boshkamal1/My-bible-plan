@@ -1,0 +1,30 @@
+[
+  {
+    "url": "https://mybibleplan.web.app/",
+    "status": 200,
+    "headers": {
+      "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+      "Strict-Transport-Security": "max-age=31556926; includeSubDomains; preload",
+      "Cache-Control": "max-age=3600",
+      "X-Content-Type-Options": "nosniff",
+      "X-Frame-Options": "SAMEORIGIN",
+      "Content-Security-Policy": "object-src 'none'; base-uri 'self'; frame-ancestors 'self'",
+      "Referrer-Policy": "strict-origin-when-cross-origin"
+    },
+    "release31": true
+  },
+  {
+    "url": "https://bible-plan-boshkamal-20261101.web.app/",
+    "status": 200,
+    "headers": {
+      "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+      "Strict-Transport-Security": "max-age=31556926; includeSubDomains; preload",
+      "Cache-Control": "max-age=3600",
+      "X-Content-Type-Options": "nosniff",
+      "X-Frame-Options": "SAMEORIGIN",
+      "Content-Security-Policy": "object-src 'none'; base-uri 'self'; frame-ancestors 'self'",
+      "Referrer-Policy": "strict-origin-when-cross-origin"
+    },
+    "release31": true
+  }
+]

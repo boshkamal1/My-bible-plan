@@ -1,0 +1,47 @@
+{
+  "release": "20261106-33",
+  "date": "2026-11-06",
+  "tests": {
+    "flutter": 68,
+    "firestoreEmulator": 15,
+    "javascript": 14,
+    "functionsNode22": 34
+  },
+  "staticAnalysis": {
+    "errors": 0,
+    "warnings": 0,
+    "infos": 64
+  },
+  "dependencyAdvisories": {
+    "functionsNpm": 0,
+    "rulesTestsNpm": 0,
+    "pubOsv": 0,
+    "pubPackages": 109
+  },
+  "appCheck": {
+    "enforcement": "UNENFORCED",
+    "realTokenIssued": true,
+    "billingEnabled": false
+  },
+  "backup": {
+    "encryptedIndependentSnapshot": true,
+    "firestoreRestoreVerified": true,
+    "authImportExecuted": false
+  },
+  "deploymentVerified": true,
+  "hostingBackupVerified": true,
+  "notes": [
+    "Browser smoke uses isolated synthetic guest data.",
+    "Real Google sign-in and real account deletion were not performed.",
+    "Static analysis infos are style guidance, not errors or warnings."
+  ],
+  "liveRulesMatch": true,
+  "groupMigrationVerified": true,
+  "performanceComparison": "performance-comparison.json",
+  "liveBackupRoundTripVerified": true,
+  "checkedAt": "2026-11-06T10:22:37.859Z",
+  "sdkIntegration": "cloud-sdk-integration.json",
+  "timestampMetadataRegression": true,
+  "sourceChangeAfterPerformanceMeasurement": "Release 33 fixes typed Firestore metadata; release 32 startup optimization measurements are retained.",
+  "realCloudSdkRepeatedSyncVerified": true
+}

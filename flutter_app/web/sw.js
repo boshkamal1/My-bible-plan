@@ -1,5 +1,5 @@
-const CACHE = 'bible-journey-flutter-v31';
-const CORE = ['./', 'index.html', 'manifest.json', 'flutter_bootstrap.js', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-512.png'];
+const CACHE = 'bible-journey-flutter-v33';
+const CORE = ['./', 'index.html', 'manifest.json', 'flutter_bootstrap.js', 'app_shell.js', 'firebase_loader.js', 'downloads.js', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-512.png'];
 
 self.addEventListener('push', (event) => {
   let message = {};
@@ -39,7 +39,7 @@ self.addEventListener('fetch', (event) => {
 
   // Never cache Firebase Auth helper responses or user/account endpoints.
   const staticAsset = /^\/(assets|canvaskit|icons)\//.test(url.pathname) ||
-    ['/main.dart.js', '/flutter.js', '/flutter_bootstrap.js', '/push.js', '/manifest.json'].includes(url.pathname);
+    ['/main.dart.js', '/main.dart.wasm', '/main.dart.mjs', '/app_shell.js', '/firebase_loader.js', '/downloads.js', '/flutter.js', '/flutter_bootstrap.js', '/push.js', '/manifest.json'].includes(url.pathname);
   if (request.mode !== 'navigate' && !staticAsset) return;
   const cacheResponse = (key, response) => {
     if (response.ok && response.type !== 'opaque') {

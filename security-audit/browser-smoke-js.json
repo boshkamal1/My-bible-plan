@@ -1,0 +1,11 @@
+{
+  "target": "http://127.0.0.1:8199/",
+  "renderer": "JavaScript CanvasKit fallback",
+  "chapterOpenMs": 207.86619999999994,
+  "prefetchedNextMs": 50.42319999999927,
+  "guestFirebaseDeferred": true,
+  "nextChapterPrefetched": true,
+  "comparisonOpened": true,
+  "cspViolations": [],
+  "pageErrors": []
+}

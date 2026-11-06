@@ -49,3 +49,19 @@ Source commit `8eaddf0` was pushed to GitHub main. After 45 Flutter tests, 14 No
 ## الإصدار 31 — 2026-11-05
 
 التعديلات في commit `19c168d` اترفعت على GitHub، والبناء و18 اختبار Flutter و6 فحوص Node نجحوا. الإصدار `20261105-31` اتنشر على الرئيسي، واتراجع رقم الإصدار وبصمة ملف التطبيق مقابل البناء المحلي. بعدها اتنسخ تلقائيًا للثانوي حسب الـSkill. الموقعين رجعوا HTTP 200 بنفس HTML، وبصمة JavaScript على الثانوي مطابقة للبناء المتختبر. النسخة دي شالت اختيار اليسوعية الجزئي، مع الحفاظ على المكملات وتحويل الإعدادات القديمة. الحسابات وFirestore لسه مشتركين.
+
+
+## 2026-11-06 — release 20261105-32
+
+Published security rules, guarded private-group migration and the optimized Wasm web release. Verified primary reader/comparison, strict CSP, Wasm MIME type and real App Check issuance in monitoring mode. Cloned `mybibleplan:live` to `bible-plan-boshkamal-20261101:live` after primary verification.
+
+Both sites: HTTP 200; release marker `20261105-32`; identical HTML, changed JavaScript and CSP. Verification: `2026-11-06T10:20:36Z`; evidence in `security-audit/hosting-backup-verification.json`.
+
+An independent encrypted Firestore/Auth snapshot was also taken and Firestore restore-tested before migration. It is stored outside the repository and OneDrive; see `DATA-RECOVERY.md`. Hosting still shares Auth/Firestore across the two sites. No billing attachment, paid upgrade or Functions deployment occurred; Firestore App Check remains UNENFORCED.
+
+
+## 2026-11-06 — release 20261106-33
+
+Published the typed Firestore metadata fix after 68 native Flutter tests and a real Wasm-app sync integration on isolated Auth/Firestore emulators (initial sync, remote pull and subsequent local edit; final revision 3; zero production data API requests). Live reader/comparison and plain/encrypted backup round trips passed without CSP violations or runtime errors.
+
+Refreshed the secondary site again using `hosting:clone`. Both sites serve release 33 with identical HTML, JavaScript, WebAssembly and CSP. The exact verification timestamp and hashes are in `security-audit/hosting-backup-verification.json`. This supersedes the release 32 snapshot; the independent encrypted pre-migration data backup remains outside the repository and OneDrive.

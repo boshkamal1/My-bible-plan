@@ -4,6 +4,8 @@ import 'books.dart';
 import 'day_util.dart';
 import 'planner.dart';
 import 'translations.dart';
+import 'setup_validation.dart';
+import 'sync_merge.dart';
 
 /// A portable snapshot of application data, never authentication credentials.
 class DataBackup {
@@ -80,12 +82,91 @@ class DataBackup {
         (!verse || (parts[2]! >= 1 && parts[2]! <= 300));
   }
 
+  /// Validates bounded, legacy-compatible storage before any state mutation.
+  static Map<String, dynamic> normalizeState(Map<String, dynamic> raw,
+      {required Map<String, dynamic> settings}) {
+    if (raw['contentHash'] != null &&
+        (raw['contentHash'] is! String ||
+            raw['contentHash'] != readingHash(raw))) _invalid();
+    // Firestore protocol metadata is not reading data. In particular, updatedAt
+    // is a Timestamp in SDK snapshots and must never enter JSON validation.
+    raw = Map<String, dynamic>.from(raw)
+      ..remove('updatedAt')
+      ..remove('revision')
+      ..remove('syncVersion')
+      ..remove('contentHash');
+    if (raw['snapshot'] != null) {
+      if (raw['snapshot'] is! String ||
+          utf8.encode(raw['snapshot']).length > 700000) _invalid();
+      final decoded = jsonDecode(raw['snapshot']);
+      if (decoded is! Map) _invalid();
+      raw = Map<String, dynamic>.from(decoded);
+    }
+    if (utf8.encode(jsonEncode(raw)).length > maxBytes) _invalid();
+    final out = <String, dynamic>{
+      'done': <String, dynamic>{},
+      'setup': null,
+      't': 0,
+      'hist': <String>[],
+      'delays': <String>[],
+      'pb': <String>[],
+      'plan': null,
+      'notes': <String, dynamic>{},
+      'hl': <String, dynamic>{},
+      'fav': <String>[],
+      'secs': <String, dynamic>{},
+      'badgeDates': <String, dynamic>{},
+      'conflicts': <String, dynamic>{},
+      'groups': <String>[],
+      'settings': settings,
+      ...raw,
+    };
+    out['settings'] = {...settings, ...?raw['settings'] as Map?};
+    if (out['setup'] != null) {
+      final original = out['setup'];
+      if (original is! Map) _invalid();
+      out['setup'] = {
+        'scope': 'ot',
+        'mode': 'seq',
+        'days': 100,
+        'end': null,
+        'selectedBooks': null,
+        'bookOrder': <int>[],
+        'reserveWithinDuration': false,
+        'ot': {'b': -1, 'c': 0, 'p': 0},
+        'nt': {'b': -1, 'c': 0},
+        'skip': <int>[],
+        'first': original['start'],
+        ...original,
+      };
+      validateSetup(out['setup']);
+      // Preserve original assignments when reading a pre-v14 stored journey.
+      if (out['plan'] == null) {
+        final plan = buildPlan(
+            Setup.fromJson(Map<String, dynamic>.from(out['setup'])),
+            legacyEsther: raw['plannerVersion'] == null);
+        out['plan'] =
+            plan.base.map((d) => d.map((c) => c.key).join(',')).toList();
+      } else if (out['plan'] is List) {
+        out['plan'] = (out['plan'] as List)
+            .map((row) => row is List && row.every((v) => v is String)
+                ? row.join(',')
+                : row)
+            .toList();
+      }
+    }
+    _validate(out);
+    return jsonDecode(jsonEncode(out)) as Map<String, dynamic>;
+  }
+
+  static void validateSetup(dynamic setup) => validateSetupMap(setup);
+
   static void _validate(Map<String, dynamic> j) {
     for (final name in ['done', 'notes', 'hl', 'secs', 'badgeDates']) {
-      if (j[name] is! Map) _invalid();
+      if (j[name] is! Map || (j[name] as Map).length > 40000) _invalid();
     }
     for (final name in ['hist', 'delays', 'pb', 'fav', 'groups']) {
-      if (j[name] is! List) _invalid();
+      if (j[name] is! List || (j[name] as List).length > 40000) _invalid();
     }
     if (!_integer(j['t'], 0, 9007199254740991) || j['settings'] is! Map)
       _invalid();
@@ -112,10 +193,72 @@ class DataBackup {
         _invalid();
     }
     for (final entry in (j['badgeDates'] as Map).entries) {
-      if (entry.key is! String || !_date(entry.value, empty: true)) _invalid();
+      if (entry.key is! String ||
+          entry.key.length > 100 ||
+          !_date(entry.value, empty: true)) _invalid();
     }
     if ((j['groups'] as List).any((v) => v is! String || v.length > 200))
       _invalid();
+    final conflicts = j['conflicts'];
+    if (conflicts != null &&
+        (conflicts is! Map ||
+            conflicts.length > 500 ||
+            conflicts.entries.any((e) =>
+                e.key is! String ||
+                e.key.length > 200 ||
+                e.value is! String ||
+                e.value.length > 500000))) _invalid();
+    if (conflicts is Map) {
+      var journeyVersions = 0;
+      for (final entry in conflicts.entries) {
+        final value = entry.value;
+        dynamic record;
+        try {
+          record = jsonDecode(value as String);
+        } catch (_) {
+          _invalid();
+        }
+        if (record is! Map ||
+            !['done', 'notes', 'hl', 'badgeDates', 'journey']
+                .contains(record['field']) ||
+            record['key'] is! String ||
+            record['versions'] is! List ||
+            record['versions'].isEmpty ||
+            record['versions'].length > 100) _invalid();
+        final field = record['field'] as String, key = record['key'] as String;
+        if (entry.key != '$field|$key') _invalid();
+        if (field == 'journey') {
+          if (key != 'plan') _invalid();
+        } else if (field == 'badgeDates') {
+          if (key.length > 100) _invalid();
+        } else if (!_chapter(key, verse: field != 'done')) {
+          _invalid();
+        }
+        for (final alternative in record['versions']) {
+          if (field == 'journey') {
+            if (++journeyVersions > 20 ||
+                alternative is! Map ||
+                !alternative.keys.every((k) =>
+                    ['setup', 'plan', 'delays', 'pb', 'done'].contains(k)) ||
+                !alternative.keys
+                    .toSet()
+                    .containsAll(['setup', 'plan', 'delays', 'pb'])) _invalid();
+            _validate({
+              ...j,
+              ...Map<String, dynamic>.from(alternative),
+              'conflicts': <String, dynamic>{}
+            });
+          } else if (alternative != null) {
+            if (field == 'notes' &&
+                (alternative is! String || alternative.length > 100000))
+              _invalid();
+            if (field == 'hl' && !_integer(alternative, 0, 3)) _invalid();
+            if ((field == 'done' || field == 'badgeDates') &&
+                !_date(alternative, empty: field == 'badgeDates')) _invalid();
+          }
+        }
+      }
+    }
     final settings = j['settings'] as Map;
     if (!['ar', 'en'].contains(settings['lang']) ||
         !(kTranslationIds.contains(settings['tr']) ||
@@ -130,44 +273,15 @@ class DataBackup {
         settings['rem'] is! bool ||
         settings['risk'] is! bool ||
         settings['welcome'] is! bool ||
-        settings['name'] is! String) _invalid();
+        (settings['name'] is! String || settings['name'].length > 100))
+      _invalid();
 
     final setup = j['setup'];
     if (setup == null) {
       if (j['plan'] != null) _invalid();
       return;
     }
-    if (setup is! Map ||
-        !['ot', 'nt', 'all'].contains(setup['scope']) ||
-        !['seq', 'mix'].contains(setup['mode']) ||
-        !_integer(setup['days'], 1, 3650) ||
-        !_date(setup['start']) ||
-        !_date(setup['first']) ||
-        (setup['end'] != null &&
-            (!_date(setup['end']) ||
-                parseDay(setup['end']) - parseDay(setup['start']) < 0 ||
-                parseDay(setup['end']) - parseDay(setup['start']) >= 3650)))
-      _invalid();
-    for (final name in ['skip', 'selectedBooks', 'bookOrder']) {
-      final values = setup[name];
-      if (values == null && name != 'skip') continue;
-      if (values is! List ||
-          values.any((v) => !_integer(v, 0, kBookCount - 1)) ||
-          values.toSet().length != values.length) _invalid();
-    }
-    for (final name in ['ot', 'nt']) {
-      final pointer = setup[name];
-      if (pointer is! Map ||
-          !_integer(pointer['b'], -1, kBookCount - 1) ||
-          !_integer(pointer['c'], 0, 151)) _invalid();
-      if (pointer['b'] != -1 &&
-          (pointer['c'] > kChapters[pointer['b']] ||
-              (name == 'ot' ? pointer['b'] >= 49 : pointer['b'] < 49)))
-        _invalid();
-    }
-    if (!_integer(setup['ot']['p'], 0, 150) ||
-        (setup['reserveWithinDuration'] != null &&
-            setup['reserveWithinDuration'] is! bool)) _invalid();
+    validateSetup(setup);
     final p = buildPlan(Setup.fromJson(Map<String, dynamic>.from(setup)));
     final rows = j['plan'];
     if (rows is! List || rows.length != p.nDays) _invalid();
@@ -176,8 +290,11 @@ class DataBackup {
       if (row is! String) _invalid();
       if (row.isNotEmpty) keys.addAll(row.split(','));
     }
+    final legacyMissingEsther = p.inPlan.contains('48:7') &&
+        !keys.contains('48:7') &&
+        keys.length == p.total - 1;
     if (keys.any((k) => !p.inPlan.contains(k)) ||
         keys.toSet().length != keys.length ||
-        keys.length != p.total) _invalid();
+        (keys.length != p.total && !legacyMissingEsther)) _invalid();
   }
 }

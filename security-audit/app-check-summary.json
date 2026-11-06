@@ -1,0 +1,9 @@
+{
+  "status": 200,
+  "services": [
+    {
+      "name": "projects/765669491597/services/firestore.googleapis.com",
+      "enforcementMode": "UNENFORCED"
+    }
+  ]
+}

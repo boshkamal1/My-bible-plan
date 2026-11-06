@@ -1,0 +1,30 @@
+{
+  "score": 2,
+  "summary": "Rules-only assessment: ownership and role guards held in emulator tests, but the current app group schema is rejected while malformed group plans are accepted; full group setup is readable by any signed-in holder of its code. This is not an overall application security score.",
+  "findings": [
+    {
+      "check": "Business Logic vs. Rules",
+      "severity": "major",
+      "issue": "validSetup rejects current Setup.toJson fields and treats skipped books as weekday IDs, preventing current group creation.",
+      "recommendation": "Align the shared schema and use actual serialized app fixtures for create and update tests."
+    },
+    {
+      "check": "Authority and read privacy",
+      "severity": "moderate",
+      "issue": "Any signed-in user knowing a group code can read the entire group setup, including pending and rejected members, although the UI restricts plan access to approved members.",
+      "recommendation": "Separate join preview metadata from approved-member-only plan documents."
+    },
+    {
+      "check": "Type Safety and bounds",
+      "severity": "moderate",
+      "issue": "Group rules accept nonexistent book pointers and impossible calendar dates. A rule-accepted book pointer breaks client planning.",
+      "recommendation": "Validate actual book/chapter limits and dates server-side and before client rendering."
+    },
+    {
+      "check": "Storage Abuse / Resource Exhaustion",
+      "severity": "minor",
+      "issue": "Document fields and collection entries have bounds, but arbitrary private map values lack per-entry validation and client decoding can fail. No per-user document-count/rate control is shown.",
+      "recommendation": "Validate an entire candidate snapshot before applying it; consider schema migration, monitored App Check rollout and quota/abuse controls."
+    }
+  ]
+}

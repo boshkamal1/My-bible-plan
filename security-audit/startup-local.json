@@ -1,0 +1,190 @@
+{
+  "target": "http://127.0.0.1:8199/",
+  "label": "local",
+  "viewport": "390x844",
+  "cpuSlowdown": 4,
+  "latencyMs": 150,
+  "downloadBytesPerSecond": 200000,
+  "runs": [
+    {
+      "type": "cold",
+      "firstFrameMs": 8556.5,
+      "encodedNetworkBytes": 1501892,
+      "failedRequests": 0,
+      "cspViolations": [],
+      "pageErrors": [],
+      "resources": [
+        {
+          "host": "www.gstatic.com",
+          "path": "/flutter-canvaskit/425cfb54d01a9472b3e81d9e76fd63a4a44cfbcb/skwasm.wasm",
+          "bytes": 1208411
+        },
+        {
+          "host": "accounts.google.com",
+          "path": "/gsi/client",
+          "bytes": 103203
+        },
+        {
+          "host": "fonts.gstatic.com",
+          "path": "/s/notosansarabic/v28/nwpxtLGrOAZMl5nJ_wfgRg3DrWFZWsnVBJ_sS6tlqHHFlhQ5l3sQWIHPqzCfyGyvvnCBFQLaig.woff2",
+          "bytes": 66449
+        },
+        {
+          "host": "fonts.gstatic.com",
+          "path": "/s/roboto/v32/KFOmCnqEu92Fr1Me4GZLCzYlKw.woff2",
+          "bytes": 63498
+        },
+        {
+          "host": "127.0.0.1",
+          "path": "/icons/icon-192.png",
+          "bytes": 20601
+        },
+        {
+          "host": "www.gstatic.com",
+          "path": "/flutter-canvaskit/425cfb54d01a9472b3e81d9e76fd63a4a44cfbcb/skwasm.js",
+          "bytes": 15051
+        },
+        {
+          "host": "127.0.0.1",
+          "path": "/main.dart.mjs",
+          "bytes": 11126
+        },
+        {
+          "host": "127.0.0.1",
+          "path": "/flutter_bootstrap.js",
+          "bytes": 5665
+        },
+        {
+          "host": "127.0.0.1",
+          "path": "/",
+          "bytes": 2527
+        },
+        {
+          "host": "127.0.0.1",
+          "path": "/push.js",
+          "bytes": 2096
+        },
+        {
+          "host": "127.0.0.1",
+          "path": "/app_shell.js",
+          "bytes": 1638
+        },
+        {
+          "host": "127.0.0.1",
+          "path": "/downloads.js",
+          "bytes": 1627
+        },
+        {
+          "host": "127.0.0.1",
+          "path": "/main.dart.wasm",
+          "bytes": 0
+        },
+        {
+          "host": "127.0.0.1",
+          "path": "/assets/FontManifest.json",
+          "bytes": 0
+        },
+        {
+          "host": "127.0.0.1",
+          "path": "/assets/fonts/MaterialIcons-Regular.otf",
+          "bytes": 0
+        },
+        {
+          "host": "127.0.0.1",
+          "path": "/assets/assets/bible/chapters/svd-5-1.json",
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "type": "warm",
+      "firstFrameMs": 646.4000000003725,
+      "encodedNetworkBytes": 0,
+      "failedRequests": 0,
+      "cspViolations": [],
+      "pageErrors": [],
+      "resources": [
+        {
+          "host": "127.0.0.1",
+          "path": "/",
+          "bytes": 0
+        },
+        {
+          "host": "127.0.0.1",
+          "path": "/downloads.js",
+          "bytes": 0
+        },
+        {
+          "host": "127.0.0.1",
+          "path": "/app_shell.js",
+          "bytes": 0
+        },
+        {
+          "host": "127.0.0.1",
+          "path": "/push.js",
+          "bytes": 0
+        },
+        {
+          "host": "127.0.0.1",
+          "path": "/flutter_bootstrap.js",
+          "bytes": 0
+        },
+        {
+          "host": "www.gstatic.com",
+          "path": "/flutter-canvaskit/425cfb54d01a9472b3e81d9e76fd63a4a44cfbcb/skwasm.wasm",
+          "bytes": 0
+        },
+        {
+          "host": "www.gstatic.com",
+          "path": "/flutter-canvaskit/425cfb54d01a9472b3e81d9e76fd63a4a44cfbcb/skwasm.js",
+          "bytes": 0
+        },
+        {
+          "host": "127.0.0.1",
+          "path": "/main.dart.mjs",
+          "bytes": 0
+        },
+        {
+          "host": "127.0.0.1",
+          "path": "/icons/icon-192.png",
+          "bytes": 0
+        },
+        {
+          "host": "127.0.0.1",
+          "path": "/main.dart.wasm",
+          "bytes": 0
+        },
+        {
+          "host": "127.0.0.1",
+          "path": "/assets/FontManifest.json",
+          "bytes": 0
+        },
+        {
+          "host": "127.0.0.1",
+          "path": "/assets/fonts/MaterialIcons-Regular.otf",
+          "bytes": 0
+        },
+        {
+          "host": "fonts.gstatic.com",
+          "path": "/s/roboto/v32/KFOmCnqEu92Fr1Me4GZLCzYlKw.woff2",
+          "bytes": 0
+        },
+        {
+          "host": "accounts.google.com",
+          "path": "/gsi/client",
+          "bytes": 0
+        },
+        {
+          "host": "127.0.0.1",
+          "path": "/assets/assets/bible/chapters/svd-5-1.json",
+          "bytes": 0
+        },
+        {
+          "host": "fonts.gstatic.com",
+          "path": "/s/notosansarabic/v28/nwpxtLGrOAZMl5nJ_wfgRg3DrWFZWsnVBJ_sS6tlqHHFlhQ5l3sQWIHPqzCfyGyvvnCBFQLaig.woff2",
+          "bytes": 0
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "origin": "https://mybibleplan.web.app",
+  "preview": false,
+  "tokenAcquired": true,
+  "signedIn": false,
+  "enforcementMode": "UNENFORCED",
+  "cspViolations": [],
+  "testedAt": "2026-11-06T10:11:28.337Z",
+  "scope": "Real reCAPTCHA/App Check token issuance; no account sign-in or Firestore write."
+}

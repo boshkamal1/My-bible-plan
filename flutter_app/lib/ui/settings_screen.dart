@@ -11,6 +11,7 @@ import 'privacy_screen.dart';
 import 'backup_screen.dart';
 import 'translation_sources_screen.dart';
 import 'theme.dart';
+import 'sync_conflicts_screen.dart';
 
 const bool _webPushReady = bool.fromEnvironment('WEB_PUSH_READY');
 
@@ -44,6 +45,44 @@ class SettingsScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          if (s.dataError != null)
+            Text(gEn
+                ? 'Some saved data could not be opened safely. The original copy was kept.'
+                : 'في بيانات محفوظة ما اتفتحتش بأمان. النسخة الأصلية لسه محفوظة.'),
+          if (s.hasGuestData)
+            Card(
+                child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(children: [
+                      Text(gEn
+                          ? 'Data saved before signing in is kept separately. Move it into this account only if it belongs to you.'
+                          : 'بيانات محفوظة قبل تسجيل الدخول لسه منفصلة. انقلها للحساب ده بس لو هي بياناتك.'),
+                      TextButton(
+                          onPressed: () async {
+                            if (await _confirm(
+                                context,
+                                gEn
+                                    ? 'Move the saved guest journey into this account? Different versions will be kept for review.'
+                                    : 'ننقل رحلة الزائر المحفوظة للحساب ده؟ أي نسخ مختلفة هتتحفظ للمراجعة.')) {
+                              await s.importGuest();
+                            }
+                          },
+                          child: Text(gEn
+                              ? 'Move saved journey'
+                              : 'نقل الرحلة المحفوظة')),
+                    ]))),
+          if (s.syncConflicts.isNotEmpty)
+            ListTile(
+                leading: const Icon(Icons.compare_arrows),
+                title: Text(gEn
+                    ? 'Review saved versions'
+                    : 'مراجعة النسخ المختلفة المحفوظة'),
+                trailing: Text('${s.syncConflicts.length}'),
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => const SyncConflictsScreen()))),
+          if (cl.lastError != null)
+            Text(cl.lastError!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error)),
           _h(tr('language')),
           SegmentedButton<String>(
             segments: [
@@ -195,7 +234,7 @@ class SettingsScreen extends StatelessWidget {
                 FilledButton.tonalIcon(
                   icon: const Icon(Icons.sync),
                   label: Text(tr('syncNow')),
-                  onPressed: cl.busy ? null : () => cl.sync(s),
+                  onPressed: cl.busy ? null : () => cl.sync(s, force: true),
                 ),
                 OutlinedButton(
                   onPressed: cl.signOut,
@@ -238,8 +277,8 @@ class SettingsScreen extends StatelessWidget {
               final ok = await _confirm(
                 context,
                 gEn
-                    ? 'Erase all data on this device?'
-                    : 'هتتمسح كل بيانات الجهاز. متأكد؟',
+                    ? 'Erase this profile’s journey? If signed in, this change will also sync to your other devices.'
+                    : 'نمسح رحلة الملف المفتوح؟ لو مسجل دخول، الحذف هيتزامن مع أجهزتك التانية.',
               );
               if (ok) await s.wipeLocal();
             },
@@ -256,10 +295,19 @@ class SettingsScreen extends StatelessWidget {
   ) async {
     final ok = await _confirm(context, tr('deleteConfirm'));
     if (!ok) return;
-    final err = await cl.deleteAccount(s);
+    String? password;
+    if (cl.user?.providerData.any((p) => p.providerId == 'password') == true) {
+      if (!context.mounted) return;
+      password = await showDialog<String>(
+          context: context, builder: (ctx) => _DeletePasswordDialog());
+      if (password == null) return;
+    }
+    final err = await cl.deleteAccount(s, password: password);
     if (context.mounted) {
       if (err == null) {
         toast(context, tr('ok'));
+      } else if (err == 'deletion-incomplete') {
+        toast(context, cl.lastError ?? 'كرّر حذف الحساب لاستكمال العملية.');
       } else if (err == 'requires-recent-login') {
         toast(
           context,
@@ -312,6 +360,20 @@ class _SignInState extends State<_SignIn> {
   final _p = TextEditingController();
   String? err;
   bool busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<Cloud>().init(context.read<AppState>());
+  }
+
+  @override
+  void dispose() {
+    _p.clear();
+    _e.dispose();
+    _p.dispose();
+    super.dispose();
+  }
 
   Future<void> _run(Future<String?> Function() f) async {
     setState(() {
@@ -395,4 +457,37 @@ class _SignInState extends State<_SignIn> {
       ],
     );
   }
+}
+
+class _DeletePasswordDialog extends StatefulWidget {
+  @override
+  State<_DeletePasswordDialog> createState() => _DeletePasswordDialogState();
+}
+
+class _DeletePasswordDialogState extends State<_DeletePasswordDialog> {
+  final controller = TextEditingController();
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+          title: Text(gEn ? 'Confirm your identity' : 'تأكيد هويتك'),
+          content: TextField(
+              controller: controller,
+              obscureText: true,
+              autofocus: true,
+              decoration: InputDecoration(
+                  labelText: gEn ? 'Current password' : 'كلمة المرور الحالية'),
+              onSubmitted: (value) => Navigator.pop(context, value)),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(tr('cancel'))),
+            FilledButton(
+                onPressed: () => Navigator.pop(context, controller.text),
+                child: Text(gEn ? 'Continue' : 'متابعة'))
+          ]);
 }

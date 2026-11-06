@@ -24,6 +24,12 @@ class _AccountScreenState extends State<AccountScreen> {
   String _t(String ar, String en) => gEn ? en : ar;
 
   @override
+  void initState() {
+    super.initState();
+    context.read<Cloud>().init(context.read<AppState>());
+  }
+
+  @override
   void dispose() {
     _email.dispose();
     _password.dispose();
@@ -147,7 +153,8 @@ class _AccountScreenState extends State<AccountScreen> {
               ),
               const SizedBox(height: 8),
               FilledButton.icon(
-                onPressed: cloud.busy ? null : () => cloud.sync(state),
+                onPressed:
+                    cloud.busy ? null : () => cloud.sync(state, force: true),
                 icon: const Icon(Icons.sync),
                 label: Text(tr('syncNow')),
               ),

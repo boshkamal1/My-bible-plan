@@ -3,8 +3,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const vm=require('node:vm');
 test('browser backup download keeps UTF-8 data, JSON type and chosen filename',async()=>{
- const html=fs.readFileSync('web/index.html','utf8');
- const script=html.match(/<script>([\s\S]*?)<\/script>/)[1];
+ const script=fs.readFileSync('web/downloads.js','utf8');
  let file,clicked=false,removed=false,revoked=false,later;
  const link={click(){clicked=true;},remove(){removed=true;}};
  const context={Blob,URL:{createObjectURL(blob){file=blob;return 'blob:backup';},revokeObjectURL(url){assert.equal(url,'blob:backup');revoked=true;}},

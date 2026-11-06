@@ -11,3 +11,7 @@ flutter_app/tools/tobit.html
 live-index.html
 flutter_app/assets/bible/chapters/*.json
 flutter_app/test_artifacts/
+
+# Raw diagnostics stay local; publish compact sanitized evidence instead.
+security-audit/*.log
+security-audit/*.png

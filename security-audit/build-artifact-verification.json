@@ -1,0 +1,12 @@
+{
+  "release": "20261106-33",
+  "hashes": {
+    "main.dart.js": "7691a36ce37c2a5a818fa3fd35f1d5c3a7850c3f7efcf2f547b12ead2ab5bb50",
+    "main.dart.wasm": "655a1736f69a290afdd9665c14fa9a1a4496796adb5c202e9d1aef389e9d1b4b",
+    "main.dart.mjs": "4dd166e3cf41487124439f67c7f1c5743409be194832082e2e302459b4dcce96",
+    "index.html": "8b4fe7980532d06386169f6d773261e56bb44eac2ae5db252444fb460d634825",
+    "flutter_bootstrap.js": "bdef1ac21f7c5f6d0a240842b04c64c03693faa1e7a937201349b3369b23edda"
+  },
+  "verifiedAt": "2026-11-06T10:54:29.105Z",
+  "source": "Successfully built staging source, with live JS/Wasm hashes verified on both sites"
+}

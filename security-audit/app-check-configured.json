@@ -1,0 +1,13 @@
+{
+  "billingEnabled": false,
+  "provider": "reCAPTCHA Enterprise Essentials",
+  "siteKey": "6Lf-IRIuAAAAAPQXpB_P2jBmN2BhvQlEAn7wv3Ot",
+  "allowedDomains": [
+    "mybibleplan.web.app",
+    "bible-plan-boshkamal-20261101.web.app"
+  ],
+  "tokenTtlSeconds": 86400,
+  "enforcementMode": "UNENFORCED",
+  "freeLimit": "10,000 monthly assessments; requests fail at quota with billing disabled",
+  "updatedAt": "2026-11-05T21:53:52.439Z"
+}
