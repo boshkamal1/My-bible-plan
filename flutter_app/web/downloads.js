@@ -8,11 +8,13 @@ function downloadBibleBackup(text, filename) {
         link.remove();
         setTimeout(() => URL.revokeObjectURL(url), 60000);
       }
-      function downloadProgressImage(data) {
+      function downloadProgressImage(bytes) {
+        const url = URL.createObjectURL(new Blob([bytes], {type: 'image/png'}));
         const link = document.createElement('a');
-        link.href = data;
+        link.href = url;
         link.download = 'bible-plan-progress.png';
         document.body.appendChild(link);
         link.click();
         link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
       }

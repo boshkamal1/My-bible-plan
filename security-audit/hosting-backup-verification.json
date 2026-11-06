@@ -1,29 +1,30 @@
 {
-  "release": "20261106-33",
+  "release": "20261106-34",
+  "verifiedAt": "2026-11-06T12:10:55.097Z",
   "sites": [
     {
       "origin": "https://mybibleplan.web.app",
       "status": 200,
-      "release33": true,
-      "htmlSha256": "8b4fe7980532d06386169f6d773261e56bb44eac2ae5db252444fb460d634825",
+      "release": "20261106-34",
+      "htmlSha256": "10642ed6a0fe14796e0db7904cf8ce37b4c81734b341a31980a1c447ab561a50",
       "assets": {
-        "main.dart.js": "7691a36ce37c2a5a818fa3fd35f1d5c3a7850c3f7efcf2f547b12ead2ab5bb50",
-        "main.dart.wasm": "655a1736f69a290afdd9665c14fa9a1a4496796adb5c202e9d1aef389e9d1b4b"
+        "downloads.js": "6239ce0ee6125f6e263b133f93f1c43f52a813925d73290fb598c90808f8f08d",
+        "main.dart.js": "1ee05b9125e159b06d78ce1c279dce00877ad5f82bdc4503957d478b2e205e26",
+        "main.dart.wasm": "457e16739c7cb3d2b48476d945ab0b1d1c11b3c767c380c9f2ced5b2bdfe6cff"
       },
       "csp": "default-src 'none'; script-src 'self' 'wasm-unsafe-eval' https://www.gstatic.com https://accounts.google.com https://apis.google.com https://www.google.com https://www.recaptcha.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://*.googleusercontent.com; connect-src 'self' blob: https://fonts.gstatic.com https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.firebaseapp.com https://www.google.com https://www.gstatic.com https://recaptcha.google.com https://accounts.google.com https://apis.google.com; frame-src 'self' https://bible-plan-boshkamal-20261101.firebaseapp.com https://www.google.com https://recaptcha.google.com https://accounts.google.com https://apis.google.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; form-action 'self' https://accounts.google.com; manifest-src 'self'; media-src 'self' blob:"
     },
     {
       "origin": "https://bible-plan-boshkamal-20261101.web.app",
       "status": 200,
-      "release33": true,
-      "htmlSha256": "8b4fe7980532d06386169f6d773261e56bb44eac2ae5db252444fb460d634825",
+      "release": "20261106-34",
+      "htmlSha256": "10642ed6a0fe14796e0db7904cf8ce37b4c81734b341a31980a1c447ab561a50",
       "assets": {
-        "main.dart.js": "7691a36ce37c2a5a818fa3fd35f1d5c3a7850c3f7efcf2f547b12ead2ab5bb50",
-        "main.dart.wasm": "655a1736f69a290afdd9665c14fa9a1a4496796adb5c202e9d1aef389e9d1b4b"
+        "downloads.js": "6239ce0ee6125f6e263b133f93f1c43f52a813925d73290fb598c90808f8f08d",
+        "main.dart.js": "1ee05b9125e159b06d78ce1c279dce00877ad5f82bdc4503957d478b2e205e26",
+        "main.dart.wasm": "457e16739c7cb3d2b48476d945ab0b1d1c11b3c767c380c9f2ced5b2bdfe6cff"
       },
       "csp": "default-src 'none'; script-src 'self' 'wasm-unsafe-eval' https://www.gstatic.com https://accounts.google.com https://apis.google.com https://www.google.com https://www.recaptcha.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://*.googleusercontent.com; connect-src 'self' blob: https://fonts.gstatic.com https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.firebaseapp.com https://www.google.com https://www.gstatic.com https://recaptcha.google.com https://accounts.google.com https://apis.google.com; frame-src 'self' https://bible-plan-boshkamal-20261101.firebaseapp.com https://www.google.com https://recaptcha.google.com https://accounts.google.com https://apis.google.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; form-action 'self' https://accounts.google.com; manifest-src 'self'; media-src 'self' blob:"
     }
-  ],
-  "identical": true,
-  "verifiedAt": "2026-11-06T10:54:29.105Z"
+  ]
 }

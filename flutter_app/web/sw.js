@@ -1,4 +1,4 @@
-const CACHE = 'bible-journey-flutter-v33';
+const CACHE = 'bible-journey-flutter-v34';
 const CORE = ['./', 'index.html', 'manifest.json', 'flutter_bootstrap.js', 'app_shell.js', 'firebase_loader.js', 'downloads.js', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-512.png'];
 
 self.addEventListener('push', (event) => {

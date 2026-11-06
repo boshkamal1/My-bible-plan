@@ -23,19 +23,57 @@ class ShareProgressScreen extends StatefulWidget {
 class _ShareProgressScreenState extends State<ShareProgressScreen> {
   final GlobalKey _k = GlobalKey();
   bool busy = false;
+  Uint8List? _preparedImage;
+  Object? _cardVersion;
+  int _captureRevision = 0;
+  bool _preparing = true;
+  bool _captureFailed = false;
+
+  void _prepareImage() {
+    final revision = ++_captureRevision;
+    _preparedImage = null;
+    _preparing = true;
+    _captureFailed = false;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // The first route frame can still be offstage during its entrance.
+      await Future<void>.delayed(const Duration(milliseconds: 350));
+      if (!mounted || revision != _captureRevision) return;
+      try {
+        final png = await _image();
+        if (!mounted || revision != _captureRevision) return;
+        setState(() {
+          _preparedImage = png;
+          _preparing = false;
+        });
+      } catch (_) {
+        if (!mounted || revision != _captureRevision) return;
+        setState(() {
+          _preparing = false;
+          _captureFailed = true;
+        });
+      }
+    });
+  }
 
   Future<Uint8List> _image() async {
     final b = _k.currentContext!.findRenderObject() as RenderRepaintBoundary;
     final img = await b.toImage(pixelRatio: 3);
-    final data = await img.toByteData(format: ui.ImageByteFormat.png);
-    img.dispose();
-    return data!.buffer.asUint8List();
+    try {
+      final data = await img.toByteData(format: ui.ImageByteFormat.png);
+      if (data == null) throw StateError('PNG capture failed');
+      return data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+    } finally {
+      img.dispose();
+    }
   }
 
   Future<void> _share({bool save = false}) async {
+    final png = _preparedImage;
+    if (busy || png == null) return;
     setState(() => busy = true);
     try {
-      final png = await _image();
+      // The PNG is ready before the tap: web download/share retains the user's
+      // activation instead of awaiting asynchronous rasterization first.
       if (save) {
         final path = await saveProgressImage(png);
         if (!kIsWeb && mounted && path != null) {
@@ -57,6 +95,21 @@ class _ShareProgressScreenState extends State<ShareProgressScreen> {
   Widget build(BuildContext context) {
     final s = context.watch<AppState>();
     final st = s.streak;
+    final version = (
+      s.lang,
+      s.hasPlan,
+      s.percent,
+      s.totalDone,
+      s.booksFinished,
+      st.cur,
+      todayNum(),
+      MediaQuery.sizeOf(context).width,
+      MediaQuery.textScalerOf(context).scale(22)
+    );
+    if (_cardVersion != version) {
+      _cardVersion = version;
+      _prepareImage();
+    }
     return Scaffold(
       appBar: AppBar(title: Text(tr('shareProgress'))),
       body: Center(
@@ -133,16 +186,30 @@ class _ShareProgressScreenState extends State<ShareProgressScreen> {
                 ),
               ),
               const SizedBox(height: 20),
+              if (_preparing)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(gEn ? 'Preparing image…' : 'بنجهّز الصورة…'),
+                ),
+              if (_captureFailed)
+                TextButton.icon(
+                  onPressed: () => setState(_prepareImage),
+                  icon: const Icon(Icons.refresh),
+                  label: Text(
+                      gEn ? 'Retry preparing image' : 'جرّب تجهيز الصورة تاني'),
+                ),
               FilledButton.icon(
                 icon: const Icon(Icons.share),
                 label: Text(tr('share')),
-                onPressed: busy ? null : _share,
+                onPressed: busy || _preparedImage == null ? null : _share,
               ),
               const SizedBox(height: 8),
               OutlinedButton.icon(
                 icon: const Icon(Icons.download_outlined),
                 label: Text(gEn ? 'Save image' : 'حفظ الصورة'),
-                onPressed: busy ? null : () => _share(save: true),
+                onPressed: busy || _preparedImage == null
+                    ? null
+                    : () => _share(save: true),
               ),
             ],
           ),

@@ -1,0 +1,13 @@
+{
+  "target": "http://127.0.0.1:8199/?refresh=20261106-34#/?tab=3",
+  "renderer": "JavaScript fallback",
+  "downloaded": true,
+  "filename": "bible-plan-progress.png",
+  "bytes": 340915,
+  "width": 960,
+  "height": 1281,
+  "userActivationPreserved": true,
+  "binaryBlob": true,
+  "pageErrors": [],
+  "scope": "Isolated synthetic guest plan; real pointer tap at 575x532"
+}

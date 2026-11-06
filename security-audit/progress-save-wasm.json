@@ -1,0 +1,13 @@
+{
+  "target": "https://mybibleplan.web.app/?refresh=20261106-34#/?tab=3",
+  "renderer": "WebAssembly",
+  "downloaded": true,
+  "filename": "bible-plan-progress.png",
+  "bytes": 984196,
+  "width": 960,
+  "height": 1281,
+  "userActivationPreserved": true,
+  "binaryBlob": true,
+  "pageErrors": [],
+  "scope": "Isolated synthetic guest plan; real pointer tap at 575x532"
+}

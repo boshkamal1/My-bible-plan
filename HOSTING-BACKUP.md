@@ -65,3 +65,11 @@ An independent encrypted Firestore/Auth snapshot was also taken and Firestore re
 Published the typed Firestore metadata fix after 68 native Flutter tests and a real Wasm-app sync integration on isolated Auth/Firestore emulators (initial sync, remote pull and subsequent local edit; final revision 3; zero production data API requests). Live reader/comparison and plain/encrypted backup round trips passed without CSP violations or runtime errors.
 
 Refreshed the secondary site again using `hosting:clone`. Both sites serve release 33 with identical HTML, JavaScript, WebAssembly and CSP. The exact verification timestamp and hashes are in `security-audit/hosting-backup-verification.json`. This supersedes the release 32 snapshot; the independent encrypted pre-migration data backup remains outside the repository and OneDrive.
+
+## 2026-11-06 — release 20261106-34
+
+Fixed progress-image downloads: prepare the complete PNG after the screen entrance, preserve the user's tap activation and download binary PNG through a Blob URL. Image preparation failures offer a retry. The captured image is refreshed when its progress, language, date or layout changes.
+
+Verified real pointer downloads at 575x532 in Wasm and JavaScript fallback, including a live primary download: valid complete 960x1281 PNG, no runtime errors or CSP violations. All 18 existing UI regression tests and 8 JavaScript checks passed. Analyzer has only the existing 64 informational notices.
+
+Cloned the verified primary release to the secondary Hosting site. Both return HTTP 200 and identical release-34 HTML/CSP, with downloads.js, JavaScript and Wasm hashes matching the tested local build. Evidence: security-audit/progress-save-*.json and hosting-backup-verification.json. No database, account, billing or security-rule changes.
